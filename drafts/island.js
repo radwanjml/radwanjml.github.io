@@ -458,7 +458,7 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
     const s = Math.max(bw / mw, bh / mh);
     W = mw * s; H = mh * s;
     Object.assign(canvas.style, { width: W + 'px', height: H + 'px', left: (bw - W) * px + 'px', top: (bh - H) * py + 'px' });
-    renderer.setPixelRatio(Math.min(devicePixelRatio * zoom, 2, 2600 / W));
+    renderer.setPixelRatio(Math.min(devicePixelRatio * zoom, 1.25, 2600 / W));   // was 2: the plate under it is video; 1.25x reads the same (Addendum 46)
     renderer.setSize(W, H, false);
     if (v !== view) {
       view = v;

@@ -77,10 +77,10 @@ export function initTopo(canvas, { mode = 'dark', reducedMotion = false, scale =
 
   const cur = JSON.parse(JSON.stringify(PALETTE[mode] || PALETTE.dark));
   let target = PALETTE[mode] || PALETTE.dark;
-  let dpr = 1, t = seed, scroll = 0, scaleTarget = scale, last = performance.now(), visible = false, raf = 0;
+  let dpr = 1, paused = false, lastDraw = 0, t = seed, scroll = 0, scaleTarget = scale, last = performance.now(), visible = false, raf = 0;
 
   function size() {
-    dpr = Math.min(devicePixelRatio || 1, 1.5);   // a soft background; 1.5x is plenty
+    dpr = Math.min(devicePixelRatio || 1, 0.75);   // a faint (~25% opacity) background: below 1x is invisible and costs ~4x less than 1.5x (Addendum 46)
     const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     gl.viewport(0, 0, w, h);
@@ -98,16 +98,20 @@ export function initTopo(canvas, { mode = 'dark', reducedMotion = false, scale =
   let settle = 0;   // frames left to finish a colour fade while paused
   function loop() {
     raf = 0;
-    const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now;
+    const now = performance.now();
+    if (now - lastDraw < 1000 / 30 - 2 && settle <= 0) { if (visible && !paused) raf = requestAnimationFrame(loop); return; }   // 30 fps cap: a slow drift needs no more
+    lastDraw = now;
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
     if (!reducedMotion) t += dt * speed;   // slow drift
     draw(dt);
-    if (visible && (!reducedMotion || settle-- > 0)) raf = requestAnimationFrame(loop);
+    if (visible && ((!reducedMotion && !paused) || settle-- > 0)) raf = requestAnimationFrame(loop);
   }
   const kick = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } };
   new ResizeObserver(() => { size(); kick(); }).observe(canvas);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) kick(); }).observe(canvas);
   size(); draw(1);
   return {
+    setPaused(p) { if (paused === p) return; paused = p; if (!p) kick(); },
     setMode(m) { target = PALETTE[m] || PALETTE.dark; settle = 90; kick(); },
     setScroll(y) { scroll = -y; kick(); },
     setScale(s) { scaleTarget = s; settle = 120; kick(); },

@@ -40,7 +40,7 @@ export function initPlate({ stageEl, plateEl, barEl, reducedMotion }) {
     const v = document.createElement('video');
     v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
     v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true');
-    for (const [ext, type] of [['webm', 'video/webm'], ['mp4', 'video/mp4']]) {
+    for (const [ext, type] of [['mp4', 'video/mp4']]) {
       const s = document.createElement('source');
       s.src = src(layer.mode, layer.view, ext); s.type = type;
       v.appendChild(s);

@@ -247,3 +247,5 @@ a, button, .stage, .stage * { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 720px) { .mark svg.rj { width: 46px; height: 29px; } }
 /* phones: glass that sits on the playing island video re-blurs every frame; solid tint instead (Addendum 40) */
 @media (hover: none), (pointer: coarse) { .stage .glass { -webkit-backdrop-filter: none; backdrop-filter: none; --g-tint: rgba(var(--scrim), .78); } }
+/* desktop too (Addendum 46): blur over the playing video + live canvas re-blurs every frame; a denser tint reads the same */
+.stage .glass { -webkit-backdrop-filter: none; backdrop-filter: none; --g-tint: rgba(var(--scrim), .55); }

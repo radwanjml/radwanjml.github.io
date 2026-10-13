@@ -169,7 +169,7 @@ function blob() {
 
 export async function createCharStage(slotEl, { mode = 'dark', radius = 2.4 } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });   // keeps the last frame when off screen (and in full-page captures)
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
   renderer.toneMapping = THREE.AgXToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   slotEl.appendChild(renderer.domElement);

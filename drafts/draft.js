@@ -92,7 +92,9 @@ if (topoEl) import('./topo.js').then(({ initTopo }) => {
   const topo = initTopo(topoEl, { mode: plate.mode, reducedMotion: reduced });
   if (!topo) return;
   plate.onChange((m) => topo.setMode(m));
-  addEventListener('scroll', () => topo.setScroll(scrollY * 0.25), { passive: true });   // the ground moves at 0.25x the page
+  addEventListener('scroll', () => topo.setScroll(scrollY * 0.25), { passive: true });
+  const heroEl = document.querySelector('.hero');   // the opaque hero covers the terrain: don't animate what nobody sees (Addendum 46)
+  if (heroEl) new IntersectionObserver(([e]) => topo.setPaused(e.intersectionRatio > 0.98), { threshold: [0.9, 0.98, 1] }).observe(heroEl);   // the ground moves at 0.25x the page
   const secs = [...document.querySelectorAll('[data-topo]')];
   const pick = () => {   // the section crossing the middle of the screen owns the terrain
     const mid = innerHeight / 2;
@@ -114,7 +116,7 @@ if (nav) { const f = () => nav.classList.toggle('scrolled', scrollY > 40); addEv
 const isles = document.getElementById('isles');
 if (isles) {
   const coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
-  const NS = 'http://www.w3.org/2000/svg', N = coarse ? 56 : 120, TAU = Math.PI * 2, STEP = coarse ? 1 / 24 : 0;   // phones: fewer points, ~24 fps
+  const NS = 'http://www.w3.org/2000/svg', N = coarse ? 56 : 120, TAU = Math.PI * 2, STEP = coarse ? 1 / 24 : 1 / 30;   // phones ~24 fps, desktop 30 (Addendum 46)
   const rnd = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -124,7 +126,7 @@ if (isles) {
     const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '-1.2 -1.2 2.4 2.4'); svg.setAttribute('aria-hidden', 'true');
     const add = (parent, tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); parent.appendChild(e); return e; };
     const defs = add(svg, 'defs', {}); const cp = add(defs, 'clipPath', { id: 'isle' + n }); const clip = add(cp, 'path', {});
-    const shade = coarse ? null : add(svg, 'path', { class: 'shade', transform: 'translate(0 .07)' });   // a blurred path re-rasterised every frame was the main phone cost
+    const shade = null;   // the blurred shadow path re-rasterised every frame on desktop too: dropped (Addendum 46)   // a blurred path re-rasterised every frame was the main phone cost
     const body = el.dataset.img
       ? add(svg, 'image', { href: el.dataset.img, x: -1.1, y: -1.1, width: 2.2, height: 2.2, preserveAspectRatio: 'xMidYMid slice', 'clip-path': `url(#isle${n})` })
       : add(svg, 'path', { class: 'blank' });

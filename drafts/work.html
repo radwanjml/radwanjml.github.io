@@ -288,7 +288,7 @@ function onScroll() {
   drawn.style.strokeDashoffset = (L * (1 - p)).toFixed(1);
   wps.forEach((g, k) => g.classList.toggle('on', k <= on));
 }
-addEventListener('scroll', onScroll, { passive: true }); onScroll();
+let sq = 0; addEventListener('scroll', () => { if (!sq) sq = requestAnimationFrame(() => { sq = 0; onScroll(); }); }, { passive: true }); onScroll();   // one layout read per frame (Addendum 46)
 
 // reveals + phone menu
 const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });

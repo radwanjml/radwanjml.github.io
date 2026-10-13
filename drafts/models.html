@@ -183,7 +183,7 @@ function shapePts(seedN, t) {
 const pathFrom = (pts, scale, cx, cy) => { const p = new Path2D(); pts.forEach(([x, y], k) => (k ? p.lineTo : p.moveTo).call(p, cx + x * scale, cy + y * scale)); p.closePath(); return p; };
 
 // ---- bake tiles ----
-const DPR = Math.min(devicePixelRatio || 1, coarse ? 2 : 2);
+const DPR = Math.min(devicePixelRatio || 1, 1.5);   // was 2: tiles are re-stamped while dragging; 1.5x is sharp enough (Addendum 46)
 const MOTIF = getComputedStyle(root).getPropertyValue('--motif').trim() || '#E8B04A';
 const LIGHT = root.dataset.mode === 'light';
 const TILE = Math.ceil(BASE * 2.6 * DPR);                 // tile canvas size (shape radius 0.9 -> BASE px, plus room for the ring/shadow)
