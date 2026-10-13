@@ -1,0 +1,8 @@
+*.blend
+*.blend1
+*.mov
+*.psd
+_internal/
+node_modules/
+CV_FULL*
+.claude/

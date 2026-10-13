@@ -1,0 +1,60 @@
+{
+  "cam_wide": {
+    "resolution": [
+      2560,
+      1440
+    ],
+    "lens_mm": 40.0,
+    "sensor_width_mm": 36.0,
+    "sensor_fit": "AUTO",
+    "shift_x": -0.15000000596046448,
+    "shift_y": 0.029999999329447746,
+    "position": [
+      4.153670310974121,
+      -28.754901885986328,
+      21.330944061279297
+    ],
+    "quaternion_wxyz": [
+      0.8807967901229858,
+      0.46832799911499023,
+      0.03274868056178093,
+      0.061591312289237976
+    ],
+    "blender_up": "Z",
+    "note": "Blender coords: +Z up, +Y away from the camera's start side. Convert to three.js (y-up) by (x, z, -y).",
+    "depth_png": {
+      "near_m": 18.0,
+      "far_m": 62.0,
+      "encoding": "16-bit grey, value = (distance_from_camera - near) / (far - near)"
+    }
+  },
+  "cam_portrait": {
+    "resolution": [
+      1620,
+      2025
+    ],
+    "lens_mm": 35.0,
+    "sensor_width_mm": 36.0,
+    "sensor_fit": "AUTO",
+    "shift_x": 0.0,
+    "shift_y": 0.12999999523162842,
+    "position": [
+      3.6517062187194824,
+      -25.183238983154297,
+      15.744288444519043
+    ],
+    "quaternion_wxyz": [
+      0.8595302104949951,
+      0.5063021183013916,
+      0.035404104739427567,
+      0.060104213654994965
+    ],
+    "blender_up": "Z",
+    "note": "Blender coords: +Z up, +Y away from the camera's start side. Convert to three.js (y-up) by (x, z, -y).",
+    "depth_png": {
+      "near_m": 18.0,
+      "far_m": 62.0,
+      "encoding": "16-bit grey, value = (distance_from_camera - near) / (far - near)"
+    }
+  }
+}

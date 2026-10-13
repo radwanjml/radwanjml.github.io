@@ -1,0 +1,370 @@
+{
+  "unit": "metres, Blender world space (+Z up)",
+  "character_height_m": {
+    "pip": 1.3,
+    "moobi": 1.3,
+    "eli3": 1.15
+  },
+  "spawn": {
+    "x": 2.2,
+    "y": -3.5,
+    "z": 0.6988630908918583
+  },
+  "plaza": {
+    "x": 0.0,
+    "y": -0.6,
+    "radius": 3.0
+  },
+  "sections": {
+    "work": {
+      "label": "Work",
+      "object": "R1_WorkArch",
+      "x": -1.6,
+      "y": 4.2,
+      "z": 2.4467686134376314,
+      "trigger": {
+        "x": -1.6,
+        "y": 4.2,
+        "radius": 1.1
+      },
+      "closeup_camera": "cam_work"
+    },
+    "lab": {
+      "label": "Lab",
+      "object": "R3_ObservatoryShell",
+      "x": 4.8,
+      "y": 3.4,
+      "z": 2.3321018911266895,
+      "trigger": {
+        "x": 4.8,
+        "y": 3.1999999999999997,
+        "radius": 1.3
+      },
+      "closeup_camera": "cam_lab"
+    },
+    "models": {
+      "label": "Models",
+      "object": "R2_ModelsShrine",
+      "x": -6.0,
+      "y": 2.0,
+      "z": 1.322200538909371,
+      "trigger": {
+        "x": -4.7,
+        "y": 1.5,
+        "radius": 1.0
+      },
+      "closeup_camera": "cam_models"
+    },
+    "about": {
+      "label": "About + Contact",
+      "object": "R4_LanternHut",
+      "x": 6.4,
+      "y": -1.9,
+      "z": 0.7266098421251559,
+      "trigger": {
+        "x": 4.518490669391017,
+        "y": -2.1644288918241243,
+        "radius": 1.0
+      },
+      "closeup_camera": "cam_about"
+    }
+  },
+  "paths": {
+    "main": [
+      [
+        2.2,
+        -3.5
+      ],
+      [
+        0.9,
+        -3.3
+      ],
+      [
+        -0.2,
+        -2.6
+      ],
+      [
+        -1.0,
+        -1.6
+      ],
+      [
+        -1.25,
+        -0.4
+      ],
+      [
+        -1.0,
+        1.2
+      ],
+      [
+        -1.6,
+        2.0
+      ],
+      [
+        -1.6,
+        4.2
+      ]
+    ],
+    "models": [
+      [
+        -1.25,
+        -0.4
+      ],
+      [
+        -2.6,
+        0.5
+      ],
+      [
+        -3.6,
+        1.2
+      ],
+      [
+        -4.2,
+        1.6
+      ]
+    ],
+    "lab": [
+      [
+        -1.0,
+        1.1
+      ],
+      [
+        0.7,
+        1.35
+      ],
+      [
+        2.4,
+        1.55
+      ],
+      [
+        3.5,
+        1.45
+      ],
+      [
+        4.205,
+        1.178
+      ]
+    ],
+    "about": [
+      [
+        2.2,
+        -3.5
+      ],
+      [
+        3.3,
+        -3.0
+      ],
+      [
+        4.32,
+        -2.192
+      ]
+    ]
+  },
+  "ponds": [
+    {
+      "x": -4.8,
+      "y": -2.3,
+      "rx": 2.2,
+      "ry": 1.3
+    },
+    {
+      "x": 3.5,
+      "y": -0.9,
+      "rx": 1.4,
+      "ry": 0.9
+    }
+  ],
+  "island": {
+    "center": [
+      0.0,
+      0.6
+    ],
+    "rx": 8.8,
+    "ry": 6.4,
+    "note": "walkable where edge_ratio<=0.82; edge_ratio = ((x-cx)/rx)^2 + ((y-cy)/(ry*taper(x)))^2, taper(x)=0.8+0.2*clamp((x-cx+rx)/(2*rx)); height: see walk.glb"
+  },
+  "colliders": [
+    {
+      "x": -1.455,
+      "y": -3.888,
+      "r": 0.542,
+      "top": 2.038,
+      "kind": "lantern"
+    },
+    {
+      "x": 0.637,
+      "y": -0.531,
+      "r": 0.44,
+      "top": 2.692,
+      "kind": "lantern"
+    },
+    {
+      "x": -4.738,
+      "y": -0.267,
+      "r": 0.452,
+      "top": 2.183,
+      "kind": "lantern"
+    },
+    {
+      "x": -6.003,
+      "y": 1.998,
+      "r": 0.879,
+      "top": 3.077,
+      "kind": "shrine"
+    },
+    {
+      "x": -7.2,
+      "y": 0.41,
+      "r": 0.535,
+      "top": 1.52,
+      "kind": "rock"
+    },
+    {
+      "x": 2.194,
+      "y": 5.591,
+      "r": 0.436,
+      "top": 3.002,
+      "kind": "rock"
+    },
+    {
+      "x": 0.599,
+      "y": 3.791,
+      "r": 0.355,
+      "top": 2.732,
+      "kind": "rock"
+    },
+    {
+      "x": 5.199,
+      "y": -0.403,
+      "r": 0.357,
+      "top": 1.241,
+      "kind": "rock"
+    },
+    {
+      "x": -5.6,
+      "y": 4.4,
+      "r": 0.35,
+      "top": 4.957,
+      "kind": "tree_trunk"
+    },
+    {
+      "x": 7.55,
+      "y": 1.6,
+      "r": 0.35,
+      "top": 4.522,
+      "kind": "tree_trunk"
+    },
+    {
+      "x": -2.55,
+      "y": 4.2,
+      "r": 0.38,
+      "top": 4.947,
+      "kind": "arch_pillar"
+    },
+    {
+      "x": -0.65,
+      "y": 4.2,
+      "r": 0.38,
+      "top": 4.947,
+      "kind": "arch_pillar"
+    },
+    {
+      "x": 6.684,
+      "y": 2.895,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 6.75,
+      "y": 3.4,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 6.684,
+      "y": 3.905,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 6.489,
+      "y": 4.375,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 6.179,
+      "y": 4.779,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 5.775,
+      "y": 5.089,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 5.305,
+      "y": 5.284,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 4.8,
+      "y": 5.35,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 4.295,
+      "y": 5.284,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 3.825,
+      "y": 5.089,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 3.421,
+      "y": 4.779,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 3.111,
+      "y": 4.375,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 2.916,
+      "y": 3.905,
+      "r": 0.32,
+      "top": 7.063,
+      "kind": "obs_wall"
+    },
+    {
+      "x": 6.747,
+      "y": -1.851,
+      "r": 1.25,
+      "top": 3.527,
+      "kind": "hut"
+    }
+  ],
+  "collider_notes": "Block: colliders (circles), ponds (ellipses, x1.05), island edge (edge_ratio > 0.82). Resolve circles before the edge clamp; push out along the normal. top < 0.35 m may be hopped."
+}
