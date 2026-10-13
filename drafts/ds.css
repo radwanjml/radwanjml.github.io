@@ -129,6 +129,7 @@ a { color: inherit; }
 .dock button:hover { color: var(--text); }
 .dock button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 @media (max-width: 720px) { .dock button span, .dock .label { display: none; } .dock button { padding: 0 11px; } }
+@media (hover: none), (pointer: coarse) { .dock button, .seg button { min-height: 44px; min-width: 44px; justify-content: center; } .seg .tb-pause { width: 44px; } }   /* 44 px touch targets (Addendum 47) */
 
 /* plate layers (shared with js/plate.js) */
 .plate, .plate-layer, .plate-layer > * { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -229,8 +230,8 @@ a, button, .stage, .stage * { -webkit-tap-highlight-color: transparent; }
 /* RJ. logo: the letters with two contour rings around them (masked strokes), accent colour */
 .rj { width: 48px; height: 30px; overflow: visible; flex: none; }
 .rj .rjt { font: italic 400 31px/1 var(--serif); }
-.rj .core { fill: var(--accent); }
-.rj .r1 { fill: none; stroke: var(--accent); opacity: .65; }
+.rj .core { fill: var(--accent); stroke: var(--accent); stroke-width: .9; paint-order: stroke; }   /* thicker letters: the hairline italic smeared at 20 px (Addendum 47) */
+.rj .r1 { fill: none; stroke: var(--accent); opacity: .4; }
 .rj .r2 { fill: none; stroke: var(--accent); opacity: .32; }
 .rj.big { width: 120px; height: 75px; }
 .mark .rj { margin-right: 2px; }
@@ -240,6 +241,7 @@ a, button, .stage, .stage * { -webkit-tap-highlight-color: transparent; }
   -webkit-mask-image: radial-gradient(60% 55% at 50% 50%, transparent 0 18%, #000 70%); mask-image: radial-gradient(60% 55% at 50% 50%, transparent 0 18%, #000 70%); }
 .loader { isolation: isolate; }
 .mark svg.rj { width: 54px; height: 34px; stroke: none; }
+.nav .mark .rj .r2 { display: none; }   /* nav size: one ring only; two rings + letters read as one blur (Addendum 47) */
 .loader svg.rj.big { width: 132px; height: 82px; stroke: none; }
 .loader svg.rj path, .loader svg.rj text { animation: none; stroke-dasharray: none; }
 .loader .rj .r1 { animation: rj-pulse 2.4s var(--ease) infinite; } .loader .rj .r2 { animation: rj-pulse 2.4s var(--ease) .3s infinite; }

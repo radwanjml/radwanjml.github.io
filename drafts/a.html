@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <base href="../">
 <title>Radwan Jameel · Creative technologist, 3D + real-time web</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:title" content="Radwan Jameel · Creative technologist, 3D + real-time web">
+<meta property="og:description" content="3D modelled in Blender, built for the browser with Three.js. Work, models and experiments.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="description" content="I build worlds you can walk into: 3D modelled in Blender, built for the browser with Three.js. Work, models and experiments by Radwan Jameel.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#1E1830">
@@ -273,7 +281,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
   .hint { bottom: 3%; font-size: 11px; white-space: nowrap; }
   .hint .long { display: none; }
   .ruin { left: var(--px); top: var(--py); }
-  .ruin span { font-size: 9px; padding: 5px 7px; }
+  .ruin span { font-size: 11px; padding: 9px 10px; min-height: 40px; display: inline-flex; align-items: center; }   /* was 9 px: unreadable + tiny tap target (Addendum 47) */
   .ruin i { height: 12px; }
   .hero.exploring .stage { height: auto; transform: none; }
   .chars .stagebox { position: relative; top: 0; height: 64vh; }
@@ -295,7 +303,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 (function () {
   var need = { island: !!document.createElement('canvas').getContext('webgl2'), poster: true }, t0 = Date.now();
-  function finish() { var l = document.getElementById('loader'); if (l && !l.classList.contains('done')) setTimeout(function () { if (!location.hash) scrollTo(0, 0); l.classList.add('done'); }, Math.max(0, 500 - (Date.now() - t0))); }
+  function finish() { var l = document.getElementById('loader'); if (l && !l.classList.contains('done')) setTimeout(function () { if (!location.hash) scrollTo(0, 0); l.classList.add('done'); setTimeout(function () { l.style.display = 'none'; }, 1000); }, Math.max(0, 500 - (Date.now() - t0))); }
   window.__loaderDone = finish;
   window.__loaded = function (k) { need[k] = false; if (!need.island && !need.poster) finish(); };
   setTimeout(finish, 6000);

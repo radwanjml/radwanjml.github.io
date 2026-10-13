@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <base href="../">
 <title>Case study · Radwan Jameel</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:title" content="Radwan Jameel · Creative technologist, 3D + real-time web">
+<meta property="og:description" content="3D modelled in Blender, built for the browser with Three.js. Work, models and experiments.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="A case study by Radwan Jameel: real-time 3D for the web.">
 <meta name="robots" content="noindex">
 <script>
 (function () {
@@ -62,6 +71,7 @@ main { position: relative; }
 
 .leg { padding: clamp(70px, 12vh, 140px) 0 0; }
 .leg > .label { display: block; margin-bottom: 18px; color: var(--motif); }
+:root[data-mode="light"] .leg > .label { color: #9A4A22; }   /* the light motif was 2.4:1 on cream (Addendum 47) */
 .leg h2 { font: 400 clamp(40px, 5.4vw, 80px)/.98 var(--serif); margin: 0 0 26px; max-width: 16ch; }
 .leg h2 em { color: var(--accent-text); }
 .leg p a { color: var(--accent-text); text-underline-offset: .2em; }
@@ -215,6 +225,7 @@ const CS = {
 const key = new URLSearchParams(location.search).get('p');
 const D = CS[key] || CS.agit;
 document.title = D.title.replace(/<[^>]+>/g, '') + ' · Radwan Jameel';
+document.querySelector('meta[name=description]').content = D.lede;
 document.getElementById('eyebrow').textContent = D.eyebrow;
 document.getElementById('num').textContent = D.n;
 document.getElementById('title').innerHTML = D.title;
