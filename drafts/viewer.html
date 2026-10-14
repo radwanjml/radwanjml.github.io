@@ -88,6 +88,7 @@ const MODELS = {
 };
 const vp = document.getElementById('vp');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.debug.checkShaderErrors = false;   // Addendum 54: the per-shader status query made the page wait on the GPU (1 s first frame, cold cache)
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 renderer.toneMapping = THREE.AgXToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
 vp.appendChild(renderer.domElement);
@@ -107,6 +108,7 @@ const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, 
 const solidMat = new THREE.MeshMatcapMaterial({ color: 0xd8d4cc });   // like Blender's grey Solid shading
 { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(48, 40, 6, 64, 64, 70); gr.addColorStop(0, '#fff'); gr.addColorStop(.5, '#9a9a9a'); gr.addColorStop(1, '#2a2a2a'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); solidMat.matcap = new THREE.CanvasTexture(c); solidMat.matcap.colorSpace = THREE.SRGBColorSpace; }
 
+globalThis.__meshoptWorkers ||= (MeshoptDecoder.useWorkers?.(2), true);   // Addendum 54: decode GLB geometry off the main thread (load-time microtask bursts in Red's trace)
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const cache = {};
 // Eli3's doodles and face are applied in code on the site (chars.js), not stored in her GLB: same here

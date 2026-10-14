@@ -46,6 +46,7 @@ const GLOW = { transparent: true, depthWrite: false, blending: THREE.CustomBlend
   blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor };
 
 const b2t = (x, y, z) => new THREE.Vector3(x, z, -y);   // Blender (+Z up) -> three (+Y up)
+globalThis.__meshoptWorkers ||= (MeshoptDecoder.useWorkers?.(2), true);   // Addendum 54: decode GLB geometry off the main thread (load-time microtask bursts in Red's trace)
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const getJSON = (f) => fetch(DATA + f).then((r) => r.json());
 const flicker = (t, k) => (k == null ? 1 : 1 + 0.07 * Math.sin(2 * Math.PI * (7 * t + 0.13 * k)) + 0.045 * Math.sin(2 * Math.PI * (17 * t + 0.41 * k))
@@ -256,6 +257,7 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
   const world = makeWorld(L);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.debug.checkShaderErrors = /[?&]sc=1/.test(location.search);   // Addendum 54: off by default; the per-shader status query made the page wait on the GPU (1 s first frame, cold cache). ?sc=1 turns it back on for debugging
   renderer.toneMapping = THREE.AgXToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);

@@ -7,6 +7,7 @@ import { buildPip, buildMoobi } from '../js/rigs.js';
 import { stepVelocity, steerTo, clampToDisc } from '../js/motion.js';
 import { makeWave } from './wave.js';
 
+globalThis.__meshoptWorkers ||= (MeshoptDecoder.useWorkers?.(2), true);   // Addendum 54: decode GLB geometry off the main thread (load-time microtask bursts in Red's trace)
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const texLoader = new THREE.TextureLoader();
 function tex(url) { const t = texLoader.load(url); t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; return t; }
@@ -169,6 +170,7 @@ function blob() {
 
 export async function createCharStage(slotEl, { mode = 'dark', radius = 2.4 } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });   // keeps the last frame when off screen (and in full-page captures)
+  renderer.debug.checkShaderErrors = false;   // Addendum 54: the per-shader status query made the page wait on the GPU (1 s first frame, cold cache)
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
   renderer.toneMapping = THREE.AgXToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
