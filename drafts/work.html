@@ -101,6 +101,7 @@ main { position: relative; }
 #rig { position: absolute; inset: 0; }
 .tryit .stage-label { position: absolute; left: 22px; top: 18px; z-index: 2; color: var(--text-2); }
 .tryit .open-live { position: absolute; right: 18px; bottom: 18px; z-index: 2; }
+@media (max-width: 720px) { .tryit .open-live { top: 12px; bottom: auto; right: 12px; } }   /* phones: clears the character dock (Addendum 48) */
 
 .next { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: var(--gap); margin: clamp(90px, 16vh, 180px) 0 0; padding: 18px; border-radius: 30px; text-decoration: none; color: var(--text); }
 .next img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 20px; display: block; transition: transform 1s var(--ease); }
@@ -128,6 +129,7 @@ footer { margin-top: 90px; border-top: 1px solid var(--line); padding: 26px 0 60
   .next { grid-template-columns: 1fr; }
   .touch .glass { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 }
+.rig-spec{margin:14px 0 0;font-size:14px;line-height:1.55;color:var(--muted,inherit);max-width:70ch}.rig-spec b{font-weight:600;margin-right:6px}
 </style>
 </head>
 <body>
@@ -237,7 +239,7 @@ new IntersectionObserver(([e]) => { if (e.isIntersecting && !reduced) reel.play(
 const WP = [['Brief', '0 m'], ['Built', '120 m'], ['Hard parts', '260 m'], ['Try it', '410 m'], ['Next', '560 m']];
 const legs = document.getElementById('legs');
 const tryHtml = D.try.kind === 'rig'
-  ? `<div class="tryit glass" id="tryit"><span class="label stage-label">Live · <span id="rig-name">Pip</span></span><div id="rig"></div><div class="dock glass" role="group" aria-label="Character" style="position:absolute;left:50%;bottom:18px;translate:-50% 0;z-index:2"><button type="button" data-char="pip" aria-pressed="true">Pip</button><button type="button" data-char="moobi" aria-pressed="false">Moobi</button><button type="button" data-char="eli3" aria-pressed="false">Eli3</button></div><a class="btn open-live" href="${D.try.url}" target="_blank" rel="noopener">${D.try.cta} ↗</a></div>`
+  ? `<div class="tryit glass" id="tryit"><span class="label stage-label">Live · <span id="rig-name">Pip</span></span><div id="rig"></div><div class="dock glass" role="group" aria-label="Character" style="position:absolute;left:50%;bottom:18px;translate:-50% 0;z-index:2"><button type="button" data-char="pip" aria-pressed="true">Pip</button><button type="button" data-char="moobi" aria-pressed="false">Moobi</button><button type="button" data-char="eli3" aria-pressed="false">Eli3</button></div><a class="btn open-live" href="${D.try.url}" target="_blank" rel="noopener">${D.try.cta} ↗</a></div><p class="rig-spec" id="rig-spec" aria-live="polite"></p>`
   : `<div class="tryit glass" id="tryit" style="--poster:url('${D.poster}')"><div class="gate"><b>${D.try.cta}</b><small>${D.try.note}</small>${D.try.kind === 'frame' ? `<button class="btn btn-solid" type="button" id="load">Load the game</button>` : `<a class="btn btn-solid" href="${D.try.url}" target="_blank" rel="noopener">Open ↗</a>`}</div></div>`;
 legs.innerHTML = `
   <section class="leg rv" data-wp="0"><span class="label">Waypoint 01 · ${WP[0][1]}</span><h2>${D.brief[0]}</h2><p>${D.brief[1]}</p><p>${D.brief[2]}</p></section>
@@ -259,6 +261,16 @@ document.getElementById('load')?.addEventListener('click', () => {
 });
 if (D.try.kind === 'rig') {
   const slot = document.getElementById('rig');
+  // moved from the home page (Addendum 48): the models ship as rigid parts, every motion is code
+  const SPEC = {
+    pip: 'Hover ring, body tilt, two antennae and two hands on springs · Blender, 0.4 MB GLB',
+    moobi: 'Wheel roll from distance travelled, bell, ears and arms on springs · Blender, 0.3 MB GLB',
+    eli3: 'Rolling ball, ears and hooves on springs, and a 12-ring trunk that unrolls to wave · Blender, 0.8 MB GLB',
+  };
+  const spec = document.getElementById('rig-spec');
+  const showSpec = (n) => { spec.innerHTML = `<b>Rig</b> ${SPEC[n]}. No bones: driven by body-space velocity, acceleration and yaw rate.`; };
+  showSpec('pip');
+  document.querySelectorAll('#tryit [data-char]').forEach((b) => b.addEventListener('click', () => showSpec(b.dataset.char)));
   new IntersectionObserver(async ([e], io) => {
     if (!e.isIntersecting) return; io.disconnect();
     try {

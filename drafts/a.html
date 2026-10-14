@@ -182,12 +182,19 @@ section + section::before { content: ''; position: absolute; left: 0; right: 0; 
 .copy li::before { content: ''; position: absolute; left: 0; top: .7em; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
 .tags { font: 400 12px/1.6 var(--mono); color: var(--text-3); margin-bottom: 24px; letter-spacing: .04em; }
 
+/* spec sites (Addendum 48) */
+.sites { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 2vw, 24px); }
+.site { display: flex; flex-direction: column; gap: 6px; padding: 10px 10px 20px; border-radius: var(--r); text-decoration: none; transition: translate .5s var(--ease); }
+.site img { width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: calc(var(--r) - 8px); margin-bottom: 10px; }
+.site .label, .site b, .site span:last-child { padding: 0 8px; }
+.site b { font: 400 var(--t-h3)/1.1 var(--serif); }
+.site span:last-child { color: var(--text-3); font-size: 15px; line-height: 1.5; }
+.site:hover { translate: 0 -4px; } .site:hover b { color: var(--accent-text); }
+@media (max-width: 860px) { .sites { grid-template-columns: 1fr; } }
 /* characters: rig + web app */
 .chars { align-items: start; }
 .chars .stagebox { grid-column: 1 / span 7; position: sticky; top: 8vh; height: min(76vh, 720px); border-radius: 28px; overflow: hidden;
   /* glass, see .glass in ds.css */ }
-#char-slot { position: absolute; inset: 0; opacity: 0; transition: opacity .8s var(--ease); }
-#char-slot.ready { opacity: 1; }
 .chars .stagebox .label { position: absolute; left: 22px; top: 20px; z-index: 2; }
 .chars .stagebox .dock { position: absolute; z-index: 2; left: 50%; bottom: 18px; transform: translateX(-50%); }
 .chars .side { grid-column: 9 / span 4; padding-top: 6vh; }
@@ -408,37 +415,22 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
   </article>
 </div></section>
 
-<section id="characters" data-topo="250 .95"><div class="wrap">
-  <div class="grid sec-head rv"><h2 class="serif">Rigged in <em>code</em></h2><p data-touch-text="Modelled in Blender, animated in the browser. Tap or drag on the stage and watch the springs.">Modelled in Blender, animated in the browser. Move your pointer over the stage and watch the springs.</p></div>
-  <div class="grid chars">
-    <div class="stagebox glass liquid rv">
-      <span class="label">Live · <span data-char-name>Pip</span></span>
-      <div id="char-slot"></div>
-      <div class="dock" role="group" aria-label="Character">
-        <button type="button" data-char="pip" aria-pressed="true" aria-label="Pip" title="Pip"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path class="s" d="M9.7 4.6 8.3 2M14.3 4.6 15.7 2M8.4 20.3h7.2"/><path fill-rule="evenodd" d="M12 3.4c3.2 0 5.4 3.4 5.4 7.2 0 3.5-2.4 5.9-5.4 5.9s-5.4-2.4-5.4-5.9c0-3.8 2.2-7.2 5.4-7.2Zm-3.1 7.5c0 1.1 1.4 1.9 3.1 1.9s3.1-.8 3.1-1.9-1.4-2.1-3.1-2.1-3.1 1-3.1 2.1Z"/><circle cx="3.5" cy="12.8" r="1.6"/><circle cx="20.5" cy="12.8" r="1.6"/></svg><span>Pip</span></button>
-        <button type="button" data-char="moobi" aria-pressed="false" aria-label="Moobi" title="Moobi"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path class="s" d="M9.3 6.1 8.6 3.7M14.7 6.1l.7-2.4"/><ellipse cx="4.3" cy="8.6" rx="2.3" ry="1.3" transform="rotate(-22 4.3 8.6)"/><ellipse cx="19.7" cy="8.6" rx="2.3" ry="1.3" transform="rotate(22 19.7 8.6)"/><path fill-rule="evenodd" d="M12 5.6a6.3 6.3 0 1 1 0 12.6 6.3 6.3 0 0 1 0-12.6Zm-3.3 5.6c0 1 1.5 1.7 3.3 1.7s3.3-.7 3.3-1.7-1.5-1.8-3.3-1.8-3.3.8-3.3 1.8Z"/><circle cx="12" cy="21.2" r="1.5"/></svg><span>Moobi</span></button>
-        <button type="button" data-char="eli3" aria-pressed="false" aria-label="Eli3" title="Eli3"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="4.5" cy="9.4" r="3.4"/><circle cx="19.5" cy="9.4" r="3.4"/><path fill-rule="evenodd" d="M12 4.3a5.8 5.8 0 1 1 0 11.6 5.8 5.8 0 0 1 0-11.6Zm-3.2 5.2c0 .9 1.4 1.6 3.2 1.6s3.2-.7 3.2-1.6-1.4-1.6-3.2-1.6-3.2.7-3.2 1.6Z"/><path class="s t" d="M12 15.6v2.6c0 1.9 1.4 2.8 2.9 1.9"/></svg><span>Eli3</span></button>
-      </div>
-    </div>
-    <div class="side rv">
-      <p class="label">The cast of Closer</p>
-      <h3 data-char-name>Pip</h3>
-      <p class="lead">The models ship as rigid parts with no bones. Every motion is code reacting to velocity and acceleration.</p>
-      <dl class="spec" data-spec="pip"><div><dt>Rig</dt><dd>Hover ring, body tilt, two antennae and two hands on springs</dd></div><div><dt>Driven by</dt><dd>Body-space velocity, acceleration and yaw rate</dd></div><div><dt>Model</dt><dd>Blender, 0.4 MB GLB</dd></div></dl>
-      <dl class="spec" data-spec="moobi" hidden><div><dt>Rig</dt><dd>Wheel roll from distance travelled, bell, ears and arms on springs</dd></div><div><dt>Driven by</dt><dd>Body-space velocity, acceleration and yaw rate</dd></div><div><dt>Model</dt><dd>Blender, 0.3 MB GLB</dd></div></dl>
-      <dl class="spec" data-spec="eli3" hidden><div><dt>Rig</dt><dd>Rolling ball, ears and hooves on springs, and a 12-ring trunk that unrolls to wave</dd></div><div><dt>Driven by</dt><dd>Body-space velocity, acceleration and yaw rate</dd></div><div><dt>Model</dt><dd>Blender, 0.8 MB GLB</dd></div></dl>
-      <p style="margin-top:30px"><a class="btn btn-solid" href="drafts/work.html?p=closer">See them in Closer</a></p>
-    </div>
+<section id="models" data-topo="440 .6"><div class="wrap">
+  <div class="grid sec-head rv"><h2 class="serif">Modelled</h2><p>Product and prop renders from Blender. Open the full collection, or <a href="drafts/viewer.html">turn the models in 3D</a>.</p></div>
+  <div class="isles rv" id="isles">
+    <a class="isle" href="drafts/viewer.html?m=perfume" data-img="assets/img/perfume.webp" data-seed="3" style="--x:6%;--y:2%;--w:44%;--ph:0s"><span class="tag glass"><b>JAMEEL perfume</b><small>Glass, liquid, gold foil</small></span></a>
+    <a class="isle" href="drafts/viewer.html?m=headphones" data-img="assets/img/headphones.webp" data-seed="11" style="--x:49%;--y:-2%;--w:34%;--ph:-2.4s"><span class="tag glass"><b>1966 Headphones</b><small>Hard-surface</small></span></a>
+    <a class="isle" href="drafts/models.html" data-img="assets/img/candy.webp" data-seed="7" style="--x:38%;--y:44%;--w:29%;--ph:-4.1s"><span class="tag glass"><b>Candy</b><small>Geometry nodes</small></span></a>
+    <a class="isle more" href="drafts/models.html" data-seed="19" style="--x:69%;--y:50%;--w:18%;--ph:-1.2s"><span class="more-in"><small class="label">More</small><b>All models</b></span></a>
   </div>
 </div></section>
 
-<section id="models" data-topo="440 .6"><div class="wrap">
-  <div class="grid sec-head rv"><h2 class="serif">Modelled</h2><p>Product and prop renders from Blender. Open the full collection.</p></div>
-  <div class="isles rv" id="isles">
-    <a class="isle" href="drafts/models.html" data-img="assets/img/perfume.webp" data-seed="3" style="--x:6%;--y:2%;--w:44%;--ph:0s"><span class="tag glass"><b>JAMEEL perfume</b><small>Glass, liquid, gold foil</small></span></a>
-    <a class="isle" href="drafts/models.html" data-img="assets/img/headphones.webp" data-seed="11" style="--x:49%;--y:-2%;--w:34%;--ph:-2.4s"><span class="tag glass"><b>1966 Headphones</b><small>Hard-surface</small></span></a>
-    <a class="isle" href="drafts/models.html" data-img="assets/img/candy.webp" data-seed="7" style="--x:38%;--y:44%;--w:29%;--ph:-4.1s"><span class="tag glass"><b>Candy</b><small>Geometry nodes</small></span></a>
-    <a class="isle more" href="drafts/models.html" data-seed="19" style="--x:69%;--y:50%;--w:18%;--ph:-1.2s"><span class="more-in"><small class="label">More</small><b>All models</b></span></a>
+<section id="sites" data-topo="380 .7"><div class="wrap">
+  <div class="grid sec-head rv"><h2 class="serif">Spec sites</h2><p>Concept clinic brands, designed and built end to end. Each one live. Opens in a new tab.</p></div>
+  <div class="sites rv">
+    <a class="site glass liquid" href="https://obsidian-dental.netlify.app" target="_blank" rel="noopener"><img src="assets/img/sites/obsidian.webp" alt="Obsidian home page" width="960" height="600" loading="lazy" decoding="async"><span class="label">Riyadh · Dubai</span><b>Obsidian</b><span>Run the cursor across the portrait to reveal the smile underneath</span></a>
+    <a class="site glass liquid" href="https://aurelledental.netlify.app" target="_blank" rel="noopener"><img src="assets/img/sites/aurelle.webp" alt="Aurelle home page" width="960" height="600" loading="lazy" decoding="async"><span class="label">Dubai</span><b>Aurelle</b><span>A calm, editorial site for a private Jumeirah studio</span></a>
+    <a class="site glass liquid" href="https://veloradental.netlify.app" target="_blank" rel="noopener"><img src="assets/img/sites/velora.webp" alt="Velora home page" width="960" height="600" loading="lazy" decoding="async"><span class="label">Dubai</span><b>Velora</b><span>Dark, gold-accented luxury dentistry</span></a>
   </div>
 </div></section>
 

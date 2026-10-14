@@ -209,9 +209,24 @@ export async function createCharStage(slotEl, { mode = 'dark', radius = 2.4 } = 
     return (loaded[name] = { holder, rig, wave: makeWave(gltf.scene, name) });
   }
 
+  // Addendum 48: the first visible frame of a character stalled ~200 ms (shader compile + texture upload on the
+  // main thread). Compile with KHR_parallel_shader_compile then draw it once off screen so its textures upload
+  // at load time, not on the first frame the visitor sees.
+  let busy = 0;
+  async function prep(c) {
+    if (c.ready) return;
+    busy++; c.holder.visible = true;
+    try {
+      await renderer.compileAsync(scene, camera);
+      camera.lookAt(look); renderer.render(scene, camera);   // uploads the GLB's textures now, not on the first frame in view
+      c.ready = true;
+    } finally { busy--; c.holder.visible = c === active; }
+  }
+
   let active = null;
   async function set(name) {
     const c = await load(name);
+    await prep(c);
     if (active) active.holder.visible = false;
     visual.position.set(0, 0, 0);
     c.holder.visible = true; active = c;
@@ -246,7 +261,7 @@ export async function createCharStage(slotEl, { mode = 'dark', radius = 2.4 } = 
   new IntersectionObserver(([e]) => { inView = e.isIntersecting; if (inView && !seen) { seen = true; setTimeout(() => active?.wave.start(), 400); } }, { threshold: 0.5 }).observe(slotEl);   // seen even if the character is still loading, or no switch ever waves
   renderer.setAnimationLoop(() => {
     const now = performance.now(), dt = Math.min((now - last) / 1000, 1 / 20); last = now;
-    if (!inView || !active || dt < 1e-4) return;
+    if (!inView || !active || busy || dt < 1e-4) return;
     t += dt;
     const input = target ? steerTo({ x: slot.position.x, z: slot.position.z }, target, 0.08, 0.9) : { x: 0, z: 0 };
     vel = stepVelocity(vel, input, dt, 2.6);
@@ -293,8 +308,7 @@ export async function createCharStage(slotEl, { mode = 'dark', radius = 2.4 } = 
   // After the first character is up, fetch the others when the page is idle and compile them off screen.
   async function warm(names) {
     for (const n of names) {
-      const c = await load(n);
-      c.holder.visible = true; try { renderer.compile(scene, camera); } finally { c.holder.visible = c === active; }
+      await prep(await load(n));
     }
   }
   return { set, setMode, thumbs, warm, get active() { return active; } };

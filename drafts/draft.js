@@ -31,9 +31,7 @@ document.querySelectorAll('.rv').forEach((el) => io.observe(el));
 const vio = new IntersectionObserver((es) => es.forEach((e) => { const v = e.target; if (e.isIntersecting && !reduced) { v.preload = 'auto'; v.play().catch(() => {}); } else v.pause(); }), { threshold: 0.35 });
 document.querySelectorAll('video.loop').forEach((v) => vio.observe(v));
 
-// characters: one live stage in the Characters section; the hero dock picks the same character
-const slotEl = document.getElementById('char-slot');
-let pick = () => {};
+// characters: the hero dock picks the island's walker (the live rig stage moved to the Closer case study, Addendum 48)
 const pickers = [...document.querySelectorAll('[data-char]')];
 function mark(name) {
   pickers.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.char === name)));
@@ -41,7 +39,7 @@ function mark(name) {
   document.querySelectorAll('[data-spec]').forEach((el) => { el.hidden = el.dataset.spec !== name; });
 }
 let islandApi = null;
-pickers.forEach((b) => b.addEventListener('click', () => { mark(b.dataset.char); pick(b.dataset.char); islandApi?.setCharacter(b.dataset.char); }));
+pickers.forEach((b) => b.addEventListener('click', () => { mark(b.dataset.char); islandApi?.setCharacter(b.dataset.char); }));
 mark('pip');
 
 const hasGL = (() => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } })();
@@ -65,17 +63,6 @@ if (liveEl && hasGL) (async () => {
   if (hint && matchMedia('(hover: none), (pointer: coarse)').matches) hint.textContent = hint.dataset.touch;
   if (hint) { hint.hidden = false; liveEl.addEventListener('pointerup', hideHint, { once: true }); addEventListener('keydown', (e) => { if (/^(Key[WASD]|Arrow)/.test(e.code)) hideHint(); }); }
 })().catch((err) => console.warn('Live layer unavailable, keeping the plate.', err));
-
-(async () => {
-  if (!hasGL) return;
-  const { createCharStage } = await import('./chars.js');
-  const stage = await createCharStage(slotEl, { mode: plate.mode });
-  await stage.set('pip');
-  pick = (n) => stage.set(n);
-  (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => stage.warm(['moobi', 'eli3']).catch(() => {}));
-  plate.onChange((m) => stage.setMode(m));
-  slotEl.classList.add('ready');
-})();
 
 // Draft B: the sticky work index follows the card in view
 const idx = [...document.querySelectorAll('.index a[href^="#w"]')];
