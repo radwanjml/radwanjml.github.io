@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Nodal Network</title>
+<style>
+  :root{ --void:#000; --silver:#c8ccd4; --gold:#e0b062; --dim:#4a4e57; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:var(--void);overflow:hidden}
+  body{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;color:var(--silver);
+       -webkit-font-smoothing:antialiased;touch-action:none}
+  #stage{position:fixed;inset:0}
+  canvas{display:block}
+  #vignette{position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 48%,rgba(0,0,0,0) 38%,rgba(0,0,0,.5) 80%,rgba(0,0,0,.9) 100%)}
+
+  .hud{position:fixed;pointer-events:none;font-size:10px;letter-spacing:.22em;
+       text-transform:uppercase;color:var(--dim);opacity:0;transition:opacity 1.2s ease 1.4s;line-height:1.9}
+  body.ready .hud{opacity:1}
+  #tl{top:22px;left:22px}
+  #tl b{color:var(--silver);font-weight:500}
+  #bl{bottom:22px;left:22px}
+  #bl span{color:var(--gold)}
+  #br{bottom:22px;right:22px;text-align:right}
+
+  #controls{position:fixed;top:18px;right:18px;display:flex;gap:8px;opacity:0;
+            transition:opacity 1.2s ease 1.4s}
+  body.ready #controls{opacity:1}
+  button{font:inherit;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    background:transparent;color:var(--dim);border:1px solid rgba(200,204,212,.16);
+    padding:8px 14px;border-radius:2px;cursor:pointer;transition:color .25s,border-color .25s}
+  button:hover,button:focus-visible{color:var(--gold);border-color:rgba(224,176,98,.5);outline:none}
+
+  /* --- node panel: the empty slot. Copy goes here later. --- */
+  #panel{position:fixed;left:0;right:0;bottom:0;padding:26px 26px 34px;
+    background:linear-gradient(to top,rgba(0,0,0,.94),rgba(0,0,0,.75) 60%,transparent);
+    transform:translateY(105%);transition:transform .6s cubic-bezier(.22,1,.36,1);
+    pointer-events:none}
+  #panel.open{transform:translateY(0);pointer-events:auto}
+  #panel .idx{font-size:10px;letter-spacing:.3em;color:var(--gold);margin-bottom:10px}
+  #panel h2{font-size:19px;font-weight:500;letter-spacing:.01em;margin-bottom:8px;color:#e8eaee}
+  #panel p{font-size:13px;line-height:1.65;color:#7c828e;max-width:44ch}
+  #panel .meta{margin-top:14px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#43474f}
+  #close{position:absolute;top:22px;right:24px;pointer-events:auto}
+  @media(min-width:820px){
+    #panel{left:auto;right:0;top:0;bottom:0;width:340px;padding:0 40px;
+      display:flex;flex-direction:column;justify-content:center;
+      background:linear-gradient(to left,rgba(0,0,0,.92),rgba(0,0,0,.6) 70%,transparent);
+      transform:translateX(105%)}
+    #panel.open{transform:translateX(0)}
+  }
+  @media(max-width:600px){ #br{display:none} #tl,#bl{font-size:9px;letter-spacing:.16em} }
+
+  #boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--void);z-index:10;
+    font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);transition:opacity .8s}
+  #boot.gone{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="vignette"></div>
+
+<div class="hud" id="tl"><b>Nodal Network</b></div>
+<div class="hud" id="bl">Seed <span id="seedout">—</span></div>
+<div class="hud" id="br">Tap a node · Drag to orbit · Drag a selected node</div>
+<div id="controls">
+  <button id="regen">New seed</button>
+  <button id="copy">Copy link</button>
+</div>
+
+<div id="panel">
+  <button id="close">Close</button>
+  <div class="idx" id="p-idx">NODE —</div>
+  <h2 id="p-title">Untitled node</h2>
+  <p id="p-body">Placeholder. Replace with real copy or a link when the content exists.</p>
+  <div class="meta" id="p-meta"></div>
+</div>
+
+<div id="boot">Assembling</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+<!-- Real post-processing: this is the actual gap between "nice" and "$1000 render".
+     Bloom lets light bleed past a node's edge instead of stopping at a hard alpha cutoff,
+     and filmic tone mapping is what gives footage/renders their contrast curve instead of
+     flat linear color. Both are budgeted below rather than skipped on mobile. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" crossorigin="anonymous"></script>
+<script>
+(function(){
+"use strict";
+
+/* ================= CONFIG ================= */
+const MOBILE  = matchMedia("(pointer:coarse)").matches || Math.min(innerWidth,innerHeight) < 700;
+const REDUCED = matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+const CFG = {
+  nodes:     MOBILE ? 90   : 156,
+  dust:      MOBILE ? 1200 : 3000,
+  clusters:  MOBILE ? 5    : 6,
+  hubs:      MOBILE ? 12   : 20,
+  neighbours:MOBILE ? 2    : 3,
+  bridges:   MOBILE ? 8    : 13,
+  hops:      MOBILE ? 1    : 2,     // drag propagation depth
+  fog:       MOBILE ? 0.0150 : 0.0125
+};
+
+/* ================= SEED ================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const params=new URLSearchParams(location.search);
+let SEED=parseInt(params.get("seed"),10);
+if(!Number.isFinite(SEED)) SEED=(Math.random()*1e9)|0;
+const rnd=mulberry32(SEED);
+const rand=(a,b)=>a+(b-a)*rnd();
+const gauss=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+document.getElementById("seedout").textContent=SEED;
+
+/* ================= SCENE ================= */
+const stage=document.getElementById("stage");
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x000000,CFG.fog);
+const camera=new THREE.PerspectiveCamera(46,innerWidth/innerHeight,0.5,400);
+const renderer=new THREE.WebGLRenderer({antialias:!MOBILE,powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.setClearColor(0x000000,1);
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=MOBILE?1.05:1.15;
+stage.appendChild(renderer.domElement);
+const world=new THREE.Group(); scene.add(world);
+
+/* --- bloom: real light bleed instead of a hard-edged sprite halo.
+   Resolution and strength are budgeted down on mobile so it stays smooth,
+   not switched off — this is the render's whole "expensive" quality. */
+const bloomRes = MOBILE
+  ? new THREE.Vector2(innerWidth*0.55, innerHeight*0.55)
+  : new THREE.Vector2(innerWidth, innerHeight);
+const composer=new THREE.EffectComposer(renderer);
+composer.setPixelRatio(Math.min(devicePixelRatio||1, MOBILE?1.5:2));
+composer.addPass(new THREE.RenderPass(scene,camera));
+const bloomPass=new THREE.UnrealBloomPass(bloomRes, MOBILE?0.62:0.95, MOBILE?0.42:0.62, 0.18);
+composer.addPass(bloomPass);
+
+/* ================= GRAPH ================= */
+const R=26;
+const centres=[];
+for(let c=0;c<CFG.clusters;c++){
+  const t=(c+.5)/CFG.clusters, phi=Math.acos(1-2*t), th=Math.PI*(1+Math.sqrt(5))*c;
+  const rr=R*rand(.55,1.0);
+  centres.push(new THREE.Vector3(rr*Math.sin(phi)*Math.cos(th), rr*Math.cos(phi)*.62, rr*Math.sin(phi)*Math.sin(th)));
+}
+const nodes=[];
+for(let i=0;i<CFG.nodes;i++){
+  const ci=i%CFG.clusters, sp=5.2+(ci%2)*2.4;
+  const p=centres[ci].clone().add(new THREE.Vector3(gauss()*sp,gauss()*sp*.72,gauss()*sp));
+  nodes.push({
+    id:i,cluster:ci,home:p.clone(),pos:p.clone(),
+    off:new THREE.Vector3(),vel:new THREE.Vector3(),   // physics offset from home
+    scatter:p.clone().multiplyScalar(rand(2.4,4.2)).add(new THREE.Vector3(gauss()*14,gauss()*14,gauss()*14)),
+    deg:0,hub:false,adj:[],
+    phase:rnd()*Math.PI*2, bob:rand(.25,.6),
+    act:0,          // wave activation 0..1
+    fired:-99,      // last fire time
+    sel:0, hov:0    // selection / hover blend
+  });
+}
+const edgeSet=new Set(), edges=[];
+function addEdge(a,b){ if(a===b)return;
+  const k=a<b?a+":"+b:b+":"+a; if(edgeSet.has(k))return;
+  edgeSet.add(k); edges.push([a,b]);
+  nodes[a].deg++; nodes[b].deg++;
+  nodes[a].adj.push(b); nodes[b].adj.push(a);
+}
+for(const n of nodes){
+  const peers=nodes.filter(m=>m.cluster===n.cluster&&m.id!==n.id)
+    .map(m=>({id:m.id,d:m.home.distanceToSquared(n.home)})).sort((x,y)=>x.d-y.d);
+  for(let k=0;k<Math.min(CFG.neighbours,peers.length);k++) addEdge(n.id,peers[k].id);
+}
+const byDeg=[...nodes].sort((a,b)=>b.deg-a.deg); const per={}; let hc=0;
+for(const n of byDeg){ if(hc>=CFG.hubs)break;
+  const c=per[n.cluster]||0; if(c>=Math.ceil(CFG.hubs/CFG.clusters))continue;
+  n.hub=true; per[n.cluster]=c+1; hc++; }
+const hubs=nodes.filter(n=>n.hub);
+for(let b=0;b<CFG.bridges;b++){
+  const a=hubs[(rnd()*hubs.length)|0];
+  const cand=hubs.filter(h=>h.cluster!==a.cluster); if(!cand.length)break;
+  addEdge(a.id,cand[(rnd()*cand.length)|0].id);
+}
+// rest lengths for the drag springs
+const restLen=edges.map(e=>nodes[e[0]].home.distanceTo(nodes[e[1]].home));
+
+const maxDeg=Math.max(...nodes.map(n=>n.deg),1);
+for(const n of nodes){
+  const t=n.deg/maxDeg;
+  n.base = n.hub ? 9.5+t*7.0 : 3.0+t*3.4;   // point size in world-ish units
+}
+
+/* ================= NODE POINTS (round, GPU-sized) =================
+   Geometry meshes at 8px read as polygons — squares and octagons.
+   A point shader with a circular falloff is round at every size and cheaper. */
+const N=nodes.length;
+const nPos=new Float32Array(N*3), nSize=new Float32Array(N),
+      nCol=new Float32Array(N*3), nAlpha=new Float32Array(N), nCore=new Float32Array(N);
+
+const nodeGeo=new THREE.BufferGeometry();
+nodeGeo.setAttribute("position",new THREE.BufferAttribute(nPos,3));
+nodeGeo.setAttribute("aSize",new THREE.BufferAttribute(nSize,1));
+nodeGeo.setAttribute("aColor",new THREE.BufferAttribute(nCol,3));
+nodeGeo.setAttribute("aAlpha",new THREE.BufferAttribute(nAlpha,1));
+nodeGeo.setAttribute("aCore",new THREE.BufferAttribute(nCore,1));
+
+const nodeMat=new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+  uniforms:{
+    uPix:{value:renderer.getPixelRatio()}, uH:{value:innerHeight},
+    uFogDensity:{value:CFG.fog}
+  },
+  vertexShader:`
+    attribute float aSize; attribute vec3 aColor; attribute float aAlpha; attribute float aCore;
+    varying vec3 vC; varying float vA; varying float vCore; varying float vFog;
+    uniform float uPix; uniform float uH;
+    void main(){
+      vC=aColor; vA=aAlpha; vCore=aCore;
+      vec4 mv=modelViewMatrix*vec4(position,1.0);
+      vFog=-mv.z;
+      gl_PointSize = aSize * uPix * (uH*0.5) / max(-mv.z,0.001);
+      gl_Position = projectionMatrix*mv;
+    }`,
+  fragmentShader:`
+    varying vec3 vC; varying float vA; varying float vCore; varying float vFog;
+    uniform float uFogDensity;
+    void main(){
+      float d=length(gl_PointCoord-vec2(0.5))*2.0;
+      if(d>1.0) discard;
+      // tight solid core + soft halo, blended by vCore (brightness of the node)
+      // halo pulled back from the earlier version — real bloom below now supplies
+      // the light spread, so the shader only needs a tight, well-defined core.
+      float core = smoothstep(0.46+0.16*(1.0-vCore),0.0,d);
+      float halo = pow(1.0-d,2.6);
+      float a = (core*1.05 + halo*0.26) * vA;
+      float f = exp(-uFogDensity*uFogDensity*vFog*vFog);
+      // pushed above 1.0 at high vCore so lit/selected nodes actually cross the
+      // bloom luminance threshold — this is what makes selection visibly "ignite"
+      gl_FragColor = vec4(vC*(0.55+1.25*vCore), a*f);
+    }`,
+  fog:false
+});
+const nodePoints=new THREE.Points(nodeGeo,nodeMat);
+nodePoints.frustumCulled=false;
+world.add(nodePoints);
+
+/* ================= EDGES ================= */
+const ePos=new Float32Array(edges.length*6), eCol=new Float32Array(edges.length*6);
+const edgeGeo=new THREE.BufferGeometry();
+edgeGeo.setAttribute("position",new THREE.BufferAttribute(ePos,3));
+edgeGeo.setAttribute("color",new THREE.BufferAttribute(eCol,3));
+const edgeMesh=new THREE.LineSegments(edgeGeo,new THREE.LineBasicMaterial({
+  vertexColors:true,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false}));
+world.add(edgeMesh);
+
+/* ================= DUST ================= */
+const dPos=new Float32Array(CFG.dust*3);
+for(let i=0;i<CFG.dust;i++){
+  const r=R*rand(1.15,3.6), th=rnd()*Math.PI*2, ph=Math.acos(rand(-1,1));
+  dPos.set([r*Math.sin(ph)*Math.cos(th), r*Math.cos(ph)*.55, r*Math.sin(ph)*Math.sin(th)],i*3);
+}
+const dustGeo=new THREE.BufferGeometry();
+dustGeo.setAttribute("position",new THREE.BufferAttribute(dPos,3));
+const dust=new THREE.Points(dustGeo,new THREE.PointsMaterial({
+  color:0x9aa1ae,size:MOBILE?.30:.24,sizeAttenuation:true,transparent:true,
+  opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:true}));
+world.add(dust);
+
+/* ================= CAMERA RIG ================= */
+const cam={az:rand(0,Math.PI*2),pol:1.28,dist:96,
+  tAz:0,tPol:1.22,tDist:MOBILE?82:68, minDist:26,maxDist:118,minPol:.42,maxPol:2.32};
+cam.tAz=cam.az;
+const target=new THREE.Vector3(), tTarget=new THREE.Vector3();
+let userActive=false, idleAt=performance.now();
+function touched(){userActive=true; idleAt=performance.now();}
+
+/* ================= WAVE ================= *
+ * Breathing: a hub fires, the pulse walks the graph hop by hop, decaying.
+ * Nodes brighten and grow with activation; edges carry the travelling light. */
+const wave=[];                 // scheduled firings {id, at, power}
+let nextWave=1200;
+function seedWave(now){
+  const h=hubs[(rnd()*hubs.length)|0];
+  wave.push({id:h.id,at:now,power:1.0});
+  nextWave = now + rand(2200,4200);
+}
+function fire(n,power,now){
+  if(now - n.fired < 900) return;
+  n.fired=now;
+  n.act=Math.max(n.act,power);
+  if(power<0.16) return;
+  for(const a of n.adj){
+    wave.push({id:a,at:now+rand(150,260),power:power*rand(0.62,0.78)});
+  }
+}
+
+/* ================= PHYSICS (drag) ================= */
+let physicsAwake=false, dragNode=null, dragSet=new Set();
+const K_HOME=0.055, K_EDGE=0.030, DAMP=0.86, SETTLE=0.0016;
+function hopSet(id,hops){
+  const s=new Set([id]); let f=[id];
+  for(let h=0;h<hops;h++){ const nf=[];
+    for(const i of f) for(const a of nodes[i].adj) if(!s.has(a)){s.add(a);nf.push(a);}
+    f=nf; }
+  return s;
+}
+function stepPhysics(){
+  if(!physicsAwake) return;
+  for(let i=0;i<edges.length;i++){
+    const [a,b]=edges[i];
+    if(!dragSet.has(a)&&!dragSet.has(b)) continue;
+    const A=nodes[a],B=nodes[b];
+    const dx=(B.home.x+B.off.x)-(A.home.x+A.off.x),
+          dy=(B.home.y+B.off.y)-(A.home.y+A.off.y),
+          dz=(B.home.z+B.off.z)-(A.home.z+A.off.z);
+    const d=Math.hypot(dx,dy,dz)||1e-4;
+    const f=(d-restLen[i])*K_EDGE/d;
+    if(A!==dragNode){A.vel.x+=dx*f;A.vel.y+=dy*f;A.vel.z+=dz*f;}
+    if(B!==dragNode){B.vel.x-=dx*f;B.vel.y-=dy*f;B.vel.z-=dz*f;}
+  }
+  let max=0;
+  for(const id of dragSet){
+    const n=nodes[id];
+    if(n===dragNode){n.vel.set(0,0,0);continue;}
+    n.vel.addScaledVector(n.off,-K_HOME);
+    n.vel.multiplyScalar(DAMP);
+    n.off.add(n.vel);
+    max=Math.max(max,n.vel.lengthSq()+n.off.lengthSq()*0.02);
+  }
+  if(!dragNode && max<SETTLE){                 // hard settle — no infinite jitter
+    for(const id of dragSet){nodes[id].off.set(0,0,0);nodes[id].vel.set(0,0,0);}
+    physicsAwake=false; dragSet.clear();
+  }
+}
+
+/* ================= INTERACTION ================= */
+const el=renderer.domElement;
+const screen=new THREE.Vector3();
+let hoverId=-1, selId=-1;
+let mode=null, px=0, py=0, downAt=0, moved=0, pinch=0;
+
+function project(n){
+  screen.copy(n.pos).applyMatrix4(world.matrixWorld).project(camera);
+  return { x:(screen.x*.5+.5)*innerWidth, y:(-screen.y*.5+.5)*innerHeight, z:screen.z };
+}
+function pick(cx,cy){
+  let best=-1,bd=1e9;
+  const rad = MOBILE?38:26;
+  for(const n of nodes){
+    const s=project(n); if(s.z>1) continue;
+    const d=Math.hypot(s.x-cx,s.y-cy);
+    const r=rad*(n.hub?1.35:1);
+    if(d<r && d<bd){bd=d;best=n.id;}
+  }
+  return best;
+}
+
+el.addEventListener("pointerdown",e=>{
+  px=e.clientX; py=e.clientY; downAt=performance.now(); moved=0;
+  el.setPointerCapture(e.pointerId); touched();
+  // Touch conflict resolution: you can only drag a node that is already selected.
+  // Long-press is too slow and nobody discovers it.
+  const hit=pick(e.clientX,e.clientY);
+  if(hit>=0 && hit===selId){
+    mode="node"; dragNode=nodes[hit];
+    dragSet=hopSet(hit,CFG.hops); physicsAwake=true;
+  } else mode="orbit";
+});
+el.addEventListener("pointermove",e=>{
+  if(!MOBILE && !mode){ hoverId=pick(e.clientX,e.clientY);
+    el.style.cursor = hoverId>=0 ? "pointer" : "grab"; }
+  if(!mode) return;
+  const dx=e.clientX-px, dy=e.clientY-py;
+  moved+=Math.abs(dx)+Math.abs(dy);
+  if(mode==="orbit"){
+    cam.tAz+=dx*0.0052; cam.tPol-=dy*0.0044;
+    cam.tPol=Math.max(cam.minPol,Math.min(cam.maxPol,cam.tPol));
+  }else if(mode==="node"&&dragNode){
+    // move in the camera plane, scaled by distance so it tracks the finger
+    const right=new THREE.Vector3(), up=new THREE.Vector3();
+    camera.matrixWorld.extractBasis(right,up,new THREE.Vector3());
+    const k=cam.dist*0.0016;
+    dragNode.off.addScaledVector(right, dx*k).addScaledVector(up,-dy*k);
+    if(dragNode.off.length()>9) dragNode.off.setLength(9);
+  }
+  px=e.clientX; py=e.clientY; touched();
+});
+function release(e){
+  if(mode==="orbit" && moved<8 && performance.now()-downAt<450){
+    const hit=pick(px,py);
+    if(hit>=0) select(hit); else select(-1);
+  }
+  mode=null; dragNode=null;
+}
+addEventListener("pointerup",release);
+addEventListener("pointercancel",()=>{mode=null;dragNode=null;});
+el.addEventListener("wheel",e=>{e.preventDefault();
+  cam.tDist=Math.max(cam.minDist,Math.min(cam.maxDist,cam.tDist+e.deltaY*0.055)); touched();
+},{passive:false});
+el.addEventListener("touchmove",e=>{
+  if(e.touches.length!==2)return;
+  const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                     e.touches[0].clientY-e.touches[1].clientY);
+  if(pinch) cam.tDist=Math.max(cam.minDist,Math.min(cam.maxDist,cam.tDist+(pinch-d)*0.14));
+  pinch=d; mode=null; touched();
+},{passive:true});
+addEventListener("touchend",()=>pinch=0);
+
+/* --- selection: camera eases in, focal plane racks to the node --- */
+const panel=document.getElementById("panel");
+function select(id){
+  selId=id;
+  if(id<0){
+    panel.classList.remove("open");
+    tTarget.set(0,0,0); cam.tDist=MOBILE?82:68;
+    return;
+  }
+  const n=nodes[id];
+  tTarget.copy(n.home);
+  cam.tDist=Math.max(cam.minDist, MOBILE?42:34);
+  document.getElementById("p-idx").textContent="NODE "+String(id).padStart(3,"0");
+  document.getElementById("p-title").textContent = n.hub ? "Hub node" : "Leaf node";
+  document.getElementById("p-body").textContent =
+    "Placeholder. This slot takes a title, a short line of copy, and a link.";
+  document.getElementById("p-meta").textContent =
+    (n.hub?"Hub":"Leaf")+" · Cluster "+String.fromCharCode(65+n.cluster)+" · "+n.deg+" connections";
+  panel.classList.add("open");
+  fire(n,1.0,performance.now());
+}
+document.getElementById("close").addEventListener("click",()=>select(-1));
+addEventListener("keydown",e=>{ if(e.key==="Escape") select(-1); });
+
+/* ================= ENTRY ================= */
+const START=performance.now(), ENTRY=REDUCED?1:2400;
+const easeOut=t=>1-Math.pow(1-t,3);
+edgeGeo.setDrawRange(0,0);
+let ready=false;
+function markReady(){ if(ready)return; ready=true;
+  document.body.classList.add("ready");
+  document.getElementById("boot").classList.add("gone"); }
+
+/* ================= LOOP ================= */
+let visible=true;
+new IntersectionObserver(en=>visible=en[0].isIntersecting,{threshold:.01}).observe(el);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)idleAt=performance.now();});
+
+const SIL=[0.784,0.800,0.831], GLD=[1.00,0.760,0.400];
+const camPos=new THREE.Vector3(), tmp=new THREE.Vector3();
+
+function frame(now){
+  requestAnimationFrame(frame);
+  if(!visible||document.hidden) return;
+
+  const t=(now-START)/1000;
+  const en=Math.min(1,(now-START)/ENTRY), e=easeOut(en);
+  if(en>=0.35) markReady();
+
+  /* --- wave scheduling --- */
+  if(!REDUCED && en>0.9){
+    if(now-START>nextWave) seedWave(now);
+    for(let i=wave.length-1;i>=0;i--){
+      if(wave[i].at<=now){ fire(nodes[wave[i].id],wave[i].power,now); wave.splice(i,1); }
+    }
+  }
+
+  /* --- idle auto-orbit --- */
+  const idleFor=(now-idleAt)/1000;
+  if(!mode && (!userActive||idleFor>6) && !REDUCED){
+    const ramp=userActive?Math.min(1,(idleFor-6)/3):1;
+    cam.tAz+=0.00042*ramp;
+    cam.tPol+=Math.sin(t*.11)*0.00013*ramp;
+    cam.tPol=Math.max(cam.minPol,Math.min(cam.maxPol,cam.tPol));
+  }
+
+  cam.az+=(cam.tAz-cam.az)*.075;
+  cam.pol+=(cam.tPol-cam.pol)*.075;
+  cam.dist+=((en<1?96+(cam.tDist-96)*e:cam.tDist)-cam.dist)*.06;
+  target.lerp(tTarget,0.06);
+
+  camera.position.set(
+    target.x+cam.dist*Math.sin(cam.pol)*Math.cos(cam.az),
+    target.y+cam.dist*Math.cos(cam.pol),
+    target.z+cam.dist*Math.sin(cam.pol)*Math.sin(cam.az));
+  camera.lookAt(target);
+
+  world.rotation.y=REDUCED?0:Math.sin(t*.055)*.05;
+  world.rotation.x=REDUCED?0:Math.cos(t*.041)*.028;
+  dust.rotation.y=REDUCED?0:-t*.006;
+  world.updateMatrixWorld();
+
+  stepPhysics();
+
+  /* --- rack focus: distance from the focal plane dims and softens --- */
+  camPos.copy(camera.position);
+  const focusD = selId>=0 ? camPos.distanceTo(nodes[selId].pos) : cam.dist;
+  const depth  = selId>=0 ? 26 : 92;   // shallow when focused, wide when idle
+
+  for(const n of nodes){
+    n.act*=REDUCED?0:0.982;
+    n.hov+=(((!MOBILE&&hoverId===n.id)?1:0)-n.hov)*0.18;
+    n.sel+=(((selId===n.id)?1:0)-n.sel)*0.10;
+
+    if(en<1) n.pos.lerpVectors(n.scatter,n.home,e);
+    else{
+      tmp.copy(n.home).add(n.off);
+      if(!REDUCED){
+        tmp.y+=Math.sin(t*n.bob+n.phase)*0.34;
+        tmp.x+=Math.cos(t*n.bob*.8+n.phase)*0.22;
+      }
+      n.pos.copy(tmp);
+    }
+    nPos.set([n.pos.x,n.pos.y,n.pos.z],n.id*3);
+
+    // brightness: wave < hover < selected. Only the selected node is fully lit.
+    const lit=Math.min(1, n.act*0.72 + n.hov*0.55 + n.sel*1.0);
+    const grow=1 + n.act*0.55 + n.hov*0.35 + n.sel*0.9;
+    nSize[n.id]=n.base*grow*(0.35+0.65*e);
+
+    const g=Math.min(1, n.sel*1.0 + n.act*0.5 + (n.hub?0.55:0.0));
+    nCol[n.id*3  ]=SIL[0]+(GLD[0]-SIL[0])*g;
+    nCol[n.id*3+1]=SIL[1]+(GLD[1]-SIL[1])*g;
+    nCol[n.id*3+2]=SIL[2]+(GLD[2]-SIL[2])*g;
+
+    const dz=Math.abs(camPos.distanceTo(n.pos)-focusD);
+    const blur=Math.min(1,dz/depth);
+    nCore[n.id]=Math.min(1,(n.hub?0.42:0.26)+lit*0.85)*(1-blur*0.55);
+    nAlpha[n.id]=e*(0.30+0.70*Math.min(1,(n.hub?0.6:0.34)+lit))*(1-blur*0.62);
+  }
+  nodeGeo.attributes.position.needsUpdate=true;
+  nodeGeo.attributes.aSize.needsUpdate=true;
+  nodeGeo.attributes.aColor.needsUpdate=true;
+  nodeGeo.attributes.aAlpha.needsUpdate=true;
+  nodeGeo.attributes.aCore.needsUpdate=true;
+
+  /* --- edges carry the travelling light --- */
+  for(let i=0;i<edges.length;i++){
+    const A=nodes[edges[i][0]], B=nodes[edges[i][1]];
+    ePos.set([A.pos.x,A.pos.y,A.pos.z,B.pos.x,B.pos.y,B.pos.z],i*6);
+    const bridge=A.cluster!==B.cluster;
+    const near = selId>=0 ? ((A.id===selId||B.id===selId)?1:0) : 0;
+    const bA=(bridge?0.34:0.20)+A.act*0.75+near*0.6;
+    const bB=(bridge?0.34:0.20)+B.act*0.75+near*0.6;
+    const gA=Math.min(1,(bridge?0.6:0.15)+A.act*0.8+near), gB=Math.min(1,(bridge?0.6:0.15)+B.act*0.8+near);
+    eCol[i*6  ]=(SIL[0]+(GLD[0]-SIL[0])*gA)*bA;
+    eCol[i*6+1]=(SIL[1]+(GLD[1]-SIL[1])*gA)*bA;
+    eCol[i*6+2]=(SIL[2]+(GLD[2]-SIL[2])*gA)*bA;
+    eCol[i*6+3]=(SIL[0]+(GLD[0]-SIL[0])*gB)*bB;
+    eCol[i*6+4]=(SIL[1]+(GLD[1]-SIL[1])*gB)*bB;
+    eCol[i*6+5]=(SIL[2]+(GLD[2]-SIL[2])*gB)*bB;
+  }
+  edgeGeo.attributes.position.needsUpdate=true;
+  edgeGeo.attributes.color.needsUpdate=true;
+  edgeGeo.computeBoundingSphere();
+  edgeGeo.setDrawRange(0,Math.floor(edges.length*2*Math.min(1,Math.max(0,(en-.28)/.72))));
+  edgeMesh.material.opacity=0.85*e;
+
+  composer.render();
+}
+requestAnimationFrame(frame);
+
+/* ================= RESIZE / CONTROLS ================= */
+let rt;
+addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+  composer.setSize(innerWidth,innerHeight);
+  const bw=MOBILE?innerWidth*0.55:innerWidth, bh=MOBILE?innerHeight*0.55:innerHeight;
+  bloomPass.resolution.set(bw,bh);
+  nodeMat.uniforms.uH.value=innerHeight;
+},120);});
+document.getElementById("regen").addEventListener("click",()=>{
+  location.search="?seed="+((Math.random()*1e9)|0); });
+document.getElementById("copy").addEventListener("click",async ev=>{
+  try{ await navigator.clipboard.writeText(location.origin+location.pathname+"?seed="+SEED);}catch(_){}
+  const b=ev.currentTarget,w=b.textContent; b.textContent="Copied";
+  setTimeout(()=>b.textContent=w,1400); });
+
+})();
+</script>
+</body>
+</html>

@@ -130,6 +130,7 @@ footer { margin-top: 90px; border-top: 1px solid var(--line); padding: 26px 0 60
   .touch .glass { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 }
 .rig-spec{margin:14px 0 0;font-size:14px;line-height:1.55;color:var(--muted,inherit);max-width:70ch}.rig-spec b{font-weight:600;margin-right:6px}
+.builds{margin-top:22px;display:grid;gap:0;border-top:1px solid var(--line)}.builds .label{margin:14px 0 4px}.builds a{display:grid;grid-template-columns:minmax(9em,auto) 1fr auto;gap:16px;align-items:baseline;padding:14px 0;min-height:44px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text)}.builds a::after{content:'97';color:var(--accent-text)}.builds b{font:400 20px/1.2 var(--serif)}.builds span{color:var(--text-3);font-size:14px}@media(max-width:600px){.builds a{grid-template-columns:1fr auto}.builds span{grid-column:1}}
 </style>
 </head>
 <body>
@@ -186,6 +187,13 @@ const CS = {
       ['Keeping the old site’s search ranking', 'A redesign that changes every URL throws away years of search history.', 'Kept the existing URL structure and wrote a 301 map for every page that moved.', 'The concept could replace the live site with every inbound link still working.'],
       ['A hero that explains the curriculum', 'Four qualifications read as four separate lists, but the units actually overlap.', 'Built “The Lattice”, a WebGL graph where shared units link the qualifications, plus three other heroes to compare.', 'Four hero concepts on one estate: Dice, Lattice, Deep Field, Light Box.'],
       ['A page-weight budget', 'Rich heroes against a 200 KB budget.', 'The dice hero uses no libraries at all; its art was compressed from 17 MB to 169 KB of WebP.', 'Dice ~1.4× the budget; the WebGL heroes 3.6×, documented with a fix path.'],
+    ],
+    builds: [   // Addendum 49: titles from each live site
+      ['agit-tibr.netlify.app', 'V5 · the estate', 'Twelve pages, one design system'],
+      ['agit-5-tibr.netlify.app', 'Three directions', 'Three directions for one hero'],
+      ['agit-3-tibr.netlify.app', 'V3', 'Course costs answered on the page'],
+      ['agit-2-tibr.netlify.app', 'V2', 'IT, cyber security and civil design courses'],
+      ['agit-1-tibr.netlify.app', 'V1', 'The first build'],
     ],
     try: { kind: 'link', url: 'https://agit-tibr.netlify.app', cta: 'Open the live estate', note: 'Opens in a new tab · the site does not allow embedding' },
     nextNote: 'A self-initiated concept, not client work. All five builds stay live; the full estate is the strongest of them.',
@@ -247,7 +255,7 @@ legs.innerHTML = `
     <div class="stats">${D.stats.map(([b, t]) => `<div class="stat glass"><b>${b}</b><span>${t}</span></div>`).join('')}</div></section>
   <section class="leg rv" data-wp="2"><span class="label">Waypoint 03 · ${WP[2][1]}</span><h2>The <em>hard</em> parts</h2>
     <div class="cards">${D.hard.map(([h, p, d, r]) => `<article class="card glass"><h3>${h}</h3><dl><dt>Problem</dt><dd>${p}</dd><dt>Decision</dt><dd>${d}</dd><dt>Result</dt><dd><strong>${r}</strong></dd></dl></article>`).join('')}</div></section>
-  <section class="leg rv" data-wp="3"><span class="label">Waypoint 04 · ${WP[3][1]}</span><h2>Try <em>it</em></h2>${tryHtml}</section>
+  <section class="leg rv" data-wp="3"><span class="label">Waypoint 04 · ${WP[3][1]}</span><h2>Try <em>it</em></h2>${tryHtml}${D.builds ? `<div class="builds"><p class="label">All five builds, live</p>${D.builds.map(([u, t, n]) => `<a href="https://${u}" target="_blank" rel="noopener"><b>${t}</b><span>${n}</span></a>`).join('')}</div>` : ''}</section>
   <section class="leg rv" data-wp="4"><span class="label">Waypoint 05 · ${WP[4][1]}</span><h2>What’s <em>next</em></h2><p>${D.nextNote}</p></section>`;
 
 const N = CS[D.next];
