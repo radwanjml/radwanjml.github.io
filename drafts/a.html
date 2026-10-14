@@ -180,6 +180,7 @@ section + section::before { content: ''; position: absolute; left: 0; right: 0; 
 .sec-head p { grid-column: 9 / span 4; color: var(--text-2); padding-bottom: .6em; }
 
 .row { align-items: center; row-gap: 28px; margin-bottom: clamp(96px, 14vh, 170px); }
+.row:last-child { margin-bottom: 0; }   /* it stacked on the next section's padding: Work -> next was ~100 px looser than every other gap (Addendum 60) */
 .row .media { grid-column: 1 / span 7; margin: 0; border-radius: var(--r); overflow: hidden; background: #0f0820; }
 .row .media video { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
 .row .copy { grid-column: 9 / span 4; }
@@ -237,7 +238,7 @@ section + section::before { content: ''; position: absolute; left: 0; right: 0; 
 .lab b { font: 400 var(--t-h3)/1 var(--serif); }
 .lab span:last-child { color: var(--text-3); font-size: 15px; }
 
-.about { padding-bottom: 140px; }
+.about { padding-bottom: 110px; }
 .about h2 { grid-column: 4 / span 8; font-size: var(--t-h1); }
 .about .links { grid-column: 4 / span 8; display: flex; flex-wrap: wrap; gap: 14px 34px; margin-top: 48px; font-size: 19px; }
 .about .links a { text-decoration-color: var(--accent); text-underline-offset: .25em; }
@@ -308,6 +309,13 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
   .bento { grid-auto-rows: 240px; }
   .t1 { grid-row: span 2; }
   .lab a { grid-template-columns: 2.6em 1fr; } .lab span:last-child { grid-column: 2; }
+}
+/* Addendum 60: phones had 135 px between sections (16% of the screen per gap); tighter rhythm, same on every section */
+@media (max-width: 860px), (max-aspect-ratio: 4/5) {
+  section { padding-top: clamp(80px, 11vh, 110px); }
+  section + section::before { height: clamp(80px, 11vh, 110px); }
+  .row { margin-bottom: 72px; } .row:last-child { margin-bottom: 0; }
+  .about { padding-bottom: 88px; }
 }
 </style>
 </head>
@@ -429,7 +437,7 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
 </div></section>
 
 <section id="characters" data-topo="250 .95"><div class="wrap">
-  <div class="grid sec-head rv"><h2 class="serif">Rigged in <em>code</em></h2><p data-touch-text="Modelled in Blender, animated in the browser. Tap or drag on the stage and watch the springs.">Modelled in Blender, animated in the browser. Move your pointer over the stage and watch the springs.</p></div>
+  <div class="grid sec-head rv"><h2 class="serif">Moved by <em>code</em></h2><p data-touch-text="Modelled in Blender, animated in the browser. Tap or drag on the stage and watch the springs.">Modelled in Blender, animated in the browser. Move your pointer over the stage and watch the springs.</p></div>
   <div class="grid chars">
     <div class="stagebox glass liquid rv">
       <span class="label">Live · <span data-char-name>Pip</span></span>
