@@ -3,8 +3,8 @@
 export const R = [
   ['perfume', 'JAMEEL perfume'], ['1966-headphones', '1966 Headphones'], ['wine', 'Wine pour'], ['snow-glode-paris', 'Snow globe, Paris'],
   ['potion', 'Potion'], ['zerene-cosmatics', 'Vitamin C serum'], ['milk-carton', 'Milk carton'], ['candy-geometry-nodes', 'Candy, geometry nodes'],
-  ['statue-bust', 'Statue bust'], ['skull-on-fire', 'Skull on fire'], ['rocket', 'Rocket'], ['cosmetics', 'Magnolia strawberry perfume'],
-  ['topographic-map', 'Topographic map'], ['smily-clip', 'Smiley clip'], ['jwellery', 'Silver ring'], ['statue-flake', 'Statue flake'],
+  ['statue-bust', 'Statue bust', 'Rendered in Blender'], ['skull-on-fire', 'Skull on fire', 'Rendered in Blender'], ['rocket', 'Rocket'], ['cosmetics', 'Magnolia strawberry perfume'],
+  ['topographic-map', 'Topographic map'], ['smily-clip', 'Smiley clip'], ['jwellery', 'Silver ring'], ['statue-flake', 'Statue flake', 'Rendered in Blender'],
   ['car-gls-600', 'Mercedes-Maybach GLS 600', 'Fan render · vehicle design © Mercedes-Benz · personal study, not affiliated'],
   ['baymax', 'Baymax', 'Fan art · Baymax © Disney · personal study, not affiliated'],
   ['doc-ock-robot-arms', 'Doc Ock robot arms', 'Fan art · Doctor Octopus © Marvel · personal study, not affiliated'],
@@ -14,7 +14,7 @@ export const R = [
   ['color-swatch-fans', 'Colour swatch fan'], ['color-swatch-fan-batom-outono', 'Swatch fan, Batom Outono'], ['cotton-candy-hand-moisturizer', 'Cotton candy hand cream'],
   ['asabco-motor-oil', 'Motor oil bottle'], ['geodesic-dome', 'Geodesic dome'], ['cappadocia', 'Cappadocia'], ['hot-air-baloon', 'Hot air balloon'],
   ['armored-warior-under-a-cherry-blossom', 'Warrior under a cherry blossom'], ['hotel-elevation-3d-model', 'Hotel elevation'], ['diwali-roof-top', 'Diwali rooftop'],
-  ['road-car-drive', 'Night drive'], ['surfer', 'Surfer'],
+  ['road-car-drive', 'Night drive', 'Fan render · vehicle design © Ford · personal study, not affiliated'], ['surfer', 'Surfer'],
 ];
 
 // Per-model extras. video: assets/video/models/<slug>.mp4 (+ .webp poster). glb: id in the 3D viewer.

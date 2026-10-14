@@ -55,11 +55,11 @@ body { touch-action: none; }
 @media (max-width: 720px) { .credit { display: none; } }
 .head p { margin: 0; font: 500 11px/1.5 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
 
-.lb { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 90px var(--pad) 40px; background: rgba(var(--scrim), .55);
+.lb { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 86px var(--pad) 24px; background: rgba(var(--scrim), .55);
   -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2); opacity: 0; visibility: hidden; transition: opacity .45s var(--ease), visibility 0s .45s; }
 .lb.open { opacity: 1; visibility: visible; transition-delay: 0s; }
 .lb figure { margin: 0; display: grid; gap: 14px; justify-items: center; max-height: 100%; }
-.lb img { max-width: min(92vw, 1100px); max-height: calc(100svh - 220px); border-radius: 22px; box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); transform: scale(.94); transition: transform .6s var(--ease); }
+.lb img { max-width: min(92vw, 1100px); max-height: calc(100svh - 330px); border-radius: 22px; box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); transform: scale(.94); transition: transform .6s var(--ease); }
 .lb.open img { transform: none; }
 .lb img { transition: transform .6s var(--ease), filter .5s var(--ease); } .lb img.soft { filter: blur(6px) saturate(.9); }
 .lb figcaption em { display: block; margin-top: 6px; font: 500 11px/1 var(--mono); font-style: normal; letter-spacing: .1em; color: var(--text-3); }
@@ -71,6 +71,7 @@ body { touch-action: none; }
 @media (max-width: 720px) { .lb .nav-b { top: auto; bottom: 26px; translate: none; } .head h1 { font-size: 26px; } .name { font-size: 15px; } }
 .lb .more { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent-text); text-decoration: none; }
 .lb .more:hover { text-decoration: underline; }
+@media (max-width: 720px) { .lb { padding-bottom: 92px; } .lb img { max-height: calc(100svh - 400px); } }   /* phones: arrows sit below the caption, not on it (Addendum 52) */
 </style>
 </head>
 <body>
