@@ -76,7 +76,15 @@ export function initPlate({ stageEl, plateEl, barEl, reducedMotion }) {
       v.playbackRate = Math.abs(d) < 0.02 ? 1 : 1 + Math.max(-0.08, Math.min(0.08, d * 0.5));
     };
     v.addEventListener('loadeddata', align, { once: true });
-    v.addEventListener('playing', () => { v.classList.add('playing'); layer.onReady?.(); v.addEventListener('timeupdate', nudge); }, { once: true });
+    // check the gap on the first real frames before fading in: a never-fetched video can start late after play()
+    let shownOnce = false;
+    const onPlaying = () => {
+      if (shownOnce) return;
+      if (shouldPlay() && live() && Math.abs(drift()) > 0.05 && tries <= 4) { align(); return; }   // re-aim; 'playing' fires again
+      shownOnce = true;
+      v.classList.add('playing'); layer.onReady?.(); v.addEventListener('timeupdate', nudge);
+    };
+    v.addEventListener('playing', onPlaying);
     // paused by the visitor: still show the synced frame rather than the poster's frame 1
     v.addEventListener('seeked', () => { if (!shouldPlay()) { v.classList.add('playing'); layer.onReady?.(); } }, { once: true });
     layer.el.appendChild(v);
