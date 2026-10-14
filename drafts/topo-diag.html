@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- Addendum 62: phone-only seam diagnostics. Not linked from the site. Renders the live topo shader in variants. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Topo diagnostics</title>
+<style>
+  body { margin: 0; background: #0a0d1a; color: #cfe0ff; font: 14px/1.4 ui-monospace, monospace; }
+  pre { margin: 0; padding: 12px 16px; white-space: pre-wrap; word-break: break-all; }
+  figure { margin: 0 0 6px; } figcaption { padding: 6px 16px; background: #1a2340; font-weight: bold; }
+  canvas { display: block; width: 100%; height: 300px; }
+</style></head><body>
+<pre id="info">loading…</pre>
+<div id="out"></div>
+<script type="module">
+import { FRAG } from './topo.js?diag';
+const NIGHT = { low: [0.03, 0.05, 0.12], mid: [0.10, 0.17, 0.33], high: [0.25, 0.40, 0.62], line: [0.70, 0.86, 1.0] };
+const NOISE_OLD = 'vec2 i = floor(p), f = fract(p);';
+const V = [
+  ['A  live shader, dpr 0.75 (as on site)', s => s, 0.75],
+  ['B  relief shading OFF', s => s.replace('col *= 0.55 + 0.6 * lit;', ''), 0.75],
+  ['C  cell index wrapped mod 289', s => s.replace(NOISE_OLD, 'vec2 i = mod(floor(p), 289.0), f = fract(p);'), 0.75],
+  ['D  full resolution (dpr = device)', s => s, 99],
+  ['E  B + C + D together', s => s.replace('col *= 0.55 + 0.6 * lit;', '').replace(NOISE_OLD, 'vec2 i = mod(floor(p), 289.0), f = fract(p);'), 99],
+  ['F  mediump forced (should look worse)', s => s.replace('precision highp float;', 'precision mediump float;'), 0.75],
+];
+const info = [];
+{
+  const gl = document.createElement('canvas').getContext('webgl');
+  const f = (t, p) => { const r = gl.getShaderPrecisionFormat(t, p); return `range ${r.rangeMin}/${r.rangeMax} precision ${r.precision}`; };
+  const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+  info.push('GPU: ' + (dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)));
+  info.push('frag highp:   ' + f(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT));
+  info.push('frag mediump: ' + f(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT));
+  info.push('devicePixelRatio: ' + devicePixelRatio + '   viewport: ' + innerWidth + '×' + innerHeight);
+  info.push('UA: ' + navigator.userAgent);
+}
+document.getElementById('info').textContent = info.join('\n');
+for (const [label, edit, maxDpr] of V) {
+  const fig = document.createElement('figure'), cap = document.createElement('figcaption'), cv = document.createElement('canvas');
+  cap.textContent = label; fig.append(cap, cv); document.getElementById('out').append(fig);
+  try {
+    const dpr = Math.min(devicePixelRatio, maxDpr);
+    cv.width = Math.round(cv.clientWidth * dpr); cv.height = Math.round(cv.clientHeight * dpr);
+    const gl = cv.getContext('webgl', { antialias: false }); gl.getExtension('OES_standard_derivatives');
+    const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const pr = gl.createProgram();
+    gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }'));
+    gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, edit(FRAG))); gl.linkProgram(pr); gl.useProgram(pr);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    const U = n => gl.getUniformLocation(pr, n);
+    gl.viewport(0, 0, cv.width, cv.height);
+    gl.uniform2f(U('uRes'), cv.width, cv.height); gl.uniform1f(U('uTime'), 7.0); gl.uniform1f(U('uDpr'), dpr);
+    gl.uniform1f(U('uScale'), 360); gl.uniform1f(U('uScroll'), 0); gl.uniform1f(U('uVariety'), 0); gl.uniform1f(U('uInk'), 0);
+    gl.uniform3fv(U('uLow'), NIGHT.low); gl.uniform3fv(U('uMid'), NIGHT.mid); gl.uniform3fv(U('uHigh'), NIGHT.high); gl.uniform3fv(U('uLine'), NIGHT.line);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    cap.textContent += `   [${cv.width}×${cv.height}]`;
+  } catch (e) { cap.textContent += '   ERROR: ' + e.message; }
+}
+</script></body></html>

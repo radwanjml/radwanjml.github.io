@@ -9,7 +9,7 @@ const PALETTE = {   // basin, slope, crest, line  (linear-ish sRGB 0..1)
   night: { low: [0.03, 0.05, 0.12], mid: [0.10, 0.17, 0.33], high: [0.25, 0.40, 0.62], line: [0.70, 0.86, 1.0] },   // deep sea / moonlit
 };
 
-const FRAG = `#extension GL_OES_standard_derivatives : enable
+export const FRAG = `#extension GL_OES_standard_derivatives : enable
 precision highp float;
 uniform vec2 uRes; uniform float uTime, uDpr, uScale, uScroll, uVariety;
 uniform vec3 uLow, uMid, uHigh, uLine; uniform float uInk;   // uInk 1 = printed-map lines (light mode), 0 = glowing lines
