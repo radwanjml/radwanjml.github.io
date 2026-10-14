@@ -115,8 +115,11 @@ export function initPlate({ stageEl, plateEl, barEl, reducedMotion }) {
       shown = true;
       requestAnimationFrame(() => el.classList.add('on'));
       clearTimeout(pending);
+      // drop only the layers OLDER than this one. Addendum 66: dropping every other layer also removed a newer
+      // layer still syncing after a quick second click (dusk then night), and its later fade-in landed on a
+      // detached element: no plate at all.
       pending = setTimeout(() => {
-        [...plateEl.children].forEach((c) => { if (c !== el) dropLayer({ el: c, video: c.querySelector('video') }); });
+        for (const c of [...plateEl.children]) { if (c === el) break; dropLayer({ el: c, video: c.querySelector('video') }); }
       }, fade ? FADE_MS + 100 : 0);
     };
     if (!fade) el.style.transition = 'none';
