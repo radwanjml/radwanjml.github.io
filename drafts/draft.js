@@ -34,15 +34,21 @@ document.querySelectorAll('video.loop').forEach((v) => vio.observe(v));
 const warmV = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting && !reduced) { const v = e.target; if (v.readyState === 0 && v.paused) { v.preload = 'auto'; v.load(); } warmV.unobserve(v); } }), { rootMargin: '400px 0px' });
 document.querySelectorAll('video.loop').forEach((v) => warmV.observe(v));
 
-// characters: the hero dock picks the island's walker (the live rig stage moved to the Closer case study, Addendum 48)
+// characters: one live stage in the Characters section; the hero dock picks the same character (stage back on home, Addendum 59:
+// it now builds only when scrolled near, and shaders/textures warm before the first visible frame, Addendum 48)
+const slotEl = document.getElementById('char-slot');
+let pick = () => {};
+const RIG_URL = { pip: 'https://closer-pip.netlify.app', moobi: 'https://closer-mlkshk.netlify.app', eli3: 'https://closer-eli3.netlify.app' };
 const pickers = [...document.querySelectorAll('[data-char]')];
 function mark(name) {
   pickers.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.char === name)));
   document.querySelectorAll('[data-char-name]').forEach((el) => { el.textContent = NAMES[name]; });
   document.querySelectorAll('[data-spec]').forEach((el) => { el.hidden = el.dataset.spec !== name; });
+  document.querySelectorAll('[data-rig-link]').forEach((a) => { a.href = RIG_URL[name]; });
+  document.querySelectorAll('[data-card-label]').forEach((el) => { el.textContent = `${NAMES[name]}'s character card`; });
 }
 let islandApi = null;
-pickers.forEach((b) => b.addEventListener('click', () => { mark(b.dataset.char); islandApi?.setCharacter(b.dataset.char); }));
+pickers.forEach((b) => b.addEventListener('click', () => { mark(b.dataset.char); pick(b.dataset.char); islandApi?.setCharacter(b.dataset.char); }));
 mark('pip');
 
 const hasGL = (() => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } })();
@@ -69,6 +75,18 @@ if (liveEl && hasGL) (async () => {
   if (hint && matchMedia('(hover: none), (pointer: coarse)').matches) hint.textContent = hint.dataset.touch;
   if (hint) { hint.hidden = false; liveEl.addEventListener('pointerup', hideHint, { once: true }); addEventListener('keydown', (e) => { if (/^(Key[WASD]|Arrow)/.test(e.code)) hideHint(); }); }
 })().catch((err) => console.warn('Live layer unavailable, keeping the plate.', err));
+
+if (slotEl && hasGL) new IntersectionObserver(async ([e], io) => {
+  if (!e.isIntersecting) return; io.disconnect();
+  const { createCharStage } = await import('./chars.js');
+  const stage = await createCharStage(slotEl, { mode: plate.mode });
+  const first = document.querySelector('[data-char][aria-pressed="true"]')?.dataset.char || 'pip';
+  await stage.set(first);
+  pick = (n) => stage.set(n);
+  (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => stage.warm(['pip', 'moobi', 'eli3'].filter((n) => n !== first)).catch(() => {}));
+  plate.onChange((m) => stage.setMode(m));
+  slotEl.classList.add('ready');
+}, { rootMargin: '600px 0px' }).observe(slotEl);
 
 // Draft B: the sticky work index follows the card in view
 const idx = [...document.querySelectorAll('.index a[href^="#w"]')];

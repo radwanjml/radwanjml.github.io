@@ -13,7 +13,9 @@ const FRAG = `#extension GL_OES_standard_derivatives : enable
 precision highp float;
 uniform vec2 uRes; uniform float uTime, uDpr, uScale, uScroll, uVariety;
 uniform vec3 uLow, uMid, uHigh, uLine; uniform float uInk;   // uInk 1 = printed-map lines (light mode), 0 = glowing lines
-float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+// sin-free hash (Dave Hoskins): fract(sin(x)*43758) loses precision on phone GPUs and the relief shading turned the
+// mismatched noise cells into visible seams (Red's phone, Addendum 59)
+float hash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
 float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 3; i++) { s += a * noise(p); p = p * 2.02 + 17.3; a *= 0.5; } return s; }
@@ -61,7 +63,7 @@ void main(){
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-export function initTopo(canvas, { mode = 'dark', reducedMotion = false, scale = 360, seed = 7.0, speed = 0.3, variety = 0 } = {}) {
+export function initTopo(canvas, { mode = 'dark', reducedMotion = false, scale = 360, seed = 7.0, speed = 0.3, variety = 0, maxDpr = 0.75 } = {}) {
   const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
   if (!gl || !gl.getExtension('OES_standard_derivatives')) return null;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
@@ -80,7 +82,7 @@ export function initTopo(canvas, { mode = 'dark', reducedMotion = false, scale =
   let dpr = 1, paused = false, lastDraw = 0, t = seed, scroll = 0, scaleTarget = scale, last = performance.now(), visible = false, raf = 0;
 
   function size() {
-    dpr = Math.min(devicePixelRatio || 1, 0.75);   // a faint (~25% opacity) background: below 1x is invisible and costs ~4x less than 1.5x (Addendum 46)
+    dpr = Math.min(devicePixelRatio || 1, maxDpr);   // maxDpr: the short-lived loader asks for more (Addendum 59)   // a faint (~25% opacity) background: below 1x is invisible and costs ~4x less than 1.5x (Addendum 46)
     const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     gl.viewport(0, 0, w, h);

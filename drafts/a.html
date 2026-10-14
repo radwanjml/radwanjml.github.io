@@ -42,7 +42,7 @@
 import { initTopo } from './drafts/topo.js';
 const c = document.getElementById('loader-topo');
 if (c && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const t = initTopo(c, { mode: document.documentElement.dataset.mode, scale: 300, seed: 41, speed: 0.6, variety: 1 });
+  const t = initTopo(c, { mode: document.documentElement.dataset.mode, scale: 300, seed: 41, speed: 0.6, variety: 1, maxDpr: 1.5 });   // sharp: at 0.75x the contours stair-stepped on phones (Addendum 59)
   const l = document.getElementById('loader');
   if (t && l) new MutationObserver(() => { if (l.classList.contains('done')) setTimeout(() => t.stop(), 900); }).observe(l, { attributes: true });
 }
@@ -203,6 +203,8 @@ section + section::before { content: ''; position: absolute; left: 0; right: 0; 
 .site:hover { translate: 0 -4px; } .site:hover b { color: var(--accent-text); }
 @media (max-width: 860px), (max-aspect-ratio: 4/5) { .sites { grid-template-columns: 1fr; } }
 /* characters: rig + web app */
+#char-slot { position: absolute; inset: 0; opacity: 0; transition: opacity .8s var(--ease); }
+#char-slot.ready { opacity: 1; }
 .chars { align-items: start; }
 .chars .stagebox { grid-column: 1 / span 7; position: sticky; top: 8vh; height: min(76vh, 720px); border-radius: 28px; overflow: hidden;
   /* glass, see .glass in ds.css */ }
@@ -424,6 +426,30 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
       <ul><li>A hug pose solved from the measured geometry.</li><li>Live multiplayer over a relay server.</li></ul>
       <p class="tags">Blender · Three.js · WebSockets</p><a class="btn" href="work/closer/">Read the case study</a></div>
   </article>
+</div></section>
+
+<section id="characters" data-topo="250 .95"><div class="wrap">
+  <div class="grid sec-head rv"><h2 class="serif">Rigged in <em>code</em></h2><p data-touch-text="Modelled in Blender, animated in the browser. Tap or drag on the stage and watch the springs.">Modelled in Blender, animated in the browser. Move your pointer over the stage and watch the springs.</p></div>
+  <div class="grid chars">
+    <div class="stagebox glass liquid rv">
+      <span class="label">Live · <span data-char-name>Pip</span></span>
+      <div id="char-slot"></div>
+      <div class="dock" role="group" aria-label="Character">
+        <button type="button" data-char="pip" aria-pressed="true" aria-label="Pip" title="Pip"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path class="s" d="M9.7 4.6 8.3 2M14.3 4.6 15.7 2M8.4 20.3h7.2"/><path fill-rule="evenodd" d="M12 3.4c3.2 0 5.4 3.4 5.4 7.2 0 3.5-2.4 5.9-5.4 5.9s-5.4-2.4-5.4-5.9c0-3.8 2.2-7.2 5.4-7.2Zm-3.1 7.5c0 1.1 1.4 1.9 3.1 1.9s3.1-.8 3.1-1.9-1.4-2.1-3.1-2.1-3.1 1-3.1 2.1Z"/><circle cx="3.5" cy="12.8" r="1.6"/><circle cx="20.5" cy="12.8" r="1.6"/></svg><span>Pip</span></button>
+        <button type="button" data-char="moobi" aria-pressed="false" aria-label="Moobi" title="Moobi"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path class="s" d="M9.3 6.1 8.6 3.7M14.7 6.1l.7-2.4"/><ellipse cx="4.3" cy="8.6" rx="2.3" ry="1.3" transform="rotate(-22 4.3 8.6)"/><ellipse cx="19.7" cy="8.6" rx="2.3" ry="1.3" transform="rotate(22 19.7 8.6)"/><path fill-rule="evenodd" d="M12 5.6a6.3 6.3 0 1 1 0 12.6 6.3 6.3 0 0 1 0-12.6Zm-3.3 5.6c0 1 1.5 1.7 3.3 1.7s3.3-.7 3.3-1.7-1.5-1.8-3.3-1.8-3.3.8-3.3 1.8Z"/><circle cx="12" cy="21.2" r="1.5"/></svg><span>Moobi</span></button>
+        <button type="button" data-char="eli3" aria-pressed="false" aria-label="Eli3" title="Eli3"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="4.5" cy="9.4" r="3.4"/><circle cx="19.5" cy="9.4" r="3.4"/><path fill-rule="evenodd" d="M12 4.3a5.8 5.8 0 1 1 0 11.6 5.8 5.8 0 0 1 0-11.6Zm-3.2 5.2c0 .9 1.4 1.6 3.2 1.6s3.2-.7 3.2-1.6-1.4-1.6-3.2-1.6-3.2.7-3.2 1.6Z"/><path class="s t" d="M12 15.6v2.6c0 1.9 1.4 2.8 2.9 1.9"/></svg><span>Eli3</span></button>
+      </div>
+    </div>
+    <div class="side rv">
+      <p class="label">The cast of Closer</p>
+      <h3 data-char-name>Pip</h3>
+      <p class="lead">The models ship as rigid parts with no bones. Every motion is code reacting to velocity and acceleration.</p>
+      <dl class="spec" data-spec="pip"><div><dt>Rig</dt><dd>Hover ring, body tilt, two antennae and two hands on springs</dd></div><div><dt>Driven by</dt><dd>Body-space velocity, acceleration and yaw rate</dd></div><div><dt>Model</dt><dd>Blender, 0.4 MB GLB</dd></div></dl>
+      <dl class="spec" data-spec="moobi" hidden><div><dt>Rig</dt><dd>Wheel roll from distance travelled, bell, ears and arms on springs</dd></div><div><dt>Driven by</dt><dd>Body-space velocity, acceleration and yaw rate</dd></div><div><dt>Model</dt><dd>Blender, 0.3 MB GLB</dd></div></dl>
+      <dl class="spec" data-spec="eli3" hidden><div><dt>Rig</dt><dd>Rolling ball, ears and hooves on springs, and a 12-ring trunk that unrolls to wave</dd></div><div><dt>Driven by</dt><dd>Body-space velocity, acceleration and yaw rate</dd></div><div><dt>Model</dt><dd>Blender, 0.8 MB GLB</dd></div></dl>
+      <p style="margin-top:30px;display:flex;gap:12px;flex-wrap:wrap"><a class="btn btn-solid" href="work/closer/">See them in Closer</a><a class="btn" data-rig-link href="https://closer-pip.netlify.app" target="_blank" rel="noopener"><span data-card-label>Pip's character card</span> ↗</a></p>
+    </div>
+  </div>
 </div></section>
 
 <section id="models" data-topo="440 .6"><div class="wrap">

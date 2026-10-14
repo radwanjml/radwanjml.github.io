@@ -340,6 +340,9 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
   const cur = { suns: [0, 1, 2].map(() => ({ c: new THREE.Color(0), i: 0 })), hemiC: new THREE.Color(), hemiI: 0, rimC: new THREE.Color(), rimI: 0, exposure: 1, shadowC: new THREE.Color(), shadowO: 0.5, ring: new THREE.Color(0xe8b04a) };
   const sunDirs = [0, 1, 2].map(() => new THREE.Vector3(0, 1, 0));
   let tgt = null, lightsJ = null, casterDir = new THREE.Vector3(0, 1, 0), groundDir = new THREE.Vector3(0, 1, 0), caster = 0;
+  // Addendum 59: shadow directions ease to the new time of day like a time-lapse instead of jumping
+  const tgtSunDirs = [0, 1, 2].map(() => new THREE.Vector3(0, 1, 0)), tgtGroundDir = new THREE.Vector3(0, 1, 0);
+  let dirsSet = false;
   const lightsCache = {};
   async function setMode(mode) {
     const J = lightsCache[mode] || (lightsCache[mode] = await getJSON(`lights_${mode}.json`));
@@ -350,7 +353,7 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
     J.sun_moon.forEach((s, i) => { const v = s.strength * Math.max(s.dir_from[2], 0.15); if (v > best) { best = v; caster = i; } });
     casterDir.copy(b2t(...J.sun_moon[caster].dir_from)).normalize();
     // ground shadows from a 4-degree sunset sun would be 20 m long; keep them readable (min ~24 deg)
-    groundDir.copy(casterDir); if (groundDir.y < 0.4) { groundDir.y = 0.4; groundDir.normalize(); }
+    tgtGroundDir.copy(casterDir); if (tgtGroundDir.y < 0.4) { tgtGroundDir.y = 0.4; tgtGroundDir.normalize(); }
     const fill = J.sun_moon[1];
     tgt = {
       suns: J.sun_moon.map((s) => ({ c: new THREE.Color().setRGB(...s.color), i: s.strength * SUN_K })),
@@ -358,7 +361,8 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
       rimC: new THREE.Color().setRGB(...fill.color).lerp(new THREE.Color(1, 1, 1), 0.3), rimI: M.rim,
       exposure: M.exposure, shadowC: new THREE.Color(M.shadow), shadowO: M.shadowOpacity, ring: new THREE.Color(M.ring),
     };
-    J.sun_moon.forEach((s, i) => sunDirs[i].copy(b2t(...s.dir_from)).normalize());
+    J.sun_moon.forEach((s, i) => tgtSunDirs[i].copy(b2t(...s.dir_from)).normalize());
+    if (!dirsSet) { dirsSet = true; groundDir.copy(tgtGroundDir); sunDirs.forEach((d, i) => d.copy(tgtSunDirs[i])); }   // first load: no sweep
   }
   function stepLights(dt, phase) {
     if (!tgt) return;
@@ -369,6 +373,8 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
     cur.exposure += (tgt.exposure - cur.exposure) * k; renderer.toneMappingExposure = cur.exposure;
     cur.shadowC.lerp(tgt.shadowC, k); cur.shadowO += (tgt.shadowO - cur.shadowO) * k; groundMat.color.copy(cur.shadowC); groundMat.opacity = cur.shadowO;
     cur.ring.lerp(tgt.ring, k);
+    const kd = 1 - Math.exp(-dt * 2.2);   // directions a little slower than colour: the shadow visibly swings round
+    groundDir.lerp(tgtGroundDir, kd).normalize(); sunDirs.forEach((d, i) => d.lerp(tgtSunDirs[i], kd).normalize());
 
     // shadow cameras follow the character
     const p = slot.position;
