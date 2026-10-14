@@ -652,6 +652,11 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
   try {
     scene.traverse((o) => { (Array.isArray(o.material) ? o.material : o.material ? [o.material] : []).forEach((m) => { for (const k in m) { const v = m[k]; if (v && v.isTexture && v.image) renderer.initTexture(v); } }); });
     await renderer.compileAsync(scene, camera);
+    // pass B sees another light set (only groundSun), so its program variants differ: compile those too (Addendum 63)
+    groundSun.castShadow = true; suns.forEach((d) => { d.castShadow = false; });
+    camera.layers.set(LAYER.char); camera.layers.enable(LAYER.ground);
+    await renderer.compileAsync(scene, camera);
+    camera.layers.set(0);
   } catch (e) { /* older browsers: the first frame compiles as before */ }
   renderer.setAnimationLoop(tick);
 
