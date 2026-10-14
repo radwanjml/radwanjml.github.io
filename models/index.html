@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://radwanjml.github.io/models/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base href="../">
+<title>Models · Radwan Jameel</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:title" content="Radwan Jameel · Creative technologist, 3D + real-time web">
+<meta property="og:description" content="3D modelled in Blender, built for the browser with Three.js. Work, models and experiments.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="3D renders by Radwan Jameel, modelled and rendered in Blender.">
+<script>
+(function () {
+  var m = null; try { m = localStorage.getItem('island-mode'); } catch (e) {}
+  if (m !== 'light' && m !== 'dark' && m !== 'night') m = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.dataset.mode = m; document.documentElement.dataset.glass = 'clear';
+})();
+</script>
+<link rel="preload" href="assets/fonts/Geist-normal-300-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/InstrumentSerif-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="drafts/ds.css">
+<style>
+/* ---------- Models: an endless archipelago of glass islands (Addendum 37) ----------
+   Same language as the home page's model islands: each render is an organic contour island (seeded polar noise),
+   but made of glass (dome highlight, bevel line, soft shadow) and sized differently. They are packed asymmetrically
+   on a tile that wraps in both directions, so dragging never meets an edge. Edges flow a little, like liquid.
+   The live terrain shows between them; colours follow the home page's time mode. */
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { touch-action: none; }
+.topo-bg { position: fixed; inset: 0; z-index: -1; opacity: calc(var(--topo-base) * 1.25); pointer-events: none; }
+.topo-bg canvas { width: 100%; height: 100%; display: block; }
+:root { --topo-base: .22; --motif: #E8B04A; } :root[data-mode="night"] { --topo-base: .26; --motif: #8FB8F0; } :root[data-mode="light"] { --topo-base: .26; --motif: #E0875A; }
+.vignette { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(85% 80% at 50% 50%, transparent 55%, rgba(var(--scrim), .7) 100%); }
+
+.field { position: fixed; inset: 0; z-index: 1; cursor: grab; }
+.field.drag { cursor: grabbing; }
+.field canvas { display: block; }
+.name { position: fixed; z-index: 3; left: 0; top: 0; white-space: nowrap; padding: 7px 13px 8px; border-radius: 14px; font: 400 18px/1 var(--serif); color: var(--text);
+  opacity: 0; transition: opacity .3s var(--ease); pointer-events: none; }
+/* phones: no live backdrop blur over the moving canvas (it re-blurs every frame); a denser tint instead */
+.nav a[aria-current] { color: var(--text-3); pointer-events: none; }   /* the page you're on: shown, not a link */
+.menu a[aria-current]::after { content: ' ·  you are here'; font: 500 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; vertical-align: middle; }
+.lite .glass { -webkit-backdrop-filter: none; backdrop-filter: none; --g-tint: rgba(var(--scrim), .82); }
+@media (max-width: 720px) { .name { font-size: 15px; } }
+.head { position: fixed; z-index: 5; left: var(--pad); bottom: max(22px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 16px; padding: 12px 18px 12px 20px; border-radius: 22px; }
+.head h1 { font: 400 32px/1 var(--serif); margin: 0; }
+.head h1 em { color: var(--accent-text); }
+.credit { position: fixed; z-index: 5; right: var(--pad); bottom: max(26px, env(safe-area-inset-bottom)); max-width: 34ch; margin: 0; text-align: right; font: 400 11px/1.5 var(--mono); color: var(--text-3); }
+@media (max-width: 720px) { .credit { display: none; } }
+.head p { margin: 0; font: 500 11px/1.5 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+
+.lb { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 86px var(--pad) 24px; background: rgba(var(--scrim), .55);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2); opacity: 0; visibility: hidden; transition: opacity .45s var(--ease), visibility 0s .45s; }
+.lb.open { opacity: 1; visibility: visible; transition-delay: 0s; }
+.lb figure { margin: 0; display: grid; gap: 14px; justify-items: center; max-height: 100%; }
+.lb img { max-width: min(92vw, 1100px); max-height: calc(100svh - 330px); border-radius: 22px; box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); transform: scale(.94); transition: transform .6s var(--ease); }
+.lb.open img { transform: none; }
+.lb img { transition: transform .6s var(--ease), filter .5s var(--ease); } .lb img.soft { filter: blur(6px) saturate(.9); }
+.lb figcaption em { display: block; margin-top: 6px; font: 500 11px/1 var(--mono); font-style: normal; letter-spacing: .1em; color: var(--text-3); }
+.lb figcaption { padding: 10px 18px; border-radius: 18px; text-align: center; }
+.lb figcaption b { display: block; font: 400 26px/1.1 var(--serif); } .lb figcaption span { font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.lb .x { position: absolute; top: 84px; right: var(--pad); width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--text); font-size: 22px; }
+.lb .nav-b { position: absolute; top: 50%; translate: 0 -50%; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--text); font-size: 20px; }
+.lb .prev { left: var(--pad); } .lb .next { right: var(--pad); }
+@media (max-width: 720px) { .lb .nav-b { top: auto; bottom: 26px; translate: none; } .head h1 { font-size: 26px; } .name { font-size: 15px; } }
+.lb .more { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent-text); text-decoration: none; }
+.lb .more:hover { text-decoration: underline; }
+@media (max-width: 720px) { .lb { padding-bottom: 92px; } .lb img { max-height: calc(100svh - 400px); } }   /* phones: arrows sit below the caption, not on it (Addendum 52) */
+</style>
+</head>
+<body>
+<div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
+<div class="vignette" aria-hidden="true"></div>
+<!-- shared glass gradients (objectBoundingBox: they follow every island's shape) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <radialGradient id="dome" cx=".34" cy=".22" r=".62"><stop offset="0" stop-color="#fff" stop-opacity=".46"/><stop offset=".45" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="lip" cx=".5" cy="1.05" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity=".02"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>
+  <linearGradient id="bevel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset=".38" stop-color="#fff" stop-opacity=".1"/><stop offset=".68" stop-color="#fff" stop-opacity=".03"/><stop offset="1" stop-color="#fff" stop-opacity=".4"/></linearGradient>
+</defs></svg>
+
+<nav class="nav" aria-label="Site"><div class="wrap glass">
+  <a class="mark" href="./"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+<mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
+<mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
+</defs>
+<text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
+<text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
+<text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
+  <ul><li><a href="./#work">Work</a></li><li><a href="./#lab">Lab</a></li><li><a aria-current="page">Models</a></li><li><a href="about/">About</a></li><li><a class="nav-cta" href="about/#contact">Contact</a></li></ul>
+  <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+  <div class="menu glass" id="menu" hidden><a href="./">Home</a><a href="./#work">Work</a><a href="./#lab">Lab</a><a aria-current="page">Models</a><a href="about/">About</a><a href="about/#contact">Contact</a></div>
+</nav>
+
+<main class="field" id="field" aria-label="Renders. Drag to explore, select one to open it."></main>
+<span class="name glass" id="name" aria-hidden="true"></span>
+<div class="head glass"><h1>All <em>models</em></h1><p><span id="count"></span> renders<br><span id="hint-verb">Drag</span> to explore · tap to open<br><a href="viewer/">Open the 3D viewer →</a></p></div>
+<p class="credit">Fan art and car renders are personal studies. Characters and vehicle designs belong to their owners; not affiliated or endorsed.</p>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Render">
+  <button class="x glass" type="button" aria-label="Close">✕</button>
+  <button class="nav-b prev glass" type="button" aria-label="Previous">←</button>
+  <figure><img alt=""><figcaption class="glass"><b></b><span>Modelled and rendered in Blender</span><em id="lb-count"></em><a class="more" id="lb-more" href="model/?m=perfume">More on this model →</a></figcaption></figure>
+  <button class="nav-b next glass" type="button" aria-label="Next">→</button>
+</div>
+
+<script type="module">
+import { initTopo } from './drafts/topo.js';
+// Models v5 (Addendum 40): one 2D canvas. Each render is baked once into a glass tile (organic hexagon clip, image,
+// dome highlight, lip, bevel, contour ring); a frame only stamps ~45 tiles at their sphere positions with drawImage.
+// Nothing is drawn while the field is still. Phones: still terrain, no backdrop blur, static edges.
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
+const root = document.documentElement;
+if (coarse) root.classList.add('lite');
+initTopo(document.getElementById('topo'), { mode: root.dataset.mode, reducedMotion: reduced || coarse, scale: 340, seed: 23, variety: 1 });
+
+import { R } from './drafts/models-data.js';
+document.getElementById('count').textContent = R.length;
+if (coarse) document.getElementById('hint-verb').textContent = 'Swipe';
+
+// ---- lattice on a torus (honeycomb), mapped onto a sphere ----
+const small = innerWidth < 720;
+const BASE = small ? 54 : 86;
+const DX = BASE * 2 * 1.07, DY = DX * 0.866;
+const RX = innerWidth * (small ? 0.5 : 0.4), RY = innerHeight * (small ? 0.42 : 0.44);
+const COLS = Math.max(6, Math.ceil((RX * 3.1 + DX * 2) / DX));
+let ROWS = Math.max(4, Math.ceil((RY * 3.1 + DY * 2) / DY)); if (ROWS % 2) ROWS++;
+const TW = COLS * DX, TH = ROWS * DY;
+const wrapD = (d, L) => d - L * Math.round(d / L);
+const P = []; for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) P.push([c, r, (c + (r % 2) * 0.5) * DX, r * DY]);
+// row step K: repeats far apart, fan art out of the inner rings (Addendum 38/39)
+let K = 1, bestMin = -1; const cand = [];
+for (let k = 1; k < R.length; k++) {
+  let m = 1e9;
+  for (let a = 0; a < P.length; a++) for (let b = a + 1; b < P.length; b++) {
+    if ((P[a][0] + P[a][1] * k - P[b][0] - P[b][1] * k) % R.length) continue;
+    m = Math.min(m, Math.hypot(wrapD(P[a][2] - P[b][2], TW), wrapD(P[a][3] - P[b][3], TH)));
+  }
+  cand.push({ k, m }); if (m > bestMin) { bestMin = m; K = k; }
+}
+{
+  const ctr = P.reduce((b, p) => (Math.hypot(p[2] - TW / 2, p[3] - TH / 2) < Math.hypot(b[2] - TW / 2, b[3] - TH / 2) ? p : b));
+  const fanNear = (k) => {
+    const i0 = (ctr[0] + ctr[1] * k) % R.length; let n = 0;
+    for (const p of P) {
+      const d = Math.hypot(wrapD(p[2] - ctr[2], TW), wrapD(p[3] - ctr[3], TH)); if (d > DX * 2.2) continue;
+      const i = (((p[0] + p[1] * k - i0) % R.length) + R.length) % R.length; if (R[i][2]) n += d < DX * 1.2 ? 3 : 1;
+    }
+    return n;
+  };
+  const ok = cand.filter((c) => c.m >= bestMin * 0.85).sort((a, b) => fanNear(a.k) - fanNear(b.k) || b.m - a.m);
+  if (ok.length) K = ok[0].k;
+}
+const cells = P.map(([c, r, x, y]) => ({ i: (((c + r * K) % R.length) + R.length) % R.length, x, y }));
+const first = cells.filter((it) => it.i === 0).sort((A, B) => Math.hypot(A.x - TW / 2, A.y - TH / 2) - Math.hypot(B.x - TW / 2, B.y - TH / 2))[0];
+const off = { x: innerWidth / 2 - first.x, y: innerHeight / 2 - first.y };
+
+// ---- organic hexagon shape per render (unit radius ~0.9, pointy top) ----
+const TAU = Math.PI * 2, NPT = 64;
+function shapePts(seedN, t) {
+  let s = (seedN + 3) * 7919; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const terms = [2, 3, 4, 5].map((f) => ({ f, a: (0.012 + rnd() * 0.018) / (f * 0.5), p: rnd() * TAU, w: (0.1 + rnd() * 0.14) * (rnd() < 0.5 ? -1 : 1) }));
+  const pts = [];
+  for (let i = 0; i < NPT; i++) {
+    const th = (i / NPT) * TAU; let rad = 0.9 * (1 + 0.055 * Math.cos(6 * th + Math.PI));
+    for (const q of terms) rad += q.a * Math.sin(q.f * th + q.p + t * q.w);
+    pts.push([Math.cos(th) * rad, Math.sin(th) * rad]);
+  }
+  return pts;
+}
+const pathFrom = (pts, scale, cx, cy) => { const p = new Path2D(); pts.forEach(([x, y], k) => (k ? p.lineTo : p.moveTo).call(p, cx + x * scale, cy + y * scale)); p.closePath(); return p; };
+
+// ---- bake tiles ----
+const DPR = Math.min(devicePixelRatio || 1, 1.5);   // was 2: tiles are re-stamped while dragging; 1.5x is sharp enough (Addendum 46)
+const MOTIF = getComputedStyle(root).getPropertyValue('--motif').trim() || '#E8B04A';
+const LIGHT = root.dataset.mode === 'light';
+const TILE = Math.ceil(BASE * 2.6 * DPR);                 // tile canvas size (shape radius 0.9 -> BASE px, plus room for the ring/shadow)
+const UNIT = (BASE * DPR) / 0.9;
+const tiles = R.map(() => null), imgs = R.map(() => null);
+function bake(i, t = 0) {
+  const img = imgs[i]; if (!img) return;
+  const cv = tiles[i]?.cv || document.createElement('canvas'); cv.width = cv.height = TILE;
+  const g = cv.getContext('2d'); g.clearRect(0, 0, TILE, TILE);
+  const c = TILE / 2, pts = shapePts(i, t), shape = pathFrom(pts, UNIT, c, c);
+  // soft shadow (baked once, so the blur costs nothing per frame)
+  g.save(); g.shadowColor = LIGHT ? 'rgba(110,60,30,.35)' : 'rgba(0,0,0,.55)'; g.shadowBlur = 14 * DPR; g.shadowOffsetY = 8 * DPR;
+  g.fillStyle = LIGHT ? '#e9d8c6' : '#141020'; g.fill(shape); g.restore();
+  // the render, cover-fitted into the shape
+  g.save(); g.clip(shape);
+  const box = 2.0 * UNIT, sc = Math.max(box / img.width, box / img.height), w = img.width * sc, h = img.height * sc;
+  g.drawImage(img, c - w / 2, c - h / 2, w, h);
+  // glass: dome highlight top-left, lip at the bottom
+  let gr = g.createRadialGradient(c - 0.32 * UNIT, c - 0.5 * UNIT, 0, c - 0.32 * UNIT, c - 0.5 * UNIT, 1.15 * UNIT);
+  gr.addColorStop(0, 'rgba(255,255,255,.42)'); gr.addColorStop(0.45, 'rgba(255,255,255,.07)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, TILE, TILE);
+  gr = g.createRadialGradient(c, c + 1.0 * UNIT, 0, c, c + 1.0 * UNIT, 1.1 * UNIT);
+  gr.addColorStop(0, 'rgba(255,255,255,.2)'); gr.addColorStop(0.45, 'rgba(255,255,255,.02)'); gr.addColorStop(1, 'rgba(0,0,0,.28)');
+  g.fillStyle = gr; g.fillRect(0, 0, TILE, TILE);
+  g.restore();
+  // bevel line: bright top-left, catch bottom-right
+  gr = g.createLinearGradient(c - UNIT, c - UNIT, c + UNIT, c + UNIT);
+  gr.addColorStop(0, 'rgba(255,255,255,.8)'); gr.addColorStop(0.38, 'rgba(255,255,255,.1)'); gr.addColorStop(0.68, 'rgba(255,255,255,.03)'); gr.addColorStop(1, 'rgba(255,255,255,.4)');
+  g.lineWidth = 1.6 * DPR; g.strokeStyle = gr; g.stroke(shape);
+  // contour ring
+  g.globalAlpha = 0.45; g.lineWidth = 1 * DPR; g.strokeStyle = MOTIF; g.stroke(pathFrom(shapePts(i, t - 1.2), UNIT * 1.12, c, c)); g.globalAlpha = 1;
+  tiles[i] = { cv, pts };
+}
+// load thumbs; bake as they arrive (centre ones first)
+const order = [...new Set(cells.slice().sort((a, b) => Math.hypot(a.x + off.x - innerWidth / 2, a.y + off.y - innerHeight / 2) - Math.hypot(b.x + off.x - innerWidth / 2, b.y + off.y - innerHeight / 2)).map((c) => c.i))];
+order.forEach((i) => { const im = new Image(); im.decoding = 'async'; im.src = `assets/img/models/${R[i][0]}_t.webp`; im.onload = () => { imgs[i] = im; bake(i); dirty = true; kick(); }; });
+
+// ---- canvas + drawing ----
+const field = document.getElementById('field');
+const cv = document.createElement('canvas'); field.appendChild(cv);
+const ctx = cv.getContext('2d');
+function resize() { cv.width = Math.round(innerWidth * DPR); cv.height = Math.round(innerHeight * DPR); cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px'; dirty = true; kick(); }
+addEventListener('resize', resize);
+const nameEl = document.getElementById('name');
+let px = 0, py = 0, vx = 0, vy = 0, drag = null, moved = 0, dirty = true, raf = 0, focus = null, hover = null, lastT = 0, acc = 0, liveT = 0;
+const drawn = [];   // screen positions for hit-testing
+let pf = 0; const fetchBigLater = (i) => { clearTimeout(pf); pf = setTimeout(() => fetchBig(i), 400); };   // the centred render's big file, once the field settles
+function draw() {
+  const cx = innerWidth / 2, cy = innerHeight / 2;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+  drawn.length = 0;
+  for (const it of cells) {
+    const x = wrapD(it.x + off.x + px - cx, TW), y = wrapD(it.y + off.y + py - cy, TH);
+    const u = x / RX, v = y / RY, a = Math.hypot(u, v) || 1e-6;
+    if (a > 1.52) continue;
+    const k = Math.sin(a) / a, sx = cx + u * RX * k, sy = cy + v * RY * k;
+    const s = Math.pow(Math.max(Math.cos(a), 0), 0.8) * 0.97 + 0.05;
+    drawn.push({ it, sx, sy, s, a });
+  }
+  drawn.sort((p, q) => p.s - q.s);   // small (rim) first, big (centre) on top
+  let best = null;
+  for (const d of drawn) {
+    const t = tiles[d.it.i]; if (!t) continue;
+    const size = (TILE / DPR) * d.s * (d.it === hover ? 1.05 : 1);
+    ctx.globalAlpha = Math.min(1, Math.max(0, (1.52 - d.a) / 0.32));
+    ctx.drawImage(t.cv, (d.sx - size / 2) * DPR, (d.sy - size / 2) * DPR, size * DPR, size * DPR);
+    if (!best || d.a < best.a) best = d;
+  }
+  ctx.globalAlpha = 1;
+  focus = best && best.a < 0.35 ? best : null;
+  if (focus) {   // dashed outer ring + name on the centred render
+    const t = tiles[focus.it.i];
+    if (t) { ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.setLineDash([2, 5]); ctx.globalAlpha = 0.5; ctx.strokeStyle = MOTIF; ctx.lineWidth = 1;
+      ctx.stroke(pathFrom(t.pts, (UNIT / DPR) * focus.s * 1.24, focus.sx, focus.sy)); ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0); }
+    if (!drag) fetchBigLater(focus.it.i);
+    nameEl.textContent = R[focus.it.i][1]; nameEl.style.transform = `translate(${focus.sx}px, ${focus.sy + BASE * focus.s * 0.72}px) translate(-50%, 0)`; nameEl.style.opacity = 1;
+  } else nameEl.style.opacity = 0;
+}
+function frame(now) {
+  raf = 0;
+  const dt = Math.min((now - (lastT || now)) / 1000, 0.05); lastT = now;
+  let moving = false;
+  if (!drag && Math.abs(vx) + Math.abs(vy) > 0.05) { px += vx; py += vy; vx *= 0.93; vy *= 0.93; moving = true; dirty = true; }
+  // desktop: the few big centre tiles re-bake their edge a little (liquid), ~12 fps; phones keep still edges
+  if (!coarse && !reduced) {
+    acc += dt;
+    if (acc > 1 / 12) {
+      liveT += acc * 0.45; acc = 0;
+      for (const d of drawn) if (d.a < 0.6 && imgs[d.it.i]) bake(d.it.i, liveT + d.it.i);
+      dirty = true;
+    }
+    moving = true;
+  }
+  if (dirty) { draw(); dirty = false; }
+  if (moving || drag) raf = requestAnimationFrame(frame);
+}
+function kick() { if (!raf) { lastT = 0; raf = requestAnimationFrame(frame); } }
+resize();
+
+// ---- input ----
+const hit = (x, y) => { for (let k = drawn.length - 1; k >= 0; k--) { const d = drawn[k]; if (Math.hypot(x - d.sx, y - d.sy) < BASE * d.s * 0.92) return d; } return null; };
+field.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; moved = 0; vx = vy = 0; field.setPointerCapture(e.pointerId); field.classList.add('drag'); kick(); });
+field.addEventListener('pointermove', (e) => {
+  if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy); px += dx; py += dy; vx = dx; vy = dy; drag.x = e.clientX; drag.y = e.clientY; dirty = true; kick(); return; }
+  if (!coarse) { const h = hit(e.clientX, e.clientY)?.it || null; if (h !== hover) { hover = h; field.style.cursor = h ? 'pointer' : 'grab'; dirty = true; kick(); } }
+});
+const end = (e) => {
+  if (!drag) return; const tap = e.type === 'pointerup' && moved < 8; drag = null; field.classList.remove('drag');
+  if (reduced) vx = vy = 0;
+  if (tap) { const d = hit(e.clientX, e.clientY); if (d) open(d.it.i); }
+  kick();
+};
+field.addEventListener('pointerup', end); field.addEventListener('pointercancel', end);
+addEventListener('wheel', (e) => { if (lb.classList.contains('open')) return; px -= e.deltaX * 0.8; py -= e.deltaY * 0.8; dirty = true; kick(); }, { passive: true });
+addEventListener('keydown', (e) => {
+  if (lb.classList.contains('open')) return;
+  const k = { ArrowLeft: [10, 0], ArrowRight: [-10, 0], ArrowUp: [0, 10], ArrowDown: [0, -10] }[e.key]; if (k) { vx = k[0]; vy = k[1]; kick(); }
+  if (e.key === 'Enter' && focus) open(focus.it.i);
+});
+
+// ---- lightbox ----
+const lb = document.getElementById('lb'), lbImg = lb.querySelector('img'), lbT = lb.querySelector('figcaption b'), lbNote = lb.querySelector('figcaption span');
+let cur = 0;
+// the previous render used to stay up until the next large file arrived: now the cached thumbnail shows at once,
+// the large file fades in when it has decoded, and the neighbours are prefetched so prev/next are instant
+const big = new Map();
+const fetchBig = (i) => { i = (i + R.length) % R.length; if (!big.has(i)) { const im = new Image(); im.decoding = 'async'; im.src = `assets/img/models/${R[i][0]}.webp`; big.set(i, im); } return big.get(i); };
+const lbCount = document.getElementById('lb-count');
+const show = (i) => {
+  cur = (i + R.length) % R.length; const c = cur;
+  lbT.textContent = R[c][1]; lbNote.textContent = R[c][2] || 'Modelled and rendered in Blender'; lbImg.alt = R[c][1];
+  lbCount.textContent = `${c + 1} / ${R.length}`;
+  document.getElementById('lb-more').href = `model/?m=${R[c][0]}`;
+  const b = fetchBig(c);
+  if (b.complete && b.naturalWidth) { lbImg.src = b.src; lbImg.classList.remove('soft'); }
+  else {
+    lbImg.src = imgs[c]?.src || `assets/img/models/${R[c][0]}_t.webp`; lbImg.classList.add('soft');
+    b.decode().then(() => { if (cur === c) { lbImg.src = b.src; lbImg.classList.remove('soft'); } }).catch(() => {});
+  }
+  fetchBig(c + 1); fetchBig(c - 1);
+};
+// swipe between renders on touch screens
+let sw = null;
+lb.addEventListener('touchstart', (e) => { sw = e.touches[0].clientX; }, { passive: true });
+lb.addEventListener('touchend', (e) => { if (sw == null) return; const dx = e.changedTouches[0].clientX - sw; sw = null; if (Math.abs(dx) > 50) show(cur + (dx < 0 ? 1 : -1)); }, { passive: true });
+function open(i) { show(i); lb.classList.add('open'); lb.querySelector('.x').focus({ preventScroll: true }); }
+const close = () => lb.classList.remove('open');
+lb.querySelector('.x').addEventListener('click', close);
+lb.querySelector('.prev').addEventListener('click', () => show(cur - 1));
+lb.querySelector('.next').addEventListener('click', () => show(cur + 1));
+lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
+addEventListener('keydown', (e) => { if (!lb.classList.contains('open')) return; if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') show(cur - 1); if (e.key === 'ArrowRight') show(cur + 1); });
+
+const mb = document.querySelector('.menu-btn'), menu = document.getElementById('menu');
+mb.addEventListener('click', () => { const o = menu.hidden; mb.setAttribute('aria-expanded', String(o)); menu.hidden = !o; });
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://radwanjml.github.io/about/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base href="../">
+<title>About · Radwan Jameel</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:title" content="Radwan Jameel · Creative technologist, 3D + real-time web">
+<meta property="og:description" content="3D modelled in Blender, built for the browser with Three.js. Work, models and experiments.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Radwan Jameel: creative technologist in Hyderabad, building real-time 3D for the web. Open to remote work and relocating to Germany.">
+<script>
+(function () {
+  var m = null; try { m = localStorage.getItem('island-mode'); } catch (e) {}
+  if (m !== 'light' && m !== 'dark' && m !== 'night') m = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.dataset.mode = m; document.documentElement.dataset.glass = 'clear';
+})();
+</script>
+<link rel="preload" href="assets/fonts/Geist-normal-300-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/InstrumentSerif-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="drafts/ds.css">
+<style>
+/* ---------- About (Addendum 45): a survey card for a person. Static SVG + one still/slow topo canvas; nothing redraws per frame. */
+.topo-bg { position: fixed; inset: 0; z-index: -1; opacity: calc(var(--topo-base) * 1.25); pointer-events: none; }
+.topo-bg canvas { width: 100%; height: 100%; display: block; }
+:root { --topo-base: .22; --motif: #E8B04A; } :root[data-mode="night"] { --topo-base: .26; --motif: #8FB8F0; } :root[data-mode="light"] { --topo-base: .26; --motif: #E0875A; }
+.nav a[aria-current] { color: var(--text-3); pointer-events: none; }
+.menu a[aria-current]::after { content: ' ·  you are here'; font: 500 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; vertical-align: middle; }
+.lite .glass { -webkit-backdrop-filter: none; backdrop-filter: none; --g-tint: rgba(var(--scrim), .82); }
+
+main.ab { padding: 132px 0 80px; }
+.ab .wrap { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); align-items: start; }
+.hi { grid-column: 1 / span 7; }
+.hi h1 { font: 400 clamp(52px, 8.4vw, 128px)/.92 var(--serif); letter-spacing: -.02em; margin: 14px 0 26px; }
+.hi h1 em { color: var(--accent-text); }
+.hi .lead { max-width: 38ch; margin: 0 0 18px; }
+.hi p.body { max-width: 52ch; color: var(--text-2); line-height: 1.65; margin: 0 0 14px; }
+
+/* the survey card: who / where / next, like a map legend */
+.card { grid-column: 9 / span 4; margin-top: 46px; border-radius: 26px; padding: 22px 22px 18px; }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 12px 16px; }
+.card dt { font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.card dd { margin: 0; font-size: 15px; line-height: 1.45; }
+.card .clock { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.card dt.sep, .card dd.sep { padding-top: 14px; border-top: 1px dashed rgba(255,255,255,.18); } .card hr { grid-column: 1 / -1; border: 0; border-top: 1px dashed rgba(255,255,255,.18); margin: 2px 0; width: 100%; }
+:root[data-mode="light"] .card dt.sep, :root[data-mode="light"] .card dd.sep { border-top-color: rgba(43,34,56,.2); } :root[data-mode="light"] .card hr { border-top-color: rgba(43,34,56,.2); }
+
+/* the route: an elevation profile from Hyderabad to Germany. Drawn once. */
+.route { grid-column: 1 / -1; margin-top: 64px; border-radius: 28px; padding: 26px clamp(18px, 3vw, 36px) 22px; }
+.route h2 { font: 400 clamp(30px, 3.4vw, 48px)/1 var(--serif); margin: 6px 0 0; }
+.route h2 em { color: var(--accent-text); }
+.profile { width: 100%; height: auto; display: block; margin-top: 14px; overflow: visible; }
+.profile .ln { fill: none; stroke: var(--motif); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.profile .fl { fill: var(--motif); opacity: .08; }
+.profile .ct { fill: none; stroke: var(--text-3); stroke-width: 1; opacity: .35; vector-effect: non-scaling-stroke; }
+.profile .fut { stroke-dasharray: 5 6; }
+.stops { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.stops li { font-size: 14px; line-height: 1.45; color: var(--text-2); }
+.stops b { display: block; font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+.stops li:last-child b { color: var(--accent-text); }
+
+/* toolbox: plain chips */
+.kit { grid-column: 1 / span 7; margin-top: 64px; }
+.kit h2, .say h2 { font: 400 clamp(30px, 3.4vw, 48px)/1 var(--serif); margin: 6px 0 18px; }
+.kit h2 em, .say h2 em { color: var(--accent-text); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chips li { padding: 9px 14px; border-radius: 999px; font-size: 14px; }
+
+/* say hello */
+.say { grid-column: 9 / span 4; margin-top: 64px; }
+.say .go { display: flex; flex-direction: column; gap: 10px; }
+.say .go a { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-radius: 18px; font-size: 16px; text-decoration: none; color: var(--text); transition: transform .35s var(--ease); }
+.say .go a:hover { transform: translateX(4px); }
+.say .go a span { font: 500 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.say .go a.cv { background: var(--accent); color: var(--on-accent); }
+.say .go a.cv span { color: inherit; opacity: .75; }
+.say p.small { margin: 14px 2px 0; font-size: 14px; color: var(--text-3); line-height: 1.5; }
+
+footer { padding: 30px 0 40px; }
+
+@media (max-width: 860px) {
+  main.ab { padding-top: 104px; }
+  .hi, .card, .kit, .say { grid-column: 1 / -1; }
+  .card { margin-top: 8px; }
+  .stops { grid-template-columns: 1fr 1fr; }
+  .stops li:last-child { grid-column: 1 / -1; }
+  .route, .kit, .say { margin-top: 44px; }
+}
+</style>
+</head>
+<body>
+<div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
+
+<nav class="nav" aria-label="Site"><div class="wrap glass">
+  <a class="mark" href="./"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+<mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
+<mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
+</defs>
+<text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
+<text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
+<text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
+  <ul><li><a href="./">Home</a></li><li><a href="./#work">Work</a></li><li><a href="models/">Models</a></li><li><a aria-current="page">About</a></li><li><a class="nav-cta" href="about/#contact">Contact</a></li></ul>
+  <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+  <div class="menu glass" id="menu" hidden><a href="./">Home</a><a href="./#work">Work</a><a href="./#lab">Lab</a><a href="models/">Models</a><a aria-current="page">About</a><a href="about/#contact">Contact</a></div>
+</nav>
+
+<main class="ab"><div class="wrap">
+  <div class="hi">
+    <p class="label">About · field notes</p>
+    <h1>Engineer by degree, <em>world-builder</em> by habit.</h1>
+    <p class="lead">I'm Radwan, Red to most people. I model things in Blender and then make them live in the browser.</p>
+    <p class="body">I studied electronics and communication engineering at Osmania University (2024), spent a few years in technical support for Amazon, Verizon and ADP, and kept building 3D on the side. In June 2026 I started Tibr Studio and began shipping interactive 3D sites in Three.js and custom GLSL.</p>
+    <p class="body">What I care about: scenes that feel like places, motion driven by code instead of keyframes, and pages that still run on an ordinary phone.</p>
+  </div>
+
+  <aside class="card glass" aria-label="Quick facts">
+    <dl>
+      <dt>Role</dt><dd>Creative technologist, 3D + real-time web</dd>
+      <dt>Based</dt><dd>Hyderabad, India</dd>
+      <dt>Local time</dt><dd class="clock" id="clock">IST</dd>
+      <dt class="sep">Next</dt><dd class="sep">Relocating to <b>Germany</b> on the Opportunity Card (in progress); no sponsorship needed</dd>
+      <dt>Looking for</dt><dd>Creative developer, frontend or technical artist roles. Remote now, on site in Germany next.</dd>
+    </dl>
+  </aside>
+
+  <section class="route glass" aria-labelledby="route-h">
+    <p class="label">The route so far</p>
+    <h2 id="route-h">Climbing, <em>one contour</em> at a time.</h2>
+    <svg class="profile" viewBox="0 0 1000 150" preserveAspectRatio="none" aria-hidden="true">
+      <path class="ct" d="M0 128H1000M0 98H1000M0 68H1000M0 38H1000"/>
+      <path class="fl" d="M0 132 C90 128 140 116 200 112 S330 100 400 92 S530 84 600 70 S730 40 800 36 L800 150 L0 150Z"/>
+      <path class="ln" d="M0 132 C90 128 140 116 200 112 S330 100 400 92 S530 84 600 70 S730 40 800 36"/>
+      <path class="ln fut" d="M800 36 S920 14 1000 10"/>
+    </svg>
+    <ol class="stops">
+      <li><b>2023</b>Technical support, Amazon</li>
+      <li><b>2024</b>B.Tech ECE, Osmania University. Support for Verizon via Tech Mahindra</li>
+      <li><b>2025</b>Support at ADP, 3D on the side</li>
+      <li><b>2026</b>Founded Tibr Studio. Shipped Closer, Overspill, SERAI, YOAKE, PULSE</li>
+      <li><b>Next</b>Germany</li>
+    </ol>
+  </section>
+
+  <section class="kit" aria-labelledby="kit-h">
+    <p class="label">Toolbox</p>
+    <h2 id="kit-h">What's in the <em>pack</em>.</h2>
+    <ul class="chips">
+      <li class="glass">Blender</li><li class="glass">Three.js</li><li class="glass">WebGL</li><li class="glass">GLSL shaders</li>
+      <li class="glass">GSAP</li><li class="glass">Lenis</li><li class="glass">WebRTC</li><li class="glass">Unreal Engine</li>
+      <li class="glass">Figma</li><li class="glass">Affinity</li><li class="glass">Claude Code</li>
+    </ul>
+  </section>
+
+  <section class="say" id="contact" aria-labelledby="say-h">
+    <p class="label">Say hello</p>
+    <h2 id="say-h">Let's <em>talk</em>.</h2>
+    <div class="go">
+      <a class="cv" href="assets/cv/Radwan_Jameel_CV.pdf" download>Download CV <span>PDF ↓</span></a>
+      <a class="glass" href="mailto:jameelradwan4@gmail.com">Email <span>jameelradwan4@gmail.com</span></a>
+      <a class="glass" href="https://www.linkedin.com/in/radwanjml/" target="_blank" rel="noopener">LinkedIn <span>↗</span></a>
+      <a class="glass" href="https://github.com/radwanjml" target="_blank" rel="noopener">GitHub <span>↗</span></a>
+    </div>
+    <p class="small">Fastest reply: email.</p>
+  </section>
+</div></main>
+<footer><div class="wrap label">Radwan Jameel · built with Three.js, rendered in Blender Cycles · <a href="https://github.com/radwanjml/radwanjml.github.io" target="_blank" rel="noopener">Source on GitHub ↗</a></div></footer>
+
+<script type="module">
+import { initTopo } from './drafts/topo.js';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
+const root = document.documentElement;
+if (coarse) root.classList.add('lite');
+initTopo(document.getElementById('topo'), { mode: root.dataset.mode, reducedMotion: reduced || coarse, scale: 360, seed: 59, variety: 1 });
+
+// local time in Hyderabad; updates once a minute (text only, no layout work)
+const clock = document.getElementById('clock');
+const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
+const tick = () => { clock.textContent = fmt.format(new Date()) + ' IST'; };
+tick(); setInterval(tick, 30000);
+
+const mb = document.querySelector('.menu-btn'), menu = document.getElementById('menu');
+mb.addEventListener('click', () => { const o = menu.hidden; mb.setAttribute('aria-expanded', String(o)); menu.hidden = !o; });
+</script>
+</body>
+</html>
