@@ -639,6 +639,12 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
   await setCharacter('pip');
   new ResizeObserver(() => { clearTimeout(layout.t); layout.t = setTimeout(layout, 220); }).observe(stageEl);
   await layout();
+  // Addendum 53: Red's own Chrome trace showed the island's first frame blocking ~330 ms on every load (shader compile +
+  // texture upload inside the first render). Upload textures and compile with KHR_parallel_shader_compile first.
+  try {
+    scene.traverse((o) => { (Array.isArray(o.material) ? o.material : o.material ? [o.material] : []).forEach((m) => { for (const k in m) { const v = m[k]; if (v && v.isTexture && v.image) renderer.initTexture(v); } }); });
+    await renderer.compileAsync(scene, camera);
+  } catch (e) { /* older browsers: the first frame compiles as before */ }
   renderer.setAnimationLoop(tick);
 
   // (debug handle window.__island removed for launch, Addendum 50)
