@@ -15,6 +15,7 @@ import { FRAG } from './topo.js?diag';
 const NIGHT = { low: [0.03, 0.05, 0.12], mid: [0.10, 0.17, 0.33], high: [0.25, 0.40, 0.62], line: [0.70, 0.86, 1.0] };
 const NOISE_OLD = 'vec2 i = floor(p), f = fract(p);';
 const V = [
+  ['G  OLD hash (no snap), the 15 Oct seams', s => s.replace('p = floor(p + 0.5); ', ''), 0.75],
   ['A  live shader, dpr 0.75 (as on site)', s => s, 0.75],
   ['B  relief shading OFF', s => s.replace('col *= 0.55 + 0.6 * lit;', ''), 0.75],
   ['C  cell index wrapped mod 289', s => s.replace(NOISE_OLD, 'vec2 i = mod(floor(p), 289.0), f = fract(p);'), 0.75],

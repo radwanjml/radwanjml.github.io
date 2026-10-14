@@ -15,7 +15,9 @@ uniform vec2 uRes; uniform float uTime, uDpr, uScale, uScroll, uVariety;
 uniform vec3 uLow, uMid, uHigh, uLine; uniform float uInk;   // uInk 1 = printed-map lines (light mode), 0 = glowing lines
 // sin-free hash (Dave Hoskins): fract(sin(x)*43758) loses precision on phone GPUs and the relief shading turned the
 // mismatched noise cells into visible seams (Red's phone, Addendum 59)
-float hash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+// floor(p + 0.5): Adreno reassociates hash(i + 1) into i*k + k, so neighbouring cells hashed the same corner from
+// inputs one ulp apart and got different values. Snapping makes both sides hash the identical integer (Addendum 62)
+float hash(vec2 p){ p = floor(p + 0.5); vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
 float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 3; i++) { s += a * noise(p); p = p * 2.02 + 17.3; a *= 0.5; } return s; }
