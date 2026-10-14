@@ -46,30 +46,41 @@ export function initPlate({ stageEl, plateEl, barEl, reducedMotion }) {
       v.appendChild(s);
     }
     // Stay in phase with the plate being replaced, so the swap reads as light changing, not a cut.
-    // Seek on metadata, then keep correcting while the old plate is still on the page: the new
-    // one starts late by however long it took to buffer.
-    // Addendum 64: seeking on every timeupdate fed itself (each seek fires timeupdate while the decoder is still
-    // catching up): ~120 seeks per switch, seen as the video racing then stalling. Now: one seek when metadata
-    // arrives, one when it first plays, then small drift is absorbed by nudging playbackRate (max ±8%, not visible).
-    const drift = () => ((syncFrom.currentTime - v.currentTime) % LOOP_S + LOOP_S * 1.5) % LOOP_S - LOOP_S / 2;
-    const live = () => syncFrom && syncFrom.isConnected && syncFrom.readyState >= 2;
-    const seek = () => { if (live() && Math.abs(drift()) > 0.06) v.currentTime = (syncFrom.currentTime + (v.paused ? 0 : 0.04)) % LOOP_S; };
-    let lastSeek = 0;
+    // Addendum 65: sync BEFORE the fade. Paused, seek a little ahead of the old plate (`lead` covers a slow phone
+    // seek), wait for the seek to land, then start exactly when the old plate reaches that frame. The layer only
+    // fades in on that first 'playing', so both videos are in step while both are visible. Afterwards only gentle
+    // playbackRate nudges (Addendum 64: per-timeupdate seeking fed itself and made the video race then stall).
+    let lead = 0.35;   // grows to 1.5x the measured seek time if a seek lands too late
+    const wrap = (d) => ((d % LOOP_S) + LOOP_S * 1.5) % LOOP_S - LOOP_S / 2;   // shortest signed gap on the loop
+    const live = () => syncFrom && syncFrom.isConnected && syncFrom.readyState >= 2 && !syncFrom.paused;
+    const drift = () => wrap(syncFrom.currentTime - v.currentTime);
+    let tries = 0, startT = 0;
+    const start = () => { if (shouldPlay()) v.play().catch(() => {}); };
+    const align = () => {
+      if (!shouldPlay()) { if (syncFrom && syncFrom.readyState >= 1) v.currentTime = syncFrom.currentTime % LOOP_S; return; }
+      if (!live() || tries++ > 4) { start(); return; }   // nothing to follow, or a very slow device: just play
+      v.pause();
+      const t0 = performance.now();
+      v.currentTime = (syncFrom.currentTime + lead) % LOOP_S;
+      v.addEventListener('seeked', () => {
+        lead = Math.max(lead, (performance.now() - t0) / 1000 * 1.5);
+        const wait = wrap(v.currentTime - syncFrom.currentTime);   // how far the old plate still has to go
+        if (wait < 0) { align(); return; }                          // the seek took longer than LEAD: aim again
+        clearTimeout(startT); startT = setTimeout(start, wait * 1000);
+      }, { once: true });
+    };
     const nudge = () => {
-      if (!live()) { v.playbackRate = 1; v.removeEventListener('timeupdate', nudge); return; }
+      if (!syncFrom || !syncFrom.isConnected || syncFrom.paused) { v.playbackRate = 1; v.removeEventListener('timeupdate', nudge); return; }
       if (v.seeking) return;
-      const d = drift(), now = performance.now();
-      if (Math.abs(d) > 0.25 && now - lastSeek > 1000) { lastSeek = now; v.playbackRate = 1; seek(); return; }   // big gap: one seek, then cool down
+      const d = drift();
       v.playbackRate = Math.abs(d) < 0.02 ? 1 : 1 + Math.max(-0.08, Math.min(0.08, d * 0.5));
     };
-    v.addEventListener('loadedmetadata', seek, { once: true });
-    v.addEventListener('playing', () => { seek(); v.addEventListener('timeupdate', nudge); }, { once: true });
-    v.addEventListener('playing', () => { v.classList.add('playing'); layer.onReady?.(); }, { once: true });
+    v.addEventListener('loadeddata', align, { once: true });
+    v.addEventListener('playing', () => { v.classList.add('playing'); layer.onReady?.(); v.addEventListener('timeupdate', nudge); }, { once: true });
     // paused by the visitor: still show the synced frame rather than the poster's frame 1
     v.addEventListener('seeked', () => { if (!shouldPlay()) { v.classList.add('playing'); layer.onReady?.(); } }, { once: true });
     layer.el.appendChild(v);
     layer.video = v;
-    if (shouldPlay()) v.play().catch(() => {});
   }
 
   function dropLayer(layer) {
