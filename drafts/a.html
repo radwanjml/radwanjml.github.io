@@ -56,7 +56,7 @@ if (c && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
 .topo-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: calc(var(--topo-base) * var(--topo-k, 1)); transition: opacity 1.6s var(--ease); }
 .topo-bg canvas { display: block; width: 100%; height: 100%; }
 :root { --topo-base: .22; }
-@media (max-width: 860px) { .topo-bg { opacity: calc(var(--topo-base) * var(--topo-k, 1) * .75); } } :root[data-mode="night"] { --topo-base: .26; } :root[data-mode="light"] { --topo-base: .26; }
+@media (max-width: 860px), (max-aspect-ratio: 4/5) { .topo-bg { opacity: calc(var(--topo-base) * var(--topo-k, 1) * .75); } } :root[data-mode="night"] { --topo-base: .26; } :root[data-mode="light"] { --topo-base: .26; }
 /* the hero is its own layer: solid page colour, and the terrain starts under its lower edge with a soft cast shadow */
 :root[data-transition="topo"] .hero { background: linear-gradient(var(--bg) 58%, rgba(var(--scrim), .0) 100%); }
 :root[data-transition="topo"][data-hero="full"] .hero { background: none; }   /* the plate covers it; the foot fades straight onto the terrain */
@@ -126,9 +126,11 @@ if (c && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
 .hero.exploring .leave { display: inline-flex; }
 .hero.exploring .stage-top { top: 84px; }
 
+/* Addendum 55: layout switches on shape as well as width: portrait screens of any width (iPad Pro, large tablets)
+   get the stacked phone layout instead of the side-by-side desktop one */
 /* ---------- full-bleed landing (Addendum 33, default): the render fills the first screen, the nav floats as a pill,
    copy sits on the left over a soft scrim; the plate's foot still dissolves into the terrain. ---------- */
-@media (min-width: 861px) {
+@media (min-width: 861px) and (min-aspect-ratio: 4/5) {
   :root[data-hero="full"] .stage { inset: 0; top: 0; right: 0; height: 100svh; width: 100%; aspect-ratio: auto; transform: none; }
   :root[data-hero="full"] .plate-mask { --fade-x: linear-gradient(#000, #000); --fade-y: linear-gradient(to bottom, #000 0 calc(100% - 40px - 34%), rgba(0,0,0,.5) calc(100% - 40px - 18%), transparent calc(100% - 40px - 5%)); }
   :root[data-hero="full"] .hero-copy { padding-top: 30svh; }
@@ -139,6 +141,16 @@ if (c && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   :root[data-hero="full"] .stage-bottom { bottom: 4.5%; }
   /* the hint stacks above the toolbar (bottom-right) so the toolbar and hint never sit on the island itself */
   :root[data-hero="full"] .hint { left: auto; right: calc(var(--pad) + 8px); bottom: calc(4.5% + 70px); transform: none; padding: 8px 14px; }
+}
+/* Addendum 55: landscape shapes the 16:9 plate doesn't fit. island.js reads object-position, so the live layer follows. */
+@media (min-width: 861px) and (min-aspect-ratio: 4/5) and (max-aspect-ratio: 3/2) {   /* 4:3 and 3:2 screens: slide the island right, off the copy */
+  :root[data-hero="full"] .stage .plate-layer > img, :root[data-hero="full"] .stage .plate-layer > video { object-position: 34% 50%; }
+}
+@media (min-width: 861px) and (min-aspect-ratio: 3/2) and (max-aspect-ratio: 5/3) {   /* 16:10 laptops: a gentler slide */
+  :root[data-hero="full"] .stage .plate-layer > img, :root[data-hero="full"] .stage .plate-layer > video { object-position: 42% 50%; }
+}
+@media (min-aspect-ratio: 2/1) {   /* ultrawide: copy hugs the left edge instead of a centred column */
+  :root[data-hero="full"] .hero-copy.wrap { max-width: none; padding-left: calc(var(--pad) + 2vw); }
 }
 /* accent underline (Addendum 34): a wavy contour stroke under each italic headline word, drawn left to right on reveal */
 .sec-head em, .about h2 em { position: relative; white-space: nowrap; }
@@ -189,7 +201,7 @@ section + section::before { content: ''; position: absolute; left: 0; right: 0; 
 .site b { font: 400 var(--t-h3)/1.1 var(--serif); }
 .site span:last-child { color: var(--text-3); font-size: 15px; line-height: 1.5; }
 .site:hover { translate: 0 -4px; } .site:hover b { color: var(--accent-text); }
-@media (max-width: 860px) { .sites { grid-template-columns: 1fr; } }
+@media (max-width: 860px), (max-aspect-ratio: 4/5) { .sites { grid-template-columns: 1fr; } }
 /* characters: rig + web app */
 .chars { align-items: start; }
 .chars .stagebox { grid-column: 1 / span 7; position: sticky; top: 8vh; height: min(76vh, 720px); border-radius: 28px; overflow: hidden;
@@ -252,7 +264,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
 .isle.more .more-in { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 6px; }
 .isle.more b { font: 400 26px/1 var(--serif); }
 @media (prefers-reduced-motion: reduce) { .isle { animation: none; } }
-@media (max-width: 860px) {
+@media (max-width: 860px), (max-aspect-ratio: 4/5) {
   .isles { height: auto; display: grid; gap: 0; }
   .isle { position: relative; left: auto; top: auto; width: 76%; animation: none; }
   .isle + .isle { margin-top: -4%; }
@@ -264,7 +276,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
 }
 
 /* ---------- phone ---------- */
-@media (max-width: 860px) {
+@media (max-width: 860px), (max-aspect-ratio: 4/5) {
   :root[data-transition="topo"] .hero { background: none; }   /* no page-colour band at the hero's foot */
   .sec-head p { margin-top: .9em; }   /* room for the accent underline */
   :root[data-transition="topo"] main::before { top: -13vh; height: 46vh; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.24) 30%, rgba(0,0,0,.08) 62%, transparent); }   /* rises behind the toolbar, below the island: no seam, island uncovered */

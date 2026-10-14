@@ -61,6 +61,9 @@ if (liveEl && hasGL) (async () => {
     hideHint();
   }));
   window.__loaded?.('island');
+  // Addendum 55: on 4:3 screens the 16:9 plate crops the About ruin to the edge; nudge any label back inside the screen
+  const clampLabels = () => labels.forEach((a) => { const sp = a.querySelector('span'); if (!sp) return; sp.style.translate = ''; const r = sp.getBoundingClientRect(), W = document.documentElement.clientWidth; const dx = r.right > W - 8 ? W - 8 - r.right : r.left < 8 ? 8 - r.left : 0; if (dx) sp.style.translate = `${Math.round(dx)}px 0`; });
+  clampLabels(); let clampT; addEventListener('resize', () => { clearTimeout(clampT); clampT = setTimeout(clampLabels, 260); });
   const hint = document.getElementById('hint');
   const hideHint = () => hint && hint.classList.add('gone');
   if (hint && matchMedia('(hover: none), (pointer: coarse)').matches) hint.textContent = hint.dataset.touch;
