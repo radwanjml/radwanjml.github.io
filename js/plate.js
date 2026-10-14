@@ -48,14 +48,22 @@ export function initPlate({ stageEl, plateEl, barEl, reducedMotion }) {
     // Stay in phase with the plate being replaced, so the swap reads as light changing, not a cut.
     // Seek on metadata, then keep correcting while the old plate is still on the page: the new
     // one starts late by however long it took to buffer.
-    const lock = () => {
-      if (!syncFrom || !syncFrom.isConnected || syncFrom.readyState < 2) return;
-      const d = ((syncFrom.currentTime - v.currentTime) % LOOP_S + LOOP_S * 1.5) % LOOP_S - LOOP_S / 2;
-      if (Math.abs(d) > 0.06) v.currentTime = (syncFrom.currentTime + (v.paused ? 0 : 0.04)) % LOOP_S;
+    // Addendum 64: seeking on every timeupdate fed itself (each seek fires timeupdate while the decoder is still
+    // catching up): ~120 seeks per switch, seen as the video racing then stalling. Now: one seek when metadata
+    // arrives, one when it first plays, then small drift is absorbed by nudging playbackRate (max ±8%, not visible).
+    const drift = () => ((syncFrom.currentTime - v.currentTime) % LOOP_S + LOOP_S * 1.5) % LOOP_S - LOOP_S / 2;
+    const live = () => syncFrom && syncFrom.isConnected && syncFrom.readyState >= 2;
+    const seek = () => { if (live() && Math.abs(drift()) > 0.06) v.currentTime = (syncFrom.currentTime + (v.paused ? 0 : 0.04)) % LOOP_S; };
+    let lastSeek = 0;
+    const nudge = () => {
+      if (!live()) { v.playbackRate = 1; v.removeEventListener('timeupdate', nudge); return; }
+      if (v.seeking) return;
+      const d = drift(), now = performance.now();
+      if (Math.abs(d) > 0.25 && now - lastSeek > 1000) { lastSeek = now; v.playbackRate = 1; seek(); return; }   // big gap: one seek, then cool down
+      v.playbackRate = Math.abs(d) < 0.02 ? 1 : 1 + Math.max(-0.08, Math.min(0.08, d * 0.5));
     };
-    v.addEventListener('loadedmetadata', lock, { once: true });
-    v.addEventListener('playing', lock);
-    v.addEventListener('timeupdate', lock);
+    v.addEventListener('loadedmetadata', seek, { once: true });
+    v.addEventListener('playing', () => { seek(); v.addEventListener('timeupdate', nudge); }, { once: true });
     v.addEventListener('playing', () => { v.classList.add('playing'); layer.onReady?.(); }, { once: true });
     // paused by the visitor: still show the synced frame rather than the poster's frame 1
     v.addEventListener('seeked', () => { if (!shouldPlay()) { v.classList.add('playing'); layer.onReady?.(); } }, { once: true });
