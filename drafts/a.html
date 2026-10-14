@@ -247,7 +247,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
 .isle .shade { fill: none; stroke: rgba(0,0,0,.35); stroke-width: 18; filter: blur(14px); vector-effect: non-scaling-stroke; }
 .tag { position: absolute; left: 60%; top: 0; display: flex; flex-direction: column; gap: 4px; padding: 9px 14px 10px; border-radius: 16px;
   white-space: nowrap; transition: background-color .3s var(--ease), color .3s var(--ease); }
-.tag b { font: 400 22px/1 var(--serif); } .tag small { font: 400 11px/1.3 var(--mono); letter-spacing: .06em; color: var(--text-3); }
+.tag b { font: 400 22px/1 var(--serif); } .tag small { font: 400 12px/1.3 var(--mono); letter-spacing: .06em; color: var(--text-3); }
 .isle:hover .tag { background: var(--accent); color: var(--on-accent); } .isle:hover .tag small { color: inherit; opacity: .75; }
 .isle.more .more-in { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 6px; }
 .isle.more b { font: 400 26px/1 var(--serif); }
@@ -284,7 +284,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
   .stage { overflow: visible; }
   .stage-bottom .dock .label { display: none; }
   .toolbar .seg button span { display: none; }
-  .hint { bottom: 3%; font-size: 11px; white-space: nowrap; }
+  .hint { bottom: 3%; font-size: 12px; white-space: nowrap; }   /* 11 -> 12 for phones (Addendum 51) */
   .hint .long { display: none; }
   .ruin { left: var(--px); top: var(--py); }
   .ruin span { font-size: 11px; padding: 9px 10px; min-height: 40px; display: inline-flex; align-items: center; }   /* was 9 px: unreadable + tiny tap target (Addendum 47) */
@@ -326,23 +326,23 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
 </script>
 <div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
 <nav class="nav" aria-label="Site"><div class="wrap glass">
-  <a class="mark" href="drafts/a.html" aria-label="Radwan Jameel, home"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+  <a class="mark" href="drafts/a.html"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
 <mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
 <mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
 </defs>
 <text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
 <text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
 <text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
-  <ul><li><a href="#work">Work</a></li><li><a href="#lab">Lab</a></li><li><a href="drafts/models.html">Models</a></li><li><a href="drafts/about.html">About</a></li></ul>
+  <ul><li><a href="#work">Work</a></li><li><a href="#lab">Lab</a></li><li><a href="drafts/models.html">Models</a></li><li><a href="drafts/about.html">About</a></li><li><a class="nav-cta" href="drafts/about.html#contact">Contact</a></li></ul>
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
 </div>
-  <div class="menu glass" id="menu" hidden><a href="#work">Work</a><a href="#lab">Lab</a><a href="drafts/models.html">Models</a><a href="drafts/about.html">About</a></div>
+  <div class="menu glass" id="menu" hidden><a href="#work">Work</a><a href="#lab">Lab</a><a href="drafts/models.html">Models</a><a href="drafts/about.html">About</a><a href="drafts/about.html#contact">Contact</a></div>
 </nav>
 
 <header class="hero" data-topo="360 1">
   <div class="contours hero-contours" aria-hidden="true"></div>
   <div class="hero-copy wrap"><div class="grid"><div class="inner">
-    <p class="label">Creative technologist · 3D + real-time web</p>
+    <p class="label">Creative technologist · <span style="white-space:nowrap">3D + real&#8209;time web</span></p>
     <h1 class="serif">I build worlds<br> you can <em>walk into.</em></h1>
     <p class="lead">Modelled in Blender, built for the browser with Three.js. Pip will show you around.</p>
     <div class="cta"><a class="btn btn-solid" href="#work">View work</a><button class="btn" type="button" data-explore>Explore the island</button></div>
@@ -370,9 +370,9 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
     <div class="stage-bottom">
       <div class="toolbar glass">
       <div class="seg" role="group" aria-label="Time of day on the island">
-          <button type="button" data-mode="light" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><span>Golden hour</span></button>
-          <button type="button" data-mode="dark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 16a5.5 5.5 0 0 1 11 0"/><path d="M2.5 16h19M5.5 19.5h13M12 5.5v2.2M5.2 9.2l1.5 1.5M18.8 9.2l-1.5 1.5"/></svg><span>Dusk</span></button>
-          <button type="button" data-mode="night" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z"/></svg><span>Night</span></button>
+          <button type="button" data-mode="light" aria-label="Golden hour" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><span>Golden hour</span></button>
+          <button type="button" data-mode="dark" aria-label="Dusk" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 16a5.5 5.5 0 0 1 11 0"/><path d="M2.5 16h19M5.5 19.5h13M12 5.5v2.2M5.2 9.2l1.5 1.5M18.8 9.2l-1.5 1.5"/></svg><span>Dusk</span></button>
+          <button type="button" data-mode="night" aria-label="Night" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z"/></svg><span>Night</span></button>
           <button class="tb-pause" type="button" aria-pressed="false" aria-label="Pause the island animation" hidden><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6.5v11M15 6.5v11"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 6.2v11.6L18 12Z"/></svg></button>
         </div>
       <span class="tsep" aria-hidden="true"></span>
@@ -396,21 +396,21 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
     <div class="copy"><span class="label idx">01 / 03 · Unsolicited concept, not affiliated</span><h3>AGIT V5</h3>
       <p>A 12-page redesign concept for an education provider, built as one coherent estate.</p>
       <ul><li>One design system across twelve pages.</li><li>Same URL structure, so every existing link and search ranking keeps working.</li></ul>
-      <p class="tags">HTML/CSS · GSAP · Lenis · Netlify</p><a class="btn" href="drafts/work.html?p=agit">Read the case study</a></div>
+      <p class="tags">HTML/CSS · GSAP · Lenis · Netlify</p><a class="btn" href="work/agit/">Read the case study</a></div>
   </article>
   <article class="grid row flip rv">
     <figure class="media liquid"><video class="loop" muted loop playsinline preload="none" poster="assets/img/overspill.webp"><source src="assets/video/overspill.webm" type="video/webm"><source src="assets/video/overspill.mp4" type="video/mp4"></video></figure>
     <div class="copy"><span class="label idx">02 / 03 · Game</span><h3>Overspill</h3>
       <p>A chain-reaction strategy game on a generated 3D network. 2–4 players, or 2 online with a room code.</p>
       <ul><li>Four network families generate a new board every game.</li><li>Each tap lights one connection: the rule and the readout are the same object.</li></ul>
-      <p class="tags">Three.js · Graph generation · Online rooms</p><a class="btn" href="drafts/work.html?p=overspill">Read the case study</a></div>
+      <p class="tags">Three.js · Graph generation · Online rooms</p><a class="btn" href="work/overspill/">Read the case study</a></div>
   </article>
   <article class="grid row rv">
     <figure class="media liquid"><video class="loop" muted loop playsinline preload="none" poster="assets/img/closer.webp"><source src="assets/video/closer.webm" type="video/webm"><source src="assets/video/closer.mp4" type="video/mp4"></video></figure>
     <div class="copy"><span class="label idx">03 / 03 · Multiplayer</span><h3>Closer</h3>
       <p>A browser experience for two, with characters I modelled and rigged.</p>
       <ul><li>A hug pose solved from the measured geometry.</li><li>Live multiplayer over a relay server.</li></ul>
-      <p class="tags">Blender · Three.js · WebSockets</p><a class="btn" href="drafts/work.html?p=closer">Read the case study</a></div>
+      <p class="tags">Blender · Three.js · WebSockets</p><a class="btn" href="work/closer/">Read the case study</a></div>
   </article>
 </div></section>
 

@@ -269,7 +269,7 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
   const scene = new THREE.Scene();
   const texLoader = new THREE.TextureLoader();
   const depthTex = {};
-  const loadDepth = (view) => depthTex[view] || (depthTex[view] = new Promise((res) => texLoader.load(`assets/island/depth_${view}.png`, (t) => {
+  const loadDepth = (view) => depthTex[view] || (depthTex[view] = new Promise((res) => texLoader.load(`assets/island/depth_${view}.webp`, (t) => {
     t.colorSpace = THREE.NoColorSpace; t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false;
     const img = t.image, c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
     const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);

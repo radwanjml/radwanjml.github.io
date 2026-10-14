@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en" data-p="overspill">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base href="../../">
+<title>Overspill: a chain-reaction strategy game · Radwan Jameel</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://radwanjml.github.io/work/overspill/">
+<link rel="canonical" href="https://radwanjml.github.io/work/overspill/">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:title" content="Overspill: a chain-reaction strategy game">
+<meta property="og:description" content="A chain-reaction strategy game on a generated 3D network, 2 to 4 players or online with a room code. Built with Three.js by Radwan Jameel.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/og-overspill.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="A chain-reaction strategy game on a generated 3D network, 2 to 4 players or online with a room code. Built with Three.js by Radwan Jameel.">
+<script>
+(function () {
+  var m = null; try { m = localStorage.getItem('island-mode'); } catch (e) {}
+  if (m !== 'light' && m !== 'dark' && m !== 'night') m = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.dataset.mode = m; document.documentElement.dataset.glass = 'clear';
+  if (matchMedia('(hover: none), (pointer: coarse)').matches) document.documentElement.classList.add('touch');
+})();
+</script>
+<link rel="preload" href="assets/fonts/Geist-normal-300-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/InstrumentSerif-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="drafts/ds.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }</script>
+<style>
+/* ---------- Work case study (Addendum 43): an expedition up a contour map ----------
+   A route line in the left margin draws itself as you scroll, with five waypoints at rising "altitudes":
+   the brief, what I built, the hard parts, try it, what's next. Survey-legend facts, big numbers,
+   problem -> decision -> result cards, and the real thing to try on the page. */
+:root { --motif: #E8B04A; } :root[data-mode="light"] { --motif: #E0875A; } :root[data-mode="night"] { --motif: #8FB8F0; }
+.topo-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .2; }
+:root[data-mode="light"] .topo-bg { opacity: .24; }
+.topo-bg canvas { width: 100%; height: 100%; display: block; }
+main { position: relative; }
+
+/* hero */
+.cs-hero { position: relative; padding-top: clamp(130px, 20vh, 200px); padding-bottom: clamp(40px, 6vh, 70px); }   /* top/bottom only: the shorthand wiped .wrap's side padding */
+.cs-hero .num { position: absolute; right: var(--pad); top: clamp(110px, 16vh, 170px); font: 400 clamp(180px, 26vw, 400px)/.8 var(--serif); color: transparent;
+  -webkit-text-stroke: 1px var(--motif); opacity: .35; pointer-events: none; user-select: none; }
+.cs-hero .eyebrow { margin-bottom: 22px; }
+.cs-hero h1 { font: 400 clamp(64px, 11vw, 176px)/.86 var(--serif); margin: 0; letter-spacing: -.01em; }
+.cs-hero h1 em { color: var(--accent-text); }
+.cs-hero .lede { font-size: clamp(20px, 2vw, 26px); line-height: 1.45; max-width: 34ch; color: var(--text-2); margin: 28px 0 0; }
+.legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: clamp(40px, 6vh, 64px); border-radius: 22px; overflow: hidden; }
+.legend div { padding: 18px 22px 20px; border-left: 1px solid var(--line); }
+.legend div:first-child { border-left: 0; }
+.legend dt { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; display: flex; gap: 8px; align-items: center; }
+.legend dt::before { content: ''; width: 9px; height: 9px; border-radius: 50%; border: 1.4px solid var(--motif); }
+.legend dd { margin: 0; font-size: 16px; line-height: 1.45; }
+.legend a { color: var(--accent-text); text-underline-offset: .2em; }
+.reel { margin: clamp(30px, 5vh, 56px) 0 0; border-radius: 26px; overflow: hidden; position: relative; background: #0d0a16; box-shadow: 0 50px 100px -50px rgba(0,0,0,.7); }
+.reel video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top; }
+
+/* the route: a contour line that draws as you scroll, waypoints light up */
+.journey { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: clamp(20px, 4vw, 64px); }
+.route { position: sticky; top: 110px; height: calc(100svh - 160px); align-self: start; }
+.route svg { width: 100%; height: 100%; overflow: visible; }
+.route .track { fill: none; stroke: var(--line); stroke-width: 1.4; stroke-dasharray: 2 6; }
+.route .drawn { fill: none; stroke: var(--motif); stroke-width: 2; stroke-linecap: round; }
+.route .wp circle { fill: var(--bg); stroke: var(--motif); stroke-width: 1.4; transition: r .4s var(--ease), fill .4s var(--ease); }
+.route .wp.on circle { fill: var(--motif); }
+.route .wp text { font: 500 10.5px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; fill: var(--text-3); transition: fill .4s var(--ease); }
+.route .wp.on text { fill: var(--text); }
+.route .wp .alt { fill: var(--motif); opacity: .8; }
+
+.leg { padding: clamp(70px, 12vh, 140px) 0 0; }
+.leg > .label { display: block; margin-bottom: 18px; color: var(--motif); }
+:root[data-mode="light"] .leg > .label { color: #9A4A22; }   /* the light motif was 2.4:1 on cream (Addendum 47) */
+.leg h2 { font: 400 clamp(40px, 5.4vw, 80px)/.98 var(--serif); margin: 0 0 26px; max-width: 16ch; }
+.leg h2 em { color: var(--accent-text); }
+.leg p a { color: var(--accent-text); text-underline-offset: .2em; }
+.leg p { color: var(--text-2); max-width: 60ch; font-size: 18px; line-height: 1.7; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin-top: 40px; }
+.stat { padding: 26px 24px 24px; border-radius: 24px; }
+.stat b { display: block; font: 400 clamp(52px, 6vw, 92px)/.9 var(--serif); color: var(--accent-text); }
+.stat span { display: block; margin-top: 12px; color: var(--text-2); font-size: 15px; line-height: 1.5; }
+.cards { display: grid; gap: 22px; margin-top: 36px; counter-reset: hp; }
+.card { padding: 28px clamp(22px, 3vw, 36px); border-radius: 26px; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 4px 18px; }
+.card::before { counter-increment: hp; content: counter(hp, decimal-leading-zero); grid-row: span 4; font: 400 44px/1 var(--serif); color: var(--motif); opacity: .9; }
+.card h3 { font: 400 30px/1.1 var(--serif); margin: 0 0 10px; }
+.card dl { margin: 0; display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 8px 16px; }
+.card dt { font: 500 11px/1.8 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.card dd { margin: 0; color: var(--text-2); line-height: 1.6; }
+.card dd strong { color: var(--text); font-weight: 500; }
+
+/* try it */
+.tryit { margin-top: 34px; border-radius: 28px; overflow: hidden; position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; text-align: center; }
+.tryit iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.tryit .gate { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 16px; padding: 24px;
+  background: center / cover no-repeat var(--poster); }
+.tryit .gate::before { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(var(--scrim), .25), rgba(var(--scrim), .78)); }
+.tryit .gate > * { position: relative; }
+.tryit .gate b { font: 400 clamp(32px, 4vw, 54px)/1 var(--serif); }
+.tryit .gate small { font: 500 11px/1.5 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); }
+#rig { position: absolute; inset: 0; }
+.tryit .stage-label { position: absolute; left: 22px; top: 18px; z-index: 2; color: var(--text-2); }
+.tryit .open-live { position: absolute; right: 18px; bottom: 18px; z-index: 2; }
+@media (max-width: 720px) { .tryit .open-live { top: 12px; bottom: auto; right: 12px; } }   /* phones: clears the character dock (Addendum 48) */
+
+.next { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: var(--gap); margin: clamp(90px, 16vh, 180px) 0 0; padding: 18px; border-radius: 30px; text-decoration: none; color: var(--text); }
+.next img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 20px; display: block; transition: transform 1s var(--ease); }
+.next:hover img { transform: scale(1.02); }
+.next div { padding: 0 clamp(8px, 3vw, 40px); }
+.next b { display: block; font: 400 clamp(44px, 6vw, 96px)/.95 var(--serif); margin-top: 10px; }
+.next i { font-style: normal; color: var(--accent-text); font-size: 28px; display: inline-block; transition: translate .5s var(--ease); }
+.next:hover i { translate: 8px 0; }
+footer { margin-top: 90px; border-top: 1px solid var(--line); padding: 26px 0 60px; }
+
+.rv { opacity: 0; transform: translateY(26px); transition: opacity 1s var(--ease), transform 1s var(--ease); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; } }
+
+@media (max-width: 860px) {
+  .cs-hero .num { font-size: 150px; top: 90px; opacity: .22; }
+  .journey { grid-template-columns: 1fr; }
+  .route { display: none; }
+  .legend { grid-template-columns: 1fr 1fr; }
+  .legend div:nth-child(3) { border-left: 0; } .legend div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .stats { grid-template-columns: 1fr; }
+  .card { grid-template-columns: 1fr; } .card::before { grid-row: auto; font-size: 34px; }
+  .card dl { grid-template-columns: 1fr; gap: 2px; } .card dd { margin-bottom: 10px; }
+  .tryit { aspect-ratio: 3 / 4; }
+  .next { grid-template-columns: 1fr; }
+  .touch .glass { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+}
+.rig-spec{margin:14px 0 0;font-size:14px;line-height:1.55;color:var(--muted,inherit);max-width:70ch}.rig-spec b{font-weight:600;margin-right:6px}
+.builds{margin-top:22px;display:grid;gap:0;border-top:1px solid var(--line)}.builds .label{margin:14px 0 4px}.builds a{display:grid;grid-template-columns:minmax(9em,auto) 1fr auto;gap:16px;align-items:baseline;padding:14px 0;min-height:44px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text)}.builds a::after{content:'97';color:var(--accent-text)}.builds b{font:400 20px/1.2 var(--serif)}.builds span{color:var(--text-3);font-size:14px}@media(max-width:600px){.builds a{grid-template-columns:1fr auto}.builds span{grid-column:1}}
+</style>
+</head>
+<body>
+<div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
+<nav class="nav" aria-label="Site"><div class="wrap glass">
+  <a class="mark" href="drafts/a.html"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+<mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
+<mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
+</defs>
+<text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
+<text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
+<text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
+  <ul><li><a aria-current="page">Work</a></li><li><a href="drafts/a.html#lab">Lab</a></li><li><a href="drafts/models.html">Models</a></li><li><a href="drafts/about.html">About</a></li><li><a class="nav-cta" href="drafts/about.html#contact">Contact</a></li></ul>
+  <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+  <div class="menu glass" id="menu" hidden><a href="drafts/a.html">Home</a><a href="drafts/a.html#work" aria-current="page">Work</a><a href="drafts/a.html#lab">Lab</a><a href="drafts/models.html">Models</a><a href="drafts/about.html">About</a><a href="drafts/about.html#contact">Contact</a></div>
+</nav>
+
+<main>
+  <header class="cs-hero wrap">
+    <span class="num" id="num" aria-hidden="true"></span>
+    <p class="label eyebrow" id="eyebrow"></p>
+    <h1 id="title"></h1>
+    <p class="lede" id="lede"></p>
+    <dl class="legend glass rv" id="legend"></dl>
+    <figure class="reel rv"><video id="reel" muted loop playsinline preload="metadata"></video></figure>
+  </header>
+
+  <div class="wrap journey">
+    <aside class="route" aria-hidden="true"><svg id="route"></svg></aside>
+    <div id="legs"></div>
+  </div>
+
+  <div class="wrap"><a class="next glass rv" id="next"></a></div>
+</main>
+<footer><div class="wrap label">Radwan Jameel · built with Three.js, rendered in Blender Cycles</div></footer>
+
+<script type="module">
+import { initTopo } from './drafts/topo.js';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const touch = document.documentElement.classList.contains('touch');
+initTopo(document.getElementById('topo'), { mode: document.documentElement.dataset.mode, reducedMotion: reduced || touch, scale: 380, seed: 61, variety: 1 });
+
+// ---------- content: facts only from each project's own docs ----------
+const CS = {
+  agit: {
+    n: '01', eyebrow: 'Case study 01 / 03 · Unsolicited concept, not affiliated',
+    title: 'AGIT <em>V5</em>', poster: 'assets/img/agit.webp', video: 'assets/video/agit.mp4',
+    lede: 'A twelve-page website concept for a Perth education provider, built as one coherent estate.',
+    legend: [['Role', 'Design, copy, front-end'], ['When', 'Aug 2026, five builds in three weeks'], ['Stack', 'HTML/CSS, GSAP, Lenis, WebGL, Netlify'], ['Status', '<a href="https://agit-tibr.netlify.app" target="_blank" rel="noopener">Live concept ↗</a>']],
+    brief: ['The <em>brief</em> I gave myself', 'An unsolicited pitch: I had designed the institute’s logo and print, then built a working replacement for its website to show what the web could do. A student comparing courses should see the whole map before enrolling, and find the fees in two taps.', 'Nothing ships unless it is in one source-of-truth fact file. Every number on every page traces back to it.'],
+    stats: [['12', 'pages in one design system, with the same URLs as the old site'], ['169 KB', 'of imagery for the dice hero, down from 17 MB of source PNG'], ['0 KB', 'of third-party JavaScript in the dice hero']],
+    hard: [
+      ['Keeping the old site’s search ranking', 'A redesign that changes every URL throws away years of search history.', 'Kept the existing URL structure and wrote a 301 map for every page that moved.', 'The concept could replace the live site with every inbound link still working.'],
+      ['A hero that explains the curriculum', 'Four qualifications read as four separate lists, but the units actually overlap.', 'Built “The Lattice”, a WebGL graph where shared units link the qualifications, plus three other heroes to compare.', 'Four hero concepts on one estate: Dice, Lattice, Deep Field, Light Box.'],
+      ['A page-weight budget', 'Rich heroes against a 200 KB budget.', 'The dice hero uses no libraries at all; its art was compressed from 17 MB to 169 KB of WebP.', 'Dice ~1.4× the budget; the WebGL heroes 3.6×, documented with a fix path.'],
+    ],
+    builds: [   // Addendum 49: titles from each live site
+      ['agit-tibr.netlify.app', 'V5 · the estate', 'Twelve pages, one design system'],
+      ['agit-5-tibr.netlify.app', 'Three directions', 'Three directions for one hero'],
+      ['agit-3-tibr.netlify.app', 'V3', 'Course costs answered on the page'],
+      ['agit-2-tibr.netlify.app', 'V2', 'IT, cyber security and civil design courses'],
+      ['agit-1-tibr.netlify.app', 'V1', 'The first build'],
+    ],
+    try: { kind: 'link', url: 'https://agit-tibr.netlify.app', cta: 'Open the live estate', note: 'Opens in a new tab · the site does not allow embedding' },
+    nextNote: 'A self-initiated concept, not client work. All five builds stay live; the full estate is the strongest of them.',
+    next: 'overspill',
+  },
+  overspill: {
+    n: '02', eyebrow: 'Case study 02 / 03 · Game',
+    title: 'Over<em>spill</em>', poster: 'assets/img/overspill.webp', video: 'assets/video/overspill.mp4',
+    lede: 'A chain-reaction strategy game played on a generated 3D network. One tap can ripple across the whole board.',
+    legend: [['Role', 'Game design, code, art direction'], ['Players', '2–4 on one device, or 2 online'], ['Stack', 'Three.js, custom shaders, PeerJS (WebRTC)'], ['Status', '<a href="https://overspill-game.netlify.app" target="_blank" rel="noopener">Play it ↗</a>']],
+    brief: ['Why a <em>network</em>, not a grid', 'The classic chain-reaction rule is a known mathematical object, a chip-firing game. On a square grid every cell is the same. On a real network every node is different: a two-connection branch is cheap and fragile, a six-connection hub is expensive and decisive.', 'So the topology is the level design. Four graph families (organic, scale-free, small-world, lattice) and a random mix generate a new board every game.'],
+    stats: [['4', 'graph families, a new board every game'], ['300', 'seeded bot games: zero timeouts, zero rule violations'], ['1 file', 'one self-contained HTML, about 1 MB, no build step']],
+    hard: [
+      ['Showing how close a node is to bursting', 'Players should never have to count taps.', 'Each tap lights one edge from the node outward; the dark edges are the taps remaining.', 'The rule and the readout are the same object. A fully lit hub reads as loaded.'],
+      ['Whose turn it is, without a HUD', 'A label in the corner breaks the 3D scene.', 'The nebula sky washes toward the active player’s colour.', 'The whole world tells you whose turn it is.'],
+      ['Colours that work for everyone', 'Player colours have to stay apart for colour-blind players.', 'Chose gold and violet, 223° apart, and checked them under three types of colour blindness.', 'Separable under deuteranopia, protanopia and tritanopia.'],
+    ],
+    try: { kind: 'frame', url: 'https://overspill-game.netlify.app', cta: 'Play here', note: 'Loads the game on this page · tap a node to charge it' },
+    nextNote: 'The source is public to read and learn from: <a href="https://github.com/radwanjml/overspill" target="_blank" rel="noopener">github.com/radwanjml/overspill ↗</a>. Play it with a friend on two phones using a five-character room code.',
+    next: 'closer',
+  },
+  closer: {
+    n: '03', eyebrow: 'Case study 03 / 03 · Multiplayer',
+    title: 'Clo<em>ser</em>', poster: 'assets/img/closer.webp', video: 'assets/video/closer.mp4',
+    lede: 'A cozy two-player cove you walk around together in real time, from separate devices. No install, no account, just a link.',
+    legend: [['Role', 'Everything: models, rigs, code, server'], ['Players', '2, on separate devices'], ['Stack', 'Blender, Three.js, WebSockets relay'], ['Status', '<a href="https://closer-cove.netlify.app" target="_blank" rel="noopener">Live ↗</a>']],
+    brief: ['Built for <em>two</em>', 'It began as a gift for one person far away and became public. Two people share one sunset beach cove: they see each other move, sit by one campfire, and tend it together.', 'Every character is modelled in Blender and animated by code: rigid parts on springs, driven by velocity and acceleration, with no bones.'],
+    stats: [['3', 'characters, each rigged in code'], ['800', 'particles in the shared campfire'], ['1 fire', 'shared state: both players see the same flame and the same sticks']],
+    hard: [
+      ['A hug that lines up', 'Two characters of different shapes have to meet without clipping.', 'Solved the hug pose from the measured geometry of each model.', 'The pose comes from the models’ real measurements, not by eye.'],
+      ['One campfire for two people', 'Two phones simulating their own fire drift apart within seconds.', 'Fuel, wind and who holds which stick live on the relay server; the phones only draw it.', 'Both players see the same brightness, colour and driftwood.'],
+      ['A trunk that waves', 'Eli3’s twelve-ring trunk folded through itself when blended with quaternions.', 'Unrolled it as plain angles about one shared hinge, ramped down the chain.', 'It lifts and waves in one continuous arc. Try it below.'],
+    ],
+    try: { kind: 'rig', url: 'https://closer-cove.netlify.app', cta: 'Open the cove', note: 'The real rigs, live · move your pointer over the stage' },
+    nextNote: 'Next for Closer: a second map, a treehouse in a sequoia forest, where each character has different abilities.',
+    next: 'agit',
+  },
+};
+const key = document.documentElement.dataset.p || new URLSearchParams(location.search).get('p');   // /work/<key>/ pages set data-p (Addendum 51)
+const D = CS[key] || CS.agit;
+document.title = D.title.replace(/<[^>]+>/g, '') + ' · Radwan Jameel';
+document.querySelector('meta[name=description]').content = D.lede;
+document.getElementById('eyebrow').textContent = D.eyebrow;
+document.getElementById('num').textContent = D.n;
+document.getElementById('title').innerHTML = D.title;
+document.getElementById('lede').textContent = D.lede;
+document.getElementById('legend').innerHTML = D.legend.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+const reel = document.getElementById('reel'); reel.poster = D.poster; reel.src = D.video;
+new IntersectionObserver(([e]) => { if (e.isIntersecting && !reduced) reel.play().catch(() => {}); else reel.pause(); }, { threshold: 0.3 }).observe(reel);
+
+const WP = [['Brief', '0 m'], ['Built', '120 m'], ['Hard parts', '260 m'], ['Try it', '410 m'], ['Next', '560 m']];
+const legs = document.getElementById('legs');
+const tryHtml = D.try.kind === 'rig'
+  ? `<div class="tryit glass" id="tryit"><span class="label stage-label">Live · <span id="rig-name">Pip</span></span><div id="rig"></div><div class="dock glass" role="group" aria-label="Character" style="position:absolute;left:50%;bottom:18px;translate:-50% 0;z-index:2"><button type="button" data-char="pip" aria-pressed="true">Pip</button><button type="button" data-char="moobi" aria-pressed="false">Moobi</button><button type="button" data-char="eli3" aria-pressed="false">Eli3</button></div><a class="btn open-live" href="${D.try.url}" target="_blank" rel="noopener">${D.try.cta} ↗</a></div><p class="rig-spec" id="rig-spec" aria-live="polite"></p>`
+  : `<div class="tryit glass" id="tryit" style="--poster:url('${D.poster}')"><div class="gate"><b>${D.try.cta}</b><small>${D.try.note}</small>${D.try.kind === 'frame' ? `<button class="btn btn-solid" type="button" id="load">Load the game</button>` : `<a class="btn btn-solid" href="${D.try.url}" target="_blank" rel="noopener">Open ↗</a>`}</div></div>`;
+legs.innerHTML = `
+  <section class="leg rv" data-wp="0"><span class="label">Waypoint 01 · ${WP[0][1]}</span><h2>${D.brief[0]}</h2><p>${D.brief[1]}</p><p>${D.brief[2]}</p></section>
+  <section class="leg rv" data-wp="1"><span class="label">Waypoint 02 · ${WP[1][1]}</span><h2>What I <em>built</em></h2>
+    <div class="stats">${D.stats.map(([b, t]) => `<div class="stat glass"><b>${b}</b><span>${t}</span></div>`).join('')}</div></section>
+  <section class="leg rv" data-wp="2"><span class="label">Waypoint 03 · ${WP[2][1]}</span><h2>The <em>hard</em> parts</h2>
+    <div class="cards">${D.hard.map(([h, p, d, r]) => `<article class="card glass"><h3>${h}</h3><dl><dt>Problem</dt><dd>${p}</dd><dt>Decision</dt><dd>${d}</dd><dt>Result</dt><dd><strong>${r}</strong></dd></dl></article>`).join('')}</div></section>
+  <section class="leg rv" data-wp="3"><span class="label">Waypoint 04 · ${WP[3][1]}</span><h2>Try <em>it</em></h2>${tryHtml}${D.builds ? `<div class="builds"><p class="label">All five builds, live</p>${D.builds.map(([u, t, n]) => `<a href="https://${u}" target="_blank" rel="noopener"><b>${t}</b><span>${n}</span></a>`).join('')}</div>` : ''}</section>
+  <section class="leg rv" data-wp="4"><span class="label">Waypoint 05 · ${WP[4][1]}</span><h2>What’s <em>next</em></h2><p>${D.nextNote}</p></section>`;
+
+const N = CS[D.next];
+const nx = document.getElementById('next');
+nx.href = `work/${D.next}/`;
+nx.innerHTML = `<img src="${N.poster}" alt="" loading="lazy"><div><span class="label">Next expedition · ${N.eyebrow.split('·')[0].replace('Case study ', '')}</span><b>${N.title}</b><i>→</i></div>`;
+
+// ---------- try it ----------
+document.getElementById('load')?.addEventListener('click', () => {
+  const t = document.getElementById('tryit'); t.innerHTML = `<iframe src="${D.try.url}" title="Overspill, playable" allow="fullscreen" loading="lazy"></iframe>`;
+});
+if (D.try.kind === 'rig') {
+  const slot = document.getElementById('rig');
+  // moved from the home page (Addendum 48): the models ship as rigid parts, every motion is code
+  const SPEC = {
+    pip: 'Hover ring, body tilt, two antennae and two hands on springs · Blender, 0.4 MB GLB',
+    moobi: 'Wheel roll from distance travelled, bell, ears and arms on springs · Blender, 0.3 MB GLB',
+    eli3: 'Rolling ball, ears and hooves on springs, and a 12-ring trunk that unrolls to wave · Blender, 0.8 MB GLB',
+  };
+  const spec = document.getElementById('rig-spec');
+  const showSpec = (n) => { spec.innerHTML = `<b>Rig</b> ${SPEC[n]}. No bones: driven by body-space velocity, acceleration and yaw rate.`; };
+  showSpec('pip');
+  document.querySelectorAll('#tryit [data-char]').forEach((b) => b.addEventListener('click', () => showSpec(b.dataset.char)));
+  new IntersectionObserver(async ([e], io) => {
+    if (!e.isIntersecting) return; io.disconnect();
+    try {
+      const { createCharStage } = await import('./drafts/chars.js');
+      const stage = await createCharStage(slot, { mode: document.documentElement.dataset.mode });
+      await stage.set('pip');
+      const btns = [...document.querySelectorAll('#tryit [data-char]')];
+      btns.forEach((b) => b.addEventListener('click', async () => { btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b))); document.getElementById('rig-name').textContent = b.textContent; await stage.set(b.dataset.char); }));
+      (window.requestIdleCallback || ((f) => setTimeout(f, 1200)))(() => stage.warm(['moobi', 'eli3']).catch(() => {}));
+    } catch (err) { slot.innerHTML = `<p style="padding:30px">The live rig needs WebGL. <a href="${D.try.url}">Open the cove ↗</a></p>`; }
+  }, { rootMargin: '200px' }).observe(slot);
+}
+
+// ---------- the route ----------
+const svg = document.getElementById('route'), NS = 'http://www.w3.org/2000/svg';
+// built at the rail's real pixel size (a stretched viewBox widened the labels)
+const H = Math.max(400, svg.clientHeight || innerHeight - 160); svg.setAttribute('viewBox', `0 0 170 ${H}`);
+const ys = [0.06, 0.27, 0.48, 0.69, 0.9].map((f) => f * H);
+let d = `M 40 ${ys[0]}`;
+ys.slice(1).forEach((y, j) => { const k = j + 1, x = k % 2 ? 110 : 40, gap = ys[k] - ys[k - 1]; d += ` C ${k % 2 ? 40 : 110} ${y - gap * 0.55}, ${x} ${y - gap * 0.4}, ${x} ${y}`; });
+const mk = (tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); svg.appendChild(e); return e; };
+mk('path', { d, class: 'track', 'vector-effect': 'non-scaling-stroke' });
+const drawn = mk('path', { d, class: 'drawn', 'vector-effect': 'non-scaling-stroke' });
+const L = drawn.getTotalLength(); drawn.style.strokeDasharray = L; drawn.style.strokeDashoffset = L;
+const wps = ys.map((y, k) => {
+  const g = mk('g', { class: 'wp' }); const x = k % 2 ? 110 : 40;
+  const c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 5); c.setAttribute('vector-effect', 'non-scaling-stroke'); g.appendChild(c);
+  const t = document.createElementNS(NS, 'text'); t.setAttribute('x', k % 2 ? 0 : 54); t.setAttribute('y', y - 14); t.textContent = WP[k][0]; g.appendChild(t);
+  const a = document.createElementNS(NS, 'text'); a.setAttribute('x', k % 2 ? 0 : 54); a.setAttribute('y', y + 4); a.setAttribute('class', 'alt'); a.textContent = WP[k][1]; g.appendChild(a);
+  return g;
+});
+const sections = [...document.querySelectorAll('.leg')];
+function onScroll() {
+  const vh = innerHeight; let p = 0, on = -1;
+  sections.forEach((s, k) => { const r = s.getBoundingClientRect(); if (r.top < vh * 0.55) on = k; });
+  const first = sections[0].getBoundingClientRect().top + scrollY, last = sections.at(-1).getBoundingClientRect().bottom + scrollY;
+  p = Math.min(1, Math.max(0, (scrollY + vh * 0.55 - first) / (last - first)));
+  drawn.style.strokeDashoffset = (L * (1 - p)).toFixed(1);
+  wps.forEach((g, k) => g.classList.toggle('on', k <= on));
+}
+let sq = 0; addEventListener('scroll', () => { if (!sq) sq = requestAnimationFrame(() => { sq = 0; onScroll(); }); }, { passive: true }); onScroll();   // one layout read per frame (Addendum 46)
+
+// reveals + phone menu
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
+document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+const mb = document.querySelector('.menu-btn'), menu = document.getElementById('menu');
+mb?.addEventListener('click', () => { const o = menu.hidden; mb.setAttribute('aria-expanded', String(o)); menu.hidden = !o; });
+</script>
+</body>
+</html>

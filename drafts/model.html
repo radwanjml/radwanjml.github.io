@@ -50,17 +50,17 @@ body { background: var(--bg); }
 <body>
 <div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
 <nav class="nav" aria-label="Site"><div class="wrap glass">
-  <a class="mark" href="drafts/a.html" aria-label="Radwan Jameel, home"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+  <a class="mark" href="drafts/a.html"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
 <mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
 <mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
 </defs>
 <text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
 <text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
 <text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
-  <ul><li><a href="drafts/a.html#work">Work</a></li><li><a href="drafts/a.html#lab">Lab</a></li><li><a href="drafts/models.html">Models</a></li><li><a href="drafts/about.html">About</a></li></ul>
+  <ul><li><a href="drafts/a.html#work">Work</a></li><li><a href="drafts/a.html#lab">Lab</a></li><li><a href="drafts/models.html">Models</a></li><li><a href="drafts/about.html">About</a></li><li><a class="nav-cta" href="drafts/about.html#contact">Contact</a></li></ul>
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
   </div>
-  <div class="menu glass" id="menu" hidden><a href="drafts/a.html">Home</a><a href="drafts/a.html#work">Work</a><a href="drafts/a.html#lab">Lab</a><a href="drafts/models.html">Models</a><a href="drafts/about.html">About</a></div>
+  <div class="menu glass" id="menu" hidden><a href="drafts/a.html">Home</a><a href="drafts/a.html#work">Work</a><a href="drafts/a.html#lab">Lab</a><a href="drafts/models.html">Models</a><a href="drafts/about.html">About</a><a href="drafts/about.html#contact">Contact</a></div>
 </nav>
 <main class="mp">
   <a class="back" href="drafts/models.html">← All models</a>
@@ -72,17 +72,17 @@ body { background: var(--bg); }
   <nav class="pn" aria-label="More models"><a id="prev"></a><a id="next"></a></nav>
 </main>
 <script type="module">
-import { R, EXTRA } from './drafts/models-data.js';
+import { R, EXTRA, DIMS } from './drafts/models-data.js';
 import { initTopo } from './drafts/topo.js';
 const q = new URLSearchParams(location.search).get('m');
 let i = R.findIndex((r) => r[0] === q); if (i < 0) i = 0;
-const [slug, title, note] = R[i], X = EXTRA[slug];
+const [slug, title, note] = R[i], X = EXTRA[slug], [sw, sh, vw, vh] = DIMS[slug] || [];
 document.title = `${title} · Radwan Jameel`;
 document.getElementById('t').textContent = title;
 document.getElementById('note').textContent = note || 'Modelled and rendered in Blender';
 const media = document.getElementById('media');
-media.innerHTML = `<figure class="glass"><img src="assets/img/models/${slug}.webp" alt="${title}, still render" decoding="async"><figcaption>Still</figcaption></figure>`
-  + (X.video ? `<figure class="glass"><video muted loop playsinline preload="none" poster="assets/video/models/${slug}.webp" aria-label="${title}, animated render"><source src="assets/video/models/${slug}.mp4" type="video/mp4"></video><figcaption>Animation</figcaption></figure>` : '');
+media.innerHTML = `<figure class="glass"><img src="assets/img/models/${slug}.webp" alt="${title}, still render" decoding="async" width="${sw || 1600}" height="${sh || 1600}"><figcaption>Still</figcaption></figure>`
+  + (X.video ? `<figure class="glass"><video muted loop playsinline preload="none" width="${vw || 1280}" height="${vh || 720}" poster="assets/video/models/${slug}.webp" aria-label="${title}, animated render"><source src="assets/video/models/${slug}.mp4" type="video/mp4"></video><figcaption>Animation</figcaption></figure>` : '');
 const v = media.querySelector('video');
 if (v) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;

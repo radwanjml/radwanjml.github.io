@@ -29,6 +29,10 @@ document.querySelectorAll('.rv').forEach((el) => io.observe(el));
 // work loops: play the visible ones
 const vio = new IntersectionObserver((es) => es.forEach((e) => { const v = e.target; if (e.isIntersecting && !reduced) { v.preload = 'auto'; v.play().catch(() => {}); } else v.pause(); }), { threshold: 0.35 });
 document.querySelectorAll('video.loop').forEach((v) => vio.observe(v));
+// Addendum 51: buffer each loop ~400 px before it is on screen, so play() does not also fetch and spin up the decoder
+// in the same frame (the one unexplained 113-117 ms first-pass frame in Work sat exactly where the loops start)
+const warmV = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting && !reduced) { const v = e.target; if (v.readyState === 0 && v.paused) { v.preload = 'auto'; v.load(); } warmV.unobserve(v); } }), { rootMargin: '400px 0px' });
+document.querySelectorAll('video.loop').forEach((v) => warmV.observe(v));
 
 // characters: the hero dock picks the island's walker (the live rig stage moved to the Closer case study, Addendum 48)
 const pickers = [...document.querySelectorAll('[data-char]')];

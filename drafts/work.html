@@ -135,17 +135,17 @@ footer { margin-top: 90px; border-top: 1px solid var(--line); padding: 26px 0 60
 <body>
 <div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
 <nav class="nav" aria-label="Site"><div class="wrap glass">
-  <a class="mark" href="drafts/a.html" aria-label="Radwan Jameel, home"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+  <a class="mark" href="drafts/a.html"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
 <mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
 <mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
 </defs>
 <text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
 <text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
 <text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
-  <ul><li><a aria-current="page">Work</a></li><li><a href="drafts/a.html#lab">Lab</a></li><li><a href="drafts/models.html">Models</a></li><li><a href="drafts/about.html">About</a></li></ul>
+  <ul><li><a aria-current="page">Work</a></li><li><a href="drafts/a.html#lab">Lab</a></li><li><a href="drafts/models.html">Models</a></li><li><a href="drafts/about.html">About</a></li><li><a class="nav-cta" href="drafts/about.html#contact">Contact</a></li></ul>
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
   </div>
-  <div class="menu glass" id="menu" hidden><a href="drafts/a.html">Home</a><a href="drafts/a.html#work" aria-current="page">Work</a><a href="drafts/a.html#lab">Lab</a><a href="drafts/models.html">Models</a><a href="drafts/about.html">About</a></div>
+  <div class="menu glass" id="menu" hidden><a href="drafts/a.html">Home</a><a href="drafts/a.html#work" aria-current="page">Work</a><a href="drafts/a.html#lab">Lab</a><a href="drafts/models.html">Models</a><a href="drafts/about.html">About</a><a href="drafts/about.html#contact">Contact</a></div>
 </nav>
 
 <main>
@@ -231,7 +231,7 @@ const CS = {
     next: 'agit',
   },
 };
-const key = new URLSearchParams(location.search).get('p');
+const key = document.documentElement.dataset.p || new URLSearchParams(location.search).get('p');   // /work/<key>/ pages set data-p (Addendum 51)
 const D = CS[key] || CS.agit;
 document.title = D.title.replace(/<[^>]+>/g, '') + ' · Radwan Jameel';
 document.querySelector('meta[name=description]').content = D.lede;
@@ -259,7 +259,7 @@ legs.innerHTML = `
 
 const N = CS[D.next];
 const nx = document.getElementById('next');
-nx.href = `drafts/work.html?p=${D.next}`;
+nx.href = `work/${D.next}/`;
 nx.innerHTML = `<img src="${N.poster}" alt="" loading="lazy"><div><span class="label">Next expedition · ${N.eyebrow.split('·')[0].replace('Case study ', '')}</span><b>${N.title}</b><i>→</i></div>`;
 
 // ---------- try it ----------

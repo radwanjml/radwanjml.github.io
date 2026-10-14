@@ -48,8 +48,8 @@ main.ab { padding: 132px 0 80px; }
 .card dt { font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
 .card dd { margin: 0; font-size: 15px; line-height: 1.45; }
 .card .clock { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.card hr { grid-column: 1 / -1; border: 0; border-top: 1px dashed rgba(255,255,255,.18); margin: 2px 0; width: 100%; }
-:root[data-mode="light"] .card hr { border-top-color: rgba(43,34,56,.2); }
+.card dt.sep, .card dd.sep { padding-top: 14px; border-top: 1px dashed rgba(255,255,255,.18); } .card hr { grid-column: 1 / -1; border: 0; border-top: 1px dashed rgba(255,255,255,.18); margin: 2px 0; width: 100%; }
+:root[data-mode="light"] .card dt.sep, :root[data-mode="light"] .card dd.sep { border-top-color: rgba(43,34,56,.2); } :root[data-mode="light"] .card hr { border-top-color: rgba(43,34,56,.2); }
 
 /* the route: an elevation profile from Hyderabad to Germany. Drawn once. */
 .route { grid-column: 1 / -1; margin-top: 64px; border-radius: 28px; padding: 26px clamp(18px, 3vw, 36px) 22px; }
@@ -98,17 +98,17 @@ footer { padding: 30px 0 40px; }
 <div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
 
 <nav class="nav" aria-label="Site"><div class="wrap glass">
-  <a class="mark" href="drafts/a.html" aria-label="Radwan Jameel, home"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+  <a class="mark" href="drafts/a.html"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
 <mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
 <mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
 </defs>
 <text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
 <text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
 <text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
-  <ul><li><a href="drafts/a.html">Home</a></li><li><a href="drafts/a.html#work">Work</a></li><li><a href="drafts/models.html">Models</a></li><li><a aria-current="page">About</a></li></ul>
+  <ul><li><a href="drafts/a.html">Home</a></li><li><a href="drafts/a.html#work">Work</a></li><li><a href="drafts/models.html">Models</a></li><li><a aria-current="page">About</a></li><li><a class="nav-cta" href="drafts/about.html#contact">Contact</a></li></ul>
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
   </div>
-  <div class="menu glass" id="menu" hidden><a href="drafts/a.html">Home</a><a href="drafts/a.html#work">Work</a><a href="drafts/a.html#lab">Lab</a><a href="drafts/models.html">Models</a><a aria-current="page">About</a></div>
+  <div class="menu glass" id="menu" hidden><a href="drafts/a.html">Home</a><a href="drafts/a.html#work">Work</a><a href="drafts/a.html#lab">Lab</a><a href="drafts/models.html">Models</a><a aria-current="page">About</a><a href="drafts/about.html#contact">Contact</a></div>
 </nav>
 
 <main class="ab"><div class="wrap">
@@ -122,11 +122,10 @@ footer { padding: 30px 0 40px; }
 
   <aside class="card glass" aria-label="Quick facts">
     <dl>
-      <dt>Role</dt><dd>Creative technologist, 3D + real-time web</dd>
+      <dt>Role</dt><dd>Creative technologist, 3D + real&#8209;time web</dd>
       <dt>Based</dt><dd>Hyderabad, India</dd>
       <dt>Local time</dt><dd class="clock" id="clock">IST</dd>
-      <hr>
-      <dt>Next</dt><dd>Moving to <b>Germany</b>, March 2027</dd>
+      <dt class="sep">Next</dt><dd class="sep">Moving to <b>Germany</b>, March 2027</dd>
       <dt>Looking for</dt><dd>Creative developer, frontend or technical artist roles. Remote now, on site in Germany from 2027.</dd>
     </dl>
   </aside>

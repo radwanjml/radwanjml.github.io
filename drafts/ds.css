@@ -47,7 +47,7 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; border-radius: 6px; }
 
 .serif { font-family: var(--serif); font-weight: 400; letter-spacing: -.012em; line-height: .98; }
-.serif em { font-style: italic; }
+.serif em, h1 em, h2 em, h3 em { font-style: normal; }   /* Red, 14 Oct: accent words keep their colour, not italics (Addendum 51) */
 .label { font: 500 var(--t-xs)/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
 .lead { font-size: clamp(18px, 1.5vw, 21px); color: var(--text-2); line-height: 1.55; }
 
@@ -251,3 +251,7 @@ a, button, .stage, .stage * { -webkit-tap-highlight-color: transparent; }
 @media (hover: none), (pointer: coarse) { .stage .glass { -webkit-backdrop-filter: none; backdrop-filter: none; --g-tint: rgba(var(--scrim), .78); } }
 /* desktop too (Addendum 46): blur over the playing video + live canvas re-blurs every frame; a denser tint reads the same */
 .stage .glass { -webkit-backdrop-filter: none; backdrop-filter: none; --g-tint: rgba(var(--scrim), .55); }
+
+/* nav call to action (Addendum 51): contact + CV one click from every page */
+.nav li a.nav-cta { border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent); color: var(--accent-text); }
+.nav li a.nav-cta:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
