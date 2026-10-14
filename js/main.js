@@ -40,7 +40,7 @@ async function initHero() {
     barEl: document.querySelector('.timebar'),
     reducedMotion,
   });
-  window.__plate = plate;   // debugging handle for the live layer work
+
   if (hasWebGL2()) {
     document.documentElement.classList.add('has-3d');
     initViewer(null);   // live Pip on the plate replaces the old disc playground (step 2)

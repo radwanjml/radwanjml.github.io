@@ -10,7 +10,6 @@ const plate = initPlate({
   barEl: document.querySelector('.seg'),
   reducedMotion: reduced,
 });
-window.__plate = plate;
 
 // "Explore the island": the copy steps aside and the plate opens to full view. Esc returns.
 const hero = document.querySelector('.hero');

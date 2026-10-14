@@ -641,8 +641,6 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
   await layout();
   renderer.setAnimationLoop(tick);
 
-  window.__island = { scene, renderer, groundMat, groundDir, get char() { return active; }, get camera() { return camera; }, slot, world, L, walkTo, rings, lamps, suns,
-    stop() { path = []; touched = true; vel = { x: 0, z: 0 }; },
-    goTo(x, y) { path = [{ x, y }]; goal = null; touched = true; } };
+  // (debug handle window.__island removed for launch, Addendum 50)
   return { setCharacter, walkTo, get near() { return near; } };
 }

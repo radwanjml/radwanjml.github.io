@@ -20,5 +20,5 @@ export const R = [
 // Per-model extras. video: assets/video/models/<slug>.mp4 (+ .webp poster). glb: id in the 3D viewer.
 // info: Red's notes, added later. Leave empty rather than invent.
 const VIDEO = ['wine', 'snow-glode-paris', 'milk-carton', 'zerene-cosmatics', 'candy-geometry-nodes', 'statue-bust', 'statue-flake', 'skull-on-fire', 'smily-clip', 'topographic-map', 'rocket', 'car-gls-600', 'car-show-room', 'diwali-roof-top', 'road-car-drive', 'doc-ock-robot-arms', 'color-swatch-fans', 'asabco-motor-oil'];
-const GLB = { perfume: 'perfume', '1966-headphones': 'headphones' };
+const GLB = { perfume: 'perfume', '1966-headphones': 'headphones', wine: 'wine', 'zerene-cosmatics': 'zerene', 'milk-carton': 'milk', rocket: 'rocket' };
 export const EXTRA = Object.fromEntries(R.map(([slug]) => [slug, { video: VIDEO.includes(slug), glb: GLB[slug] || null, info: '' }]));
