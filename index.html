@@ -235,9 +235,10 @@ section + section::before { content: ''; position: absolute; left: 0; right: 0; 
 
 .lab { border-radius: var(--r); padding: 6px clamp(18px, 3vw, 40px); }
 .lab a:last-child { border-bottom: 0; }
-.lab a { display: grid; grid-template-columns: 4em 1fr auto; gap: 20px; align-items: baseline; padding: 26px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+.lab a { display: grid; grid-template-columns: 112px 3em 1fr auto; gap: 20px; align-items: center; padding: 26px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
 .lab b { font: 400 var(--t-h3)/1 var(--serif); }
 .lab span:last-child { color: var(--text-3); font-size: 15px; }
+.lab a img { width: 112px; aspect-ratio: 16 / 10; height: auto; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
 
 .about { padding-bottom: 110px; }
 .about h2 { grid-column: 4 / span 8; font-size: var(--t-h1); }
@@ -309,7 +310,7 @@ footer { border-top: 1px solid var(--line); padding: 26px 0 70px; }
   .chars .stagebox { position: relative; top: 0; height: 64vh; }
   .bento { grid-auto-rows: 240px; }
   .t1 { grid-row: span 2; }
-  .lab a { grid-template-columns: 2.6em 1fr; } .lab span:last-child { grid-column: 2; }
+  .lab a { grid-template-columns: 76px 1fr; column-gap: 14px; } .lab a .label { display: none; } .lab a img { grid-row: span 2; width: 76px; } .lab span:last-child { grid-column: 2; }
 }
 /* Addendum 60: phones had 135 px between sections (16% of the screen per gap); tighter rhythm, same on every section */
 @media (max-width: 860px), (max-aspect-ratio: 4/5) {
@@ -419,7 +420,7 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
     <figure class="media liquid"><video class="loop" muted loop playsinline preload="none" poster="assets/img/agit.webp"><source src="assets/video/agit.webm" type="video/webm"><source src="assets/video/agit.mp4" type="video/mp4"></video></figure>
     <div class="copy"><span class="label idx">01 / 03 · Unsolicited concept, not affiliated</span><h3>AGIT V5</h3>
       <p>A 12-page redesign concept for an education provider, built as one coherent estate.</p>
-      <ul><li>One design system across twelve pages.</li><li>Same URL structure, so every existing link and search ranking keeps working.</li></ul>
+      <ul><li>One design system across twelve pages.</li><li>Same URL structure and a 301 map, so every existing link would keep working.</li></ul>
       <p class="tags">HTML/CSS · GSAP · Lenis · Netlify</p><a class="btn" href="work/agit/">Read the case study</a></div>
   </article>
   <article class="grid row flip rv">
@@ -486,10 +487,10 @@ if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded',
 <section id="lab" data-topo="300 .85"><div class="wrap">
   <div class="grid sec-head rv"><h2 class="serif">Lab</h2><p>Smaller experiments, each one live. Opens in a new tab.</p></div>
   <div class="lab glass liquid rv">
-    <a href="https://tibr-p2-tower.netlify.app" target="_blank" rel="noopener"><span class="label">01</span><b>SERAI</b><span>A 22-storey tower that assembles itself in one screen</span></a>
-    <a href="https://tibr-p1-kage.netlify.app" target="_blank" rel="noopener"><span class="label">02</span><b>YOAKE</b><span>A night walk in five chapters, rendered live</span></a>
-    <a href="https://pulse-tibr.netlify.app" target="_blank" rel="noopener"><span class="label">03</span><b>PULSE</b><span>A light lattice that answers the pointer</span></a>
-    <a href="sites/nodal-network/" target="_blank" rel="noopener"><span class="label">04</span><b>Nodal Network</b><span>An earlier version of PULSE: glowing nodes in a star field</span></a>
+    <a href="https://tibr-p2-tower.netlify.app" target="_blank" rel="noopener"><img src="assets/img/serai.webp" alt="SERAI tower" width="112" height="70" loading="lazy" decoding="async"><span class="label">01</span><b>SERAI</b><span>A 22-storey tower that assembles itself in one screen</span></a>
+    <a href="https://tibr-p1-kage.netlify.app" target="_blank" rel="noopener"><img src="assets/img/yoake.webp" alt="YOAKE night walk" width="112" height="70" loading="lazy" decoding="async"><span class="label">02</span><b>YOAKE</b><span>A night walk in five chapters, rendered live</span></a>
+    <a href="https://pulse-tibr.netlify.app" target="_blank" rel="noopener"><img src="assets/img/pulse.webp" alt="PULSE light lattice" width="112" height="70" loading="lazy" decoding="async"><span class="label">03</span><b>PULSE</b><span>A light lattice that answers the pointer</span></a>
+    <a href="sites/nodal-network/" target="_blank" rel="noopener"><img src="assets/img/nodal.webp" alt="Nodal Network star field" width="112" height="70" loading="lazy" decoding="async"><span class="label">04</span><b>Nodal Network</b><span>An earlier version of PULSE: glowing nodes in a star field</span></a>
   </div>
 </div></section>
 

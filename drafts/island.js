@@ -571,8 +571,8 @@ export async function initIsland({ stageEl, liveEl, plate, labels = [], onEnter,
       if ((!input.x && !input.z) || stuck.t > 0.8) { path.shift(); stuck.d = Infinity; stuck.t = 0; }
     } else if (!touched && !reducedMotion) {
       // idle life before the first input: potter about the spawn pad
-      input = steerTo({ x: slot.position.x, z: slot.position.z }, { x: sp.x + Math.sin(t * 0.35) * 0.9, z: -(sp.y + Math.cos(t * 0.35) * 0.5) }, 0.08, 1.4);
-      input.x *= 0.35; input.z *= 0.35;
+      input = steerTo({ x: slot.position.x, z: slot.position.z }, { x: sp.x + Math.sin(t * 0.4) * 1.6, z: -(sp.y + Math.cos(t * 0.4) * 0.9) }, 0.08, 1.4);
+      input.x *= 0.55; input.z *= 0.55;   // big enough to read as alive in the first five seconds (16 Oct)
     }
 
     vel = stepVelocity(vel, input, dt, SPEED);
