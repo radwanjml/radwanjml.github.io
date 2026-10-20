@@ -222,6 +222,13 @@ footer .wide { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 .labels li.r::before { left: 11px; } .labels li.l::before { right: 11px; }
 @media (max-width: 900px) { .labels li::before { display: none; } }
 /* small screens: the image is small, so the markers shrink with it (they were piling up) */
+@media (max-width: 700px) {
+  /* zoom to the central 60% (where the robot is): the image is drawn at 1/0.6 width, so x maps to (x - 20%) / 0.6;
+     the frame takes the zoomed image's full height, so y is unchanged */
+  .xp { aspect-ratio: 16 / 15; }
+  .xp img { width: 166.667%; max-width: none; margin-left: -33.333%; }
+  .labels li { left: calc((var(--x) - 20%) * 1.66667); }
+}
 @media (max-width: 900px) {
   .labels li i { width: 14px; height: 14px; left: -7px; top: -7px; font-size: 8px; line-height: 14px; box-shadow: 0 0 0 2px rgba(255,255,255,.85); }
   .legend-list { gap: 8px 16px; }
