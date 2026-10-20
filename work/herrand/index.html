@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base href="../../">
+<title>Herrand · a concept delivery robot by Radwan Jameel</title>
+<meta name="description" content="Herrand is a concept sidewalk delivery robot, designed by simulation and visualised in Blender by Radwan Jameel. Kerb maths, topology optimisation, FE checks. A design study, not a product.">
+<link rel="canonical" href="https://radwanjml.github.io/work/herrand/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://radwanjml.github.io/work/herrand/">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:title" content="Herrand: a concept delivery robot">
+<meta property="og:description" content="Kerbs, rain, Mondays. A sidewalk delivery robot designed by simulation, then filmed in Blender. A design study by Radwan Jameel.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/img/herrand/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="assets/img/herrand/logo-mark.svg" type="image/svg+xml">
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }</script>
+<link rel="preload" href="assets/fonts/herrand/InterTight-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/herrand/Inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* Herrand product page. Its own theme on purpose: a product-launch register, not the portfolio's.
+   Fonts: Inter Tight, Inter, JetBrains Mono (SIL OFL 1.1), self-hosted. */
+@font-face { font-family: 'Inter Tight'; src: url(assets/fonts/herrand/InterTight-600.woff2) format('woff2'); font-weight: 500 700; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url(assets/fonts/herrand/Inter-400.woff2) format('woff2'); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: 'JetBrains Mono'; src: url(assets/fonts/herrand/JetBrainsMono-400.woff2) format('woff2'); font-weight: 400 500; font-display: swap; }
+:root {
+  --paper: #FBFBFD; --ink: #1D1D1F; --ink-2: #6E6E73; --ink-3: #86868B; --line: #D2D2D7;
+  --night: #000; --night-ink: #F5F5F7; --night-2: #A1A1A6; --night-line: #333336;
+  --accent: #FF6A2B; --accent-ink: #C2410C; --brand-ink: #F0561B;
+  --display: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --pad: clamp(16px, 5vw, 48px); --col: 980px; --ease: cubic-bezier(.2, .7, .1, 1);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.55 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+img, video { display: block; max-width: 100%; }
+figure { margin: 0; }   /* browsers add 40px side margins to figure; the classes below set their own */
+a { color: inherit; }
+.wrap { width: min(100% - 2 * var(--pad), var(--col)); margin-inline: auto; }
+.wide { width: min(100% - 2 * var(--pad), 1280px); margin-inline: auto; }
+.eyebrow { font: 500 12px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.dark { background: var(--night); color: var(--night-ink); }
+.dark .eyebrow { color: var(--night-2); }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; letter-spacing: -.025em; margin: 0; }
+h2 { font-size: clamp(36px, 6.4vw, 72px); line-height: 1.04; }
+h3 { font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2; letter-spacing: -.015em; }
+.lead { font-size: clamp(19px, 2.2vw, 24px); line-height: 1.45; color: var(--ink-2); max-width: 36ch; }
+.dark .lead { color: var(--night-2); }
+.center { text-align: center; } .center .lead { margin-inline: auto; }
+section { padding-block: clamp(80px, 14vw, 160px); }
+
+/* nav: frosted white, like the page */
+.nav { position: fixed; inset: 0 0 auto; z-index: 20; height: 48px; display: flex; align-items: center;
+  background: rgba(251, 251, 253, .78); -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px);
+  color: var(--ink); border-bottom: 1px solid rgba(0, 0, 0, .06); }
+.nav .wide { display: flex; align-items: center; gap: 20px; }
+.brand { font: 600 17px/1 var(--display); letter-spacing: -.01em; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.nav ul { display: flex; gap: 22px; list-style: none; margin: 0 0 0 auto; padding: 0; font-size: 13px; }
+.nav ul a { text-decoration: none; color: var(--ink-2); } .nav ul a:hover { color: var(--ink); }
+.nav .back { font-size: 13px; text-decoration: none; color: var(--ink-2); white-space: nowrap; }
+@media (max-width: 720px) { .nav ul { display: none; } .nav .back { margin-left: auto; } }
+
+/* hero: white page, orange name, grey line, the film as one clean panel (no gradients) */
+.hero { padding: calc(48px + clamp(36px, 7vh, 72px)) 0 clamp(40px, 7vw, 72px); background: var(--paper); text-align: center; }
+.hero .eyebrow { margin: 0 0 14px; }
+.hero h1 { font-size: clamp(56px, 11vw, 136px); line-height: .92; letter-spacing: -.045em; color: var(--ink); }
+.hero .sub { margin: 16px auto 0; font: 500 clamp(19px, 2.4vw, 28px)/1.3 var(--display); letter-spacing: -.012em; color: var(--brand-ink); max-width: 26ch; }
+.stage { position: relative; margin: clamp(28px, 5vw, 52px) auto 0; width: min(100% - 2 * var(--pad), 1280px); aspect-ratio: 2.39 / 1;
+  border-radius: clamp(14px, 2vw, 26px); overflow: hidden; background: #E8E8ED; }
+.hero video, .hero .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+@media (max-width: 720px) { .stage { width: 100%; border-radius: 0; aspect-ratio: 1 / 1; } }   /* phones: square centre crop, robot stays big */
+.hero-foot { width: min(100% - 2 * var(--pad), 1280px); margin: 16px auto 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; }
+.hero-foot .eyebrow { margin: 0; max-width: 52ch; }
+@media (max-width: 600px) { .hero-foot .eyebrow { font-size: 10.5px; max-width: 26ch; } }
+.sound { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line);
+  background: #fff; color: var(--ink); font: 500 13px/1 var(--body); cursor: pointer; }
+.sound svg { width: 16px; height: 16px; } .sound[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+/* full desktop: the film fills the screen, white headline over the sky (Red's pick) */
+@media (min-width: 1024px) {
+  .hero { position: relative; height: 100svh; min-height: 620px; padding: 0; overflow: hidden; background: #000; }
+  .stage { position: absolute; inset: 0; width: auto; margin: 0; aspect-ratio: auto; border-radius: 0; }
+  .stage::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 76%, rgba(0,0,0,.45) 100%); }
+  .hero-copy { position: absolute; z-index: 2; inset: 0 0 auto; padding-top: calc(48px + clamp(36px, 8vh, 90px)); }
+  .hero .eyebrow { color: rgba(255,255,255,.75); }
+  .hero h1 { color: #fff; }
+  .hero .sub { color: #E8E8ED; }
+  .hero-foot { position: absolute; z-index: 2; left: 0; right: 0; bottom: max(22px, env(safe-area-inset-bottom)); margin: 0 auto; }
+  .sound { background: rgba(0,0,0,.35); color: #fff; border-color: rgba(255,255,255,.35); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .sound[aria-pressed="true"] { background: #fff; color: #000; }
+}
+
+/* statement */
+
+/* gallery: snap scroller everywhere, bigger on desktop */
+.gallery { padding-block: 0 clamp(80px, 12vw, 140px); }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: min(88vw, 1100px); gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding-inline: var(--pad); scroll-padding-inline: var(--pad); scrollbar-width: none; }
+.strip::-webkit-scrollbar { display: none; }
+.strip figure { margin: 0; scroll-snap-align: start; }
+.strip img { width: 100%; aspect-ratio: 2.39 / 1; object-fit: cover; border-radius: 18px; background: #111; }
+.strip figure.studio img { aspect-ratio: 2.39 / 1; object-position: 50% 58%; }
+figcaption { margin-top: 12px; font-size: 14px; color: var(--ink-2); }
+figcaption b { color: var(--ink); font-weight: 600; }
+.dark figcaption { color: var(--night-2); } .dark figcaption b { color: var(--night-ink); }
+.strip-nav { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+.strip-nav button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: #E8E8ED; color: var(--ink); font-size: 18px; cursor: pointer; }
+
+/* engineering beats */
+.plate { border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.plate.ink { background: #0b0912; }
+.plate img { width: 100%; height: auto; }
+.note { font: 400 12px/1.5 var(--mono); color: var(--ink-3); margin-top: 10px; }
+
+/* specs */
+.specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); margin-top: 48px; }
+@media (min-width: 900px) { .specs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.spec { padding: 26px 16px 26px 0; border-bottom: 1px solid var(--line); }
+.spec b { display: block; font: 600 clamp(30px, 4.2vw, 46px)/1 var(--display); letter-spacing: -.03em; }
+.spec b small { font-size: .5em; letter-spacing: 0; color: var(--ink-2); margin-left: 3px; }
+.spec span { display: block; margin-top: 8px; font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+.spec.flag b { color: var(--accent-ink); }
+
+/* mistakes */
+.mistakes { list-style: none; padding: 0; margin: 48px 0 0; counter-reset: m; display: grid; gap: 0; }
+@media (min-width: 900px) { .mistakes { grid-template-columns: 1fr 1fr; column-gap: 56px; } }
+.mistakes li { counter-increment: m; padding: 22px 0 22px 52px; border-top: 1px solid var(--night-line); position: relative; }
+.mistakes li::before { content: counter(m, decimal-leading-zero); position: absolute; left: 0; top: 24px; font: 500 13px/1 var(--mono); color: var(--accent); }
+.mistakes b { display: block; font: 600 19px/1.3 var(--display); letter-spacing: -.01em; color: var(--night-ink); }
+.mistakes span { display: block; margin-top: 6px; color: var(--night-2); font-size: 15px; }
+
+/* limits + notes */
+.limits { display: grid; gap: 18px; margin-top: 40px; }
+@media (min-width: 900px) { .limits { grid-template-columns: 1fr 1fr; } }
+.limit { padding: 24px; border-radius: 18px; background: #F2F2F5; }
+.limit b { display: block; font: 600 18px/1.3 var(--display); }
+.limit span { display: block; margin-top: 8px; color: var(--ink-2); font-size: 15px; }
+details { margin-top: 40px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+summary { cursor: pointer; list-style: none; padding: 22px 0; font: 600 19px/1.3 var(--display); display: flex; justify-content: space-between; min-height: 44px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: '+'; font-weight: 400; color: var(--ink-2); } details[open] summary::after { content: '–'; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; margin-bottom: 26px; }
+th, td { text-align: left; padding: 11px 10px 11px 0; border-top: 1px solid var(--line); vertical-align: top; }
+th { font: 500 11px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+td { color: var(--ink-2); } td:first-child { color: var(--ink); font-weight: 500; }
+.tbl { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* cta */
+.cta h2 { max-width: 16ch; margin-inline: auto; }
+.btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+.btn { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 500 16px/1 var(--body); text-decoration: none; }
+.btn.solid { background: var(--accent); color: #fff; } .btn.ghost { border: 1px solid var(--night-line); color: var(--night-ink); }
+footer { padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); font-size: 12px; color: var(--night-2); background: #000; border-top: 1px solid var(--night-line); }
+footer .wide { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+
+
+/* the making of */
+.making { padding-top: clamp(60px, 9vw, 120px); }
+.making h2 { margin-top: 14px; } .making .lead { margin-top: 18px; }
+.steps { list-style: none; padding: 0; margin: clamp(40px, 6vw, 80px) auto 0; display: grid; gap: clamp(56px, 8vw, 110px); counter-reset: none; }
+.step { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 900px) { .step { grid-template-columns: 140px minmax(0, 1fr); gap: 32px; } .sn { align-self: start; padding-top: 4px; } }
+.sn { font: 600 clamp(40px, 5vw, 64px)/1 var(--display); letter-spacing: -.03em; color: var(--accent-ink); }
+.sbody h3 { font-size: clamp(28px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -.025em; }
+.sbody > p { color: var(--ink-2); font-size: 18px; max-width: 58ch; margin: 14px 0 22px; }
+.sbody .plate, .sbody .shot { max-width: 980px; }
+.tblmini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); max-width: 980px; }
+.tblmini span { padding: 14px 10px 14px 0; border-bottom: 1px solid var(--line); font: 500 12px/1.4 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.tblmini b { display: block; margin-top: 6px; font: 600 20px/1.2 var(--display); letter-spacing: -.01em; text-transform: none; color: var(--ink); }
+@media (max-width: 600px) { .tblmini { grid-template-columns: 1fr 1fr; } }
+.checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 18px; max-width: 980px; border-top: 1px solid var(--line); }
+.checks div { padding: 16px 10px 16px 0; border-bottom: 1px solid var(--line); }
+.checks b { display: block; font: 600 clamp(26px, 3vw, 36px)/1 var(--display); letter-spacing: -.03em; }
+.checks span { display: block; margin-top: 6px; font-size: 14px; color: var(--ink-2); }
+@media (max-width: 600px) { .checks { grid-template-columns: 1fr 1fr; } }
+
+/* ---- product chapters (Apple-style: one idea per screen, product always the hero) ---- */
+.eyebrow.accent { color: var(--accent-ink); }
+.hero .eyebrow.accent { color: var(--accent-ink); }
+.intro { padding-bottom: clamp(60px, 9vw, 110px); }
+.intro h2 { max-width: 16ch; margin: 14px auto 0; }
+.intro .lead { margin-top: 18px; }
+.shot { margin-block: 0; border-radius: clamp(16px, 2vw, 28px); overflow: hidden; background: #EDEDEF; }
+.shot img { width: 100%; height: auto; display: block; }
+.intro > .shot { margin-top: clamp(36px, 5vw, 64px); }
+.views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.views figure { margin: 0; }
+.views .shot { aspect-ratio: 4 / 3; }
+.views .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
+.views figcaption { margin: 10px 0 0 4px; font: 500 12px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+@media (max-width: 720px) { .views { grid-template-columns: 1fr 1fr; } .views figure:first-child { grid-column: span 2; } }
+.chapter { padding-block: clamp(50px, 8vw, 100px); }
+.ch { display: grid; gap: clamp(24px, 4vw, 64px); align-items: center; }
+@media (min-width: 900px) { .ch { grid-template-columns: 7fr 5fr; } .ch.flip { grid-template-columns: 5fr 7fr; } .ch.flip .txt { order: -1; } }
+.ch h3 { font-size: clamp(32px, 4.4vw, 54px); line-height: 1.05; letter-spacing: -.03em; margin-top: 12px; }
+.ch p { color: var(--ink-2); margin: 16px 0 0; max-width: 44ch; font-size: 18px; }
+.mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 26px 0 0; border-top: 1px solid var(--line); }
+.mini div { padding: 14px 10px 0 0; }
+.mini dt { font: 500 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.mini dd { margin: 6px 0 0; font: 600 clamp(18px, 2vw, 22px)/1.2 var(--display); letter-spacing: -.01em; }
+.dark-shot { position: relative; background: #000; }
+.cap-in { position: absolute; left: 18px; bottom: 14px; margin: 0; font: 500 13px/1.4 var(--body); color: #E8E8ED; max-width: 60ch; }
+@media (max-width: 600px) { .cap-in { position: static; padding: 12px 14px; background: #000; } }
+.charts { display: grid; gap: 14px; margin-top: 28px; }
+@media (min-width: 900px) { .charts { grid-template-columns: 1fr 1fr; } }
+.exploded h2 { margin-top: 14px; }
+.xp { position: relative; margin-top: clamp(30px, 4vw, 48px); border-radius: 28px; overflow: hidden; background: #EDEDEF; }
+.xp img { width: 100%; height: auto; display: block; }
+.xfilm { margin-top: clamp(30px, 4vw, 48px); } .xfilm video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.labels { list-style: none; margin: 0; padding: 0; }
+.labels li { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; pointer-events: none; }
+.labels li i { position: absolute; left: -11px; top: -11px; }
+.labels li span { position: absolute; top: -13px; }
+.labels li.r span { left: 64px; } .labels li.l span { right: 64px; }
+.labels li::before { content: ''; position: absolute; top: 0; height: 1px; width: 52px; background: rgba(29,29,31,.45); }
+.labels li.r::before { left: 11px; } .labels li.l::before { right: 11px; }
+@media (max-width: 900px) { .labels li::before { display: none; } }
+.labels i, .legend-list i { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font: 600 11px/22px var(--mono); font-style: normal; text-align: center; box-shadow: 0 0 0 3px rgba(255,255,255,.8); }
+.labels span { font: 500 13px/1.2 var(--body); color: var(--ink); background: rgba(255,255,255,.86); padding: 5px 9px; border-radius: 999px; white-space: nowrap; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.legend-list { list-style: none; padding: 0; margin: 20px auto 0; display: none; grid-template-columns: 1fr 1fr; gap: 10px 18px; text-align: left; }
+.legend-list li { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--ink-2); }
+@media (max-width: 900px) { .labels span { display: none; } .legend-list { display: grid; } }
+.explore { padding-top: clamp(40px, 6vw, 80px); }
+.viewer { margin-top: clamp(28px, 4vw, 44px); }
+.stage3d { position: relative; aspect-ratio: 16 / 9; border-radius: 28px; overflow: hidden; background: radial-gradient(120% 90% at 50% 30%, #FFFFFF 0%, #EDEDF0 70%); touch-action: none; }
+@media (max-width: 720px) { .stage3d { aspect-ratio: 4 / 5; border-radius: 20px; } }
+.stage3d.night { background: radial-gradient(120% 90% at 50% 30%, #12161c 0%, #050608 75%); transition: background .5s; }
+.stage3d canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
+.load3d { position: absolute; inset: 0; margin: auto; width: max-content; height: 52px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--ink); color: #fff; font: 500 15px/1 var(--body); cursor: pointer; }
+.load3d small { opacity: .6; margin-left: 8px; }
+.pickname { position: absolute; left: 16px; bottom: 14px; margin: 0; font: 500 14px/1.3 var(--body); color: var(--ink); background: rgba(255,255,255,.9); padding: 8px 12px; border-radius: 999px; opacity: 0; transition: opacity .3s; }
+.pickname.on { opacity: 1; }
+.tools { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; justify-content: space-between; margin-top: 16px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: 500 14px/1 var(--body); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.acts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.act { min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font: 500 14px/1 var(--body); cursor: pointer; }
+.act[aria-pressed="true"] { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.howto { margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: var(--ink-3); }
+.howto b { color: var(--ink-2); font-weight: 600; }
+.slider { display: flex; align-items: center; gap: 12px; font: 500 14px/1 var(--body); color: var(--ink-2); }
+.slider input { width: min(240px, 50vw); accent-color: var(--accent-ink); }
+
+.rv { opacity: 0; transform: translateY(24px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Herrand"><div class="wide">
+  <a class="brand" href="work/herrand/"><img src="assets/img/herrand/logo-mark.svg" width="26" height="26" alt="">Herrand</a>
+  <ul><li><a href="#design">Design</a></li><li><a href="#making">How it was made</a></li><li><a href="#specs">Specs</a></li><li><a href="#honest">Honest limits</a></li></ul>
+  <a class="back" href="./">← Radwan Jameel</a>
+</div></nav>
+
+<main>
+  <!-- 1. Hero: the film -->
+  <section class="hero" aria-label="Herrand on the street, in five conditions">
+    <div class="hero-copy wrap">
+      <p class="eyebrow">Concept product</p>
+      <h1>Herrand</h1>
+      <p class="sub">Built for kerbs, rain and Mondays.</p>
+    </div>
+    <div class="stage">
+    <img class="poster" src="assets/video/herrand/poster.jpg" alt="" aria-hidden="true">
+    <video id="film" muted loop playsinline preload="auto" poster="assets/video/herrand/poster.jpg" aria-label="Herrand drives past in morning sun, rain, a sunny waterfront, an empty promenade at night, and over cobbles">
+      <source src="assets/video/herrand/hero-720.mp4" type="video/mp4" media="(max-width: 900px)">
+      <source src="assets/video/herrand/hero-1080.mp4" type="video/mp4">
+    </video>
+    </div>
+    <audio id="sfx" src="assets/video/herrand/hero-sound.m4a" loop preload="none"></audio>
+    <div class="hero-foot">
+      <p class="eyebrow">Design and visualisation study by Radwan Jameel · not a real company</p>
+      <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Sound on">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 6h3l4-3v10L5 10H2z"/><path id="wave" d="M11.5 5.5a3.5 3.5 0 0 1 0 5"/></svg><span>Sound</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 2. Intro: the product, alone -->
+  <section class="intro center"><div class="wrap rv">
+    <p class="eyebrow accent">Meet Herrand</p>
+    <h2>A delivery robot designed by simulation.</h2>
+    <p class="lead">Six wheels, a self-levelling cargo pod and a 360° lidar, on a frame grown by an optimiser.</p>
+  </div>
+  <figure class="wide shot rv"><img src="assets/img/herrand/studio-hero.webp" alt="Herrand in a light studio, front three-quarter view: a white egg-shaped cargo pod in a cast aluminium frame on six wheels, a small chrome badge on the nose" width="1920" height="1080"></figure>
+  <div class="wide views rv">
+    <figure><div class="shot"><img src="assets/img/herrand/studio-front.webp" alt="Herrand from the front" loading="lazy" width="1920" height="1080"></div><figcaption>Front</figcaption></figure>
+    <figure><div class="shot"><img src="assets/img/herrand/studio-side.webp" alt="Herrand from the side" loading="lazy" width="1920" height="1080"></div><figcaption>Side</figcaption></figure>
+    <figure><div class="shot"><img src="assets/img/herrand/studio-top.webp" alt="Herrand from above" loading="lazy" width="1920" height="1080"></div><figcaption>Above</figcaption></figure>
+  </div></section>
+
+  <!-- 3. Chapters -->
+  <section class="chapter" id="design"><div class="wide ch rv">
+    <figure class="shot"><img src="assets/img/herrand/pod.webp" alt="The cargo pod on its own: a white ceramic egg with an orange seam light" loading="lazy" width="1920" height="1080"></figure>
+    <div class="txt"><p class="eyebrow accent">01 · The pod</p><h3>Your order rides level.</h3>
+      <p>The 40 L pod hangs on a pendulum yoke, so it self-levels over kerbs and slopes, swinging up to ±20° without touching the frame. The seam light says what it’s doing.</p>
+      <dl class="mini"><div><dt>Payload</dt><dd>20 kg</dd></div><div><dt>Volume</dt><dd>40 L</dd></div><div><dt>Swing</dt><dd>±20°</dd></div></dl></div>
+  </div></section>
+
+  <section class="chapter"><div class="wide ch flip rv">
+    <figure class="shot"><img src="assets/img/herrand/frame.webp" alt="The cast aluminium frame on its own: an organic lattice of tapered members" loading="lazy" width="1920" height="1080"></figure>
+    <div class="txt"><p class="eyebrow accent">02 · The frame</p><h3>Grown, not drawn.</h3>
+      <p>The frame is cast A356 aluminium, shaped by an optimiser around the loads it carries. It weighs under 4 kg and holds a 20 kg order with a safety factor of 18.</p>
+      <dl class="mini"><div><dt>Mass</dt><dd>3.99 kg</dd></div><div><dt>Safety factor</dt><dd>18.4</dd></div><div><dt>30 cm drop</dt><dd>SF 12.8</dd></div></dl></div>
+  </div></section>
+
+  <section class="chapter" id="engineering"><div class="wide ch rv">
+    <figure class="shot"><img src="assets/img/herrand/wheel.webp" alt="One wheel with its hub motor" loading="lazy" width="1920" height="1080"></figure>
+    <div class="txt"><p class="eyebrow accent">03 · Running gear</p><h3>A 120 mm kerb, in the rain.</h3>
+      <p>Six hub-motor wheels on a rocker-bogie keep at least four tyres on the ground as it climbs. On a wet kerb it needs grip of 0.39, and wet concrete gives 0.55, so there is margin to spare. It turns on the spot.</p>
+      <dl class="mini"><div><dt>Wheels</dt><dd>6 × r 130 mm</dd></div><div><dt>Motors</dt><dd>15 Nm class</dd></div><div><dt>Steering</dt><dd>Spins in place</dd></div></dl></div>
+  </div></section>
+
+  <section class="chapter"><div class="wide ch flip rv">
+    <figure class="shot"><img src="assets/img/herrand/lidar-unit.webp" alt="The lidar unit on its own" loading="lazy" width="1920" height="1080"></figure>
+    <div class="txt"><p class="eyebrow accent">04 · Sensing</p><h3>It sees the street.</h3>
+      <p>A 32-beam lidar sits on a tower rib, on rubber isolators. A raycast test against the robot’s own body shows it blocks just 2.2% of the beams. Cameras, ultrasonic sensors and a soft bumper cover the ground close in.</p>
+      <dl class="mini"><div><dt>Lidar</dt><dd>32 beams, 360°</dd></div><div><dt>Self-occlusion</dt><dd>2.2%</dd></div><div><dt>Stop, wet</dt><dd>0.78 m</dd></div></dl></div>
+  </div>
+  <figure class="wide shot dark-shot rv" style="margin-top:28px"><img src="assets/img/herrand/lidar-scan.webp" alt="Herrand on a city pavement at dusk, the street around it traced in cyan lidar scan lines" loading="lazy" width="1920" height="1080"><figcaption class="cap-in">What it sees. Each line is a lidar beam, raycast against the street.</figcaption></figure></section>
+
+  <!-- 4. Exploded -->
+  <section class="exploded center"><div class="wrap rv"><p class="eyebrow accent">Inside</p><h2>Every part, in its place.</h2></div>
+    <figure class="wide shot xfilm rv"><video id="xfilm" muted loop playsinline preload="none" poster="assets/img/herrand/exploded.webp" aria-label="Herrand coming apart along its mounting axes and going back together"><source src="assets/video/herrand/exploded.mp4" type="video/mp4"></video></figure>
+    <p class="wrap note center" style="margin-top:12px">Each part slides out along the axis it mounts on, then back into place.</p>
+    <figure class="wide xp rv"><img src="assets/img/herrand/exploded.webp" alt="Exploded view of Herrand: parts separated along their mounting axes" loading="lazy" width="1920" height="1080">
+      <ol class="labels" aria-hidden="true"><li class="r" style="--x:44.9%;--y:12.6%"><i>1</i><span>Lidar</span></li><li class="l" style="--x:48.6%;--y:43.7%"><i>2</i><span>Cargo pod</span></li><li class="r" style="--x:48.6%;--y:52.4%"><i>3</i><span>Pendulum yoke</span></li><li class="l" style="--x:48.4%;--y:65.9%"><i>4</i><span>Cast A356 frame</span></li><li class="l" style="--x:48.6%;--y:77.3%"><i>5</i><span>Rocker-bogie</span></li><li class="r" style="--x:60.4%;--y:78.6%"><i>6</i><span>Bumper + ultrasonics</span></li><li class="r" style="--x:45.7%;--y:82.3%"><i>7</i><span>Hub motor</span></li><li class="l" style="--x:41.9%;--y:84.9%"><i>8</i><span>Wheel, r 130 mm</span></li><li class="r" style="--x:48.7%;--y:86.5%"><i>9</i><span>Battery, 360 Wh</span></li></ol></figure>
+    <ol class="wrap legend-list rv"><li><i>1</i>Lidar</li><li><i>2</i>Cargo pod</li><li><i>3</i>Pendulum yoke</li><li><i>4</i>Cast A356 frame</li><li><i>5</i>Rocker-bogie</li><li><i>6</i>Bumper + ultrasonics</li><li><i>7</i>Hub motor</li><li><i>8</i>Wheel, r 130 mm</li><li><i>9</i>Battery, 360 Wh</li></ol>
+  </section>
+
+  <!-- 5. Explore in 3D -->
+  <section class="explore" id="explore"><div class="wrap center rv"><p class="eyebrow accent">Explore</p><h2>Take it apart yourself.</h2>
+      <p class="lead">Turn it in your hand, pull it apart, or switch to what its lidar sees.</p></div>
+    <div class="wide viewer rv">
+      <div class="stage3d" id="stage3d"><button class="load3d" id="load3d" type="button">Load the 3D model <small>2.4 MB</small></button><p class="pickname" id="pickname" aria-live="polite"></p></div>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="Show a system">
+          <button type="button" data-sys="all" aria-pressed="true">All</button><button type="button" data-sys="pod" aria-pressed="false">Pod</button><button type="button" data-sys="frame" aria-pressed="false">Frame</button><button type="button" data-sys="drive" aria-pressed="false">Running gear</button><button type="button" data-sys="sensors" aria-pressed="false">Sensors</button><button type="button" data-sys="power" aria-pressed="false">Power</button>
+        </div>
+        <div class="acts">
+          <button type="button" class="act" id="explodeBtn" aria-pressed="false">Explode</button>
+          <label class="slider"><span class="sr">Explode amount</span><input type="range" id="explode" min="0" max="1" step="0.01" value="0"></label>
+          <button type="button" class="act" id="lidarBtn" aria-pressed="false">Lidar view</button>
+        </div>
+      </div>
+      <p class="howto">Drag to turn, pinch or scroll to zoom. The system buttons show one part of the robot at a time. <b>Explode</b> takes it apart and puts it back together. <b>Lidar view</b> shows what its sensor sees. Tap any part to see its name.</p>
+    </div></section>
+
+  <!-- 6. Film stills -->
+  <section class="gallery" aria-label="Five conditions"><div class="wrap rv"><p class="eyebrow accent">Out there</p><h2>Rain or shine. Rush hour or 3 a.m.</h2></div>
+    <div class="strip" id="strip" style="margin-top:36px">
+      <figure><img src="assets/img/herrand/morning.webp" alt="Herrand passing park railings on a bright morning" loading="lazy"><figcaption><b>Morning.</b> A ball rolls out of the park.</figcaption></figure>
+      <figure><img src="assets/img/herrand/rain.webp" alt="Herrand in heavy rain on an old stone street" loading="lazy"><figcaption><b>Rain at dusk.</b> A paper boat keeps it company.</figcaption></figure>
+      <figure><img src="assets/img/herrand/market.webp" alt="Herrand on a sunny waterfront beside fruit stalls" loading="lazy"><figcaption><b>Noon.</b> Market stalls on the waterfront.</figcaption></figure>
+      <figure><img src="assets/img/herrand/night.webp" alt="Herrand alone on a wet promenade at night" loading="lazy"><figcaption><b>Night.</b> An empty promenade, and it still goes.</figcaption></figure>
+      <figure><img src="assets/img/herrand/cobbles.webp" alt="Herrand on cobbles in an old town" loading="lazy"><figcaption><b>Cobbles.</b> The bogies work hard so the pod stays level.</figcaption></figure>
+    </div>
+    <div class="wide strip-nav"><button type="button" data-dir="-1" aria-label="Previous image">←</button><button type="button" data-dir="1" aria-label="Next image">→</button></div>
+  </section>
+
+  <!-- 7. The making of: the case study, told as a sequence -->
+  <section class="making" id="making"><div class="wrap center rv"><p class="eyebrow accent">The making of</p><h2>How it was designed.</h2>
+      <p class="lead">Spec first, then maths, then a frame grown by an optimiser, then the checks. Each step is a script you can run again.</p></div>
+    <ol class="steps wide">
+      <li class="step rv"><div class="sn">01</div><div class="sbody"><h3>Write the brief.</h3>
+        <p>EU pavements, 20 kg and about 40 L of cargo, a 120 mm kerb in the rain, under €1,700 in parts. Every later choice is scored against this list.</p>
+        <div class="tblmini"><span>Payload <b>20 kg</b></span><span>Kerb <b>120 mm, wet</b></span><span>Range <b>≥ 20 km</b></span><span>Parts <b>≤ €1,700</b></span><span>Strength <b>SF ≥ 2</b></span><span>Clearance <b>≥ 15 mm</b></span></div></div></li>
+      <li class="step rv"><div class="sn">02</div><div class="sbody"><h3>Solve the layout before the looks.</h3>
+        <p>A wheel can’t climb a step as tall as its own radius. Too big, and the tyres overlap; the first layout did, by 64 mm. With a 20 mm gap between tyres, that leaves 121 to 130 mm. Herrand sits at 130.</p>
+        <figure class="plate"><img src="assets/img/herrand/kerb.webp" alt="Chart: grip needed to climb a 120 mm kerb against wheel radius" loading="lazy" width="1800" height="1040"></figure></div></li>
+      <li class="step rv"><div class="sn">03</div><div class="sbody"><h3>Pick the drivetrain on evidence.</h3>
+        <p>Six-wheel rocker-bogie against four tri-star clusters. The tri-star needs less grip, but jolts the cargo three times harder and has nearly three times the moving parts.</p>
+        <figure class="plate"><img src="assets/img/herrand/architecture.webp" alt="Chart: rocker-bogie against tri-star on jolt, cost, custom parts, moving parts and grip" loading="lazy" width="1800" height="1040"></figure></div></li>
+      <li class="step rv"><div class="sn">04</div><div class="sbody"><h3>Let physics draw the frame.</h3>
+        <p>A 3D topology optimiser got the load points and keep-outs for the wheels, then removed every gram that carried no load. After fifty iterations, a hoop around the pod and a truss to the axles were left.</p>
+        <figure class="plate ink"><img src="assets/img/herrand/evo.webp" alt="The optimiser at iterations 1, 6, 15, 30 and 50" loading="lazy" width="2000" height="268"></figure>
+        <p class="note">Side view at iterations 1 · 6 · 15 · 30 · 50</p></div></li>
+      <li class="step rv"><div class="sn">05</div><div class="sbody"><h3>Turn voxels into a casting.</h3>
+        <p>Rebuilt as tapered members, a strut lattice and bone-like joints, castable in A356 aluminium. The first sizing came out at 43 kg; the second, at 3.99 kg.</p>
+        <figure class="shot"><img src="assets/img/herrand/frame.webp" alt="The refined cast frame" loading="lazy" width="1920" height="1080"></figure></div></li>
+      <li class="step rv"><div class="sn">06</div><div class="sbody"><h3>Check everything.</h3>
+        <p>Linear static FE on the real geometry, a kinematic kerb climb, collision sweeps of every moving part, and a lidar raycast against the robot’s own body.</p>
+        <figure><div class="shot"><img src="assets/img/herrand/stress.webp" alt="The frame coloured by von Mises stress from the FE run, blue low to red high" loading="lazy" width="1920" height="1080"></div><figcaption class="note">Von Mises stress, the envelope of five load cases. Blue is low, red is high. The peak is 13 MPa, against a yield of 165 MPa.</figcaption></figure>
+        <div class="checks"><div><b>18.4</b><span>SF on yield</span></div><div><b>28.3</b><span>SF fatigue</span></div><div><b>12.8</b><span>SF, 30 cm drop</span></div><div><b>40 mm</b><span>min clearance on the kerb</span></div><div><b>0</b><span>collisions, full travel</span></div><div><b>2.2%</b><span>lidar self-occlusion</span></div></div></div></li>
+      <li class="step rv"><div class="sn">07</div><div class="sbody"><h3>Keep the mistakes in.</h3>
+        <p>Seven were caught by these checks, from tyres through the body to a safety factor of 78 that a hand calculation said was 8. They’re listed below, because they’re the proof the checks work.</p></div></li>
+    </ol>
+  </section>
+
+  <!-- 7b. Specs -->
+  <section id="specs" style="padding-top:0"><div class="wrap">
+    <div class="rv"><p class="eyebrow">Tech specs</p><h2 style="margin-top:14px">The numbers.</h2></div>
+    <div class="specs rv">
+      <div class="spec"><b>20<small>kg</small></b><span>payload, about 40 L, on a self-levelling pendulum yoke</span></div>
+      <div class="spec"><b>120<small>mm</small></b><span>kerb, wet. Grip needed 0.39 of 0.55</span></div>
+      <div class="spec"><b>21.8<small>km</small></b><span>range on a 360 Wh pack</span></div>
+      <div class="spec"><b>0.78<small>m</small></b><span>stop from 6 km/h on wet concrete</span></div>
+      <div class="spec"><b>18.4</b><span>safety factor on yield, worst of five load cases</span></div>
+      <div class="spec"><b>12.8</b><span>safety factor in a 30 cm drop (7.3 g)</span></div>
+      <div class="spec"><b>2.2<small>%</small></b><span>of lidar beams blocked by the robot itself</span></div>
+      <div class="spec flag"><b>€1,625</b><span>parts estimate at 100 units. Catalogue prices, not quotes</span></div>
+    </div>
+  </div></section>
+
+  <!-- 8. Mistakes -->
+  <section class="dark"><div class="wrap">
+    <div class="rv"><p class="eyebrow">What went wrong</p><h2 style="margin-top:14px">Seven mistakes, and what caught them.</h2>
+      <p class="lead" style="margin-top:18px">Every one was found by a test, and every test still runs.</p></div>
+    <ol class="mistakes rv">
+      <li><b>Tyres through the body</b><span>Caught by BVH collision tests that now run on every change.</span></li>
+      <li><b>Wheels overlapping by 64 mm</b><span>The layout script never checked tyre clearance. Adding it gave layout v2.</span></li>
+      <li><b>A frame through the wheels</b><span>The optimiser didn’t know the wheels existed. Keep-out zones fixed it.</span></li>
+      <li><b>A 43 kg frame</b><span>A volume budget isn’t a mass target. The fix was two stages: topology first, then sizing.</span></li>
+      <li><b>A safety factor of 78</b><span>A shortcut said 78; a hand check said about 8. FE on the real geometry replaced the shortcut.</span></li>
+      <li><b>Floating voxels</b><span>Loose islands gave nonsense deflections. Island removal fixed it.</span></li>
+      <li><b>Seven geometry clashes</b><span>The bumper, side cameras, lid hinge, a bogie, the pod (twice) and the rear beam. The mechanics sims found them all, and all are fixed.</span></li>
+    </ol>
+  </div></section>
+
+  <!-- 9. Honest limits -->
+  <section id="honest"><div class="wrap">
+    <div class="rv"><p class="eyebrow">Honest limits</p><h2 style="margin-top:14px">The honest limits.</h2></div>
+    <div class="limits rv">
+      <div class="limit"><b>It’s a concept study.</b><span>The strength checks are linear static FE on 4 mm voxels. There has been no nonlinear, contact, casting-defect or physical testing, so this is not a validated design.</span></div>
+      <div class="limit"><b>The hollow frame hasn’t been simulated yet.</b><span>A wider hollow member has lower bending stress at equal mass, but thin-wall FE hasn’t been run yet.</span></div>
+      <div class="limit"><b>Two clearances under my own rule.</b><span>The rule is 15 mm. The pod sits 12.5 mm from the frame: accepted, because it swings its full ±20° without contact and closing the gap would cost cargo. A bogie sits at 14.8 mm: 0.2 mm short, flagged for the next revision.</span></div>
+      <div class="limit"><b>Built with AI, directed by me.</b><span>I worked with Claude as a collaborator: it wrote much of the code with me, and I made and can explain every design decision. My hand-coding is beginner level; my strengths are the 3D, the engineering judgement and the story.</span></div>
+      <div class="limit"><b>Herrand is fictional.</b><span>It is a brand made up for this portfolio piece. The film’s backgrounds are CC0 photographs from Poly Haven; the sound is CC0 and public-domain recordings from Wikimedia Commons plus my own synthesis.</span></div>
+    </div>
+
+    <details>
+      <summary>Engineering notes</summary>
+      <div class="tbl"><table>
+        <tr><th>Check</th><th>Method</th><th>Result</th></tr>
+        <tr><td>Frame strength</td><td>Linear static FE, 4 mm voxels, A356-T6, five load cases</td><td>SF 18.4 yield · 28.3 fatigue · 12.8 drop</td></tr>
+        <tr><td>Kerb climb</td><td>Kinematic sim over a 120 mm kerb</td><td>40 mm min clearance; bogie ±16° of ±25°</td></tr>
+        <tr><td>Collisions</td><td>BVH sweep: bogie ±25°, pod ±20°</td><td>Zero contacts</td></tr>
+        <tr><td>Clearances</td><td>Mesh distance to frame</td><td>Bogie 14.8 · battery 15.2 · pod 12.5 mm (exception)</td></tr>
+        <tr><td>Lidar occlusion</td><td>Raycast, 32 beams × 360°</td><td>2.2% (limit 5%)</td></tr>
+        <tr><td>Motors</td><td>Quasi-static kerb torque</td><td>10.8 Nm needed → 15 Nm-class hub motors</td></tr>
+        <tr><td>Architecture</td><td>Rocker-bogie vs tri-star, at r 140 mm before layout v2</td><td>1.0 g vs 3.4 g jolt; €422 vs €536; 10 vs 28 moving parts</td></tr>
+      </table></div>
+      <p class="note" style="margin-bottom:24px">Design-study codename: Seedpod. Tools: Python (NumPy, SciPy, Matplotlib), Blender 5.1 Cycles. Film: 360 frames, 1920×804, 2.5D photographic mattes behind full-3D foreground.</p>
+    </details>
+  </div></section>
+
+  <!-- 10. CTA -->
+  <section class="dark cta center"><div class="wrap rv">
+    <p class="eyebrow">Radwan Jameel · 3D and creative engineering</p>
+    <h2 style="margin-top:14px">I design and visualise hardware from first principles.</h2>
+    <div class="btns"><a class="btn solid" href="about/#contact">Let’s talk</a><a class="btn ghost" href="./">See more work</a></div>
+  </div></section>
+</main>
+<footer><div class="wide"><span>Herrand is a concept by Radwan Jameel. Not a real company or product.</span><span>Backgrounds CC0 (Poly Haven) · sound CC0 / PD (Wikimedia Commons) · fonts OFL</span></div></footer>
+
+<script>
+(() => {
+  const film = document.getElementById('film'), sfx = document.getElementById('sfx'), btn = document.getElementById('sound');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // the film plays muted, only while on screen; reduced motion shows the poster instead
+  if (reduced) { film.removeAttribute('autoplay'); film.style.display = 'none'; }
+  else new IntersectionObserver(([e]) => { if (e.isIntersecting) film.play().catch(() => {}); else { film.pause(); sfx.pause(); } }, { threshold: .2 }).observe(film);
+  // sound is a separate file kept in step with the picture (a silent video loops cleanly in every browser)
+  let on = false;
+  const sync = () => { if (on && Math.abs(sfx.currentTime - film.currentTime) > .08) sfx.currentTime = film.currentTime; };
+  btn.addEventListener('click', async () => {
+    on = !on; btn.setAttribute('aria-pressed', String(on)); btn.setAttribute('aria-label', on ? 'Sound off' : 'Sound on');
+    if (on) { if (reduced) { film.style.display = ''; } sfx.currentTime = film.currentTime || 0; try { await film.play(); await sfx.play(); } catch (e) {} }
+    else sfx.pause();
+  });
+  film.addEventListener('timeupdate', sync); film.addEventListener('seeked', sync);
+  // exploded film: plays only while on screen
+  const xf = document.getElementById('xfilm');
+  if (xf && !reduced) new IntersectionObserver(([e]) => { if (e.isIntersecting) { xf.preload = 'auto'; xf.play().catch(() => {}); } else xf.pause(); }, { threshold: .3 }).observe(xf);
+  // gallery buttons
+  const strip = document.getElementById('strip');
+  document.querySelectorAll('.strip-nav button').forEach((b) => b.addEventListener('click', () => {
+    const w = strip.querySelector('figure').getBoundingClientRect().width + 14;
+    strip.scrollBy({ left: w * Number(b.dataset.dir), behavior: reduced ? 'auto' : 'smooth' });
+  }));
+  // reveals
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+})();
+</script>
+
+<script type="module">
+// 3D viewer: loads on request (2.4 MB), or by itself when scrolled to on a fast connection
+const stage = document.getElementById('stage3d'), btn = document.getElementById('load3d'), nameEl = document.getElementById('pickname');
+let v = null, busy = false, t;
+async function boot() {
+  if (v || busy) return; busy = true; btn.textContent = 'Loading…';
+  try {
+    const { createViewer } = await import('./work/herrand/viewer.js');
+    v = await createViewer(stage, { onPick: (n) => { clearTimeout(t); nameEl.textContent = n || ''; nameEl.classList.toggle('on', !!n); t = setTimeout(() => nameEl.classList.remove('on'), 2600); } });
+    btn.remove();
+    v.setExplode(+document.getElementById('explode').value);
+  } catch (e) { btn.textContent = 'The 3D view needs WebGL'; console.error(e); }
+  busy = false;
+}
+btn.addEventListener('click', boot);
+const fast = !(navigator.connection && (navigator.connection.saveData || /2g/.test(navigator.connection.effectiveType || '')));
+if (fast) new IntersectionObserver(([e], io) => { if (e.isIntersecting) { io.disconnect(); boot(); } }, { rootMargin: '300px' }).observe(stage);
+const exIn = document.getElementById('explode'), exBtn = document.getElementById('explodeBtn'), liBtn = document.getElementById('lidarBtn');
+exIn.addEventListener('input', (e) => { v?.setExplode(+e.target.value); const on = +e.target.value > 0.5; exBtn.textContent = on ? 'Assemble' : 'Explode'; exBtn.setAttribute('aria-pressed', String(on)); });
+exBtn.addEventListener('click', async () => {
+  if (!v) await boot(); if (!v) return;
+  const apart = v.toggleExplode((x) => { exIn.value = x; });
+  exBtn.textContent = apart ? 'Assemble' : 'Explode'; exBtn.setAttribute('aria-pressed', String(apart));
+});
+liBtn.addEventListener('click', async () => {
+  if (!v) await boot(); if (!v) return;
+  const on = liBtn.getAttribute('aria-pressed') !== 'true';
+  liBtn.setAttribute('aria-pressed', String(on)); v.setLidar(on);
+  if (on) { exIn.value = 0; exBtn.textContent = 'Explode'; exBtn.setAttribute('aria-pressed', 'false'); }
+});
+document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  v?.isolate(b.dataset.sys);
+}));
+</script>
+</body>
+</html>
