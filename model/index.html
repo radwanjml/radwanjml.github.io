@@ -41,7 +41,11 @@ body { background: var(--bg); }
 .media img, .media video { display: block; width: 100%; height: auto; max-height: 82svh; object-fit: contain; border-radius: calc(var(--r) - 8px); background: rgba(0,0,0,.2); }
 .media figcaption { font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); padding: 10px 6px 2px; }
 .acts { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 0; }
-.info { margin-top: 36px; max-width: 70ch; font-size: 17px; line-height: 1.65; }
+.info { margin-top: 36px; max-width: 70ch; font-size: 17px; line-height: 1.65; white-space: pre-line; }
+.gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: clamp(12px, 1.6vw, 18px); margin-top: clamp(14px, 2vw, 24px); }
+.gal figure { margin: 0; border-radius: var(--r); overflow: hidden; padding: 8px; }
+.gal img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: calc(var(--r) - 8px); background: rgba(0,0,0,.2); }
+.gal figcaption { font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); padding: 8px 4px 0; }
 .pn { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; border-top: 1px solid var(--line); padding-top: 18px; }
 .pn a { display: grid; gap: 4px; min-height: 44px; text-decoration: none; color: var(--text); } .pn a:last-child { text-align: right; }
 .pn small { font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); } .pn b { font: 400 22px/1.2 var(--serif); }
@@ -84,6 +88,7 @@ document.getElementById('note').textContent = note || 'Modelled and rendered in 
 const media = document.getElementById('media');
 media.innerHTML = `<figure class="glass"><img src="assets/img/models/${slug}.webp" alt="${title}, still render" decoding="async" width="${sw || 1600}" height="${sh || 1600}"><figcaption>Still</figcaption></figure>`
   + (X.video ? `<figure class="glass"><video muted loop playsinline preload="none" width="${vw || 1280}" height="${vh || 720}" poster="assets/video/models/${slug}.webp" aria-label="${title}, animated render"><source src="assets/video/models/${slug}.mp4" type="video/mp4"></video><figcaption>Animation</figcaption></figure>` : '');
+if (X.gallery) media.insertAdjacentHTML('afterend', `<div class="gal">${X.gallery.map(([f, c]) => `<figure class="glass"><img src="assets/img/herrand/${f}.webp" alt="${title}: ${c}" loading="lazy" decoding="async" width="1920" height="1080"><figcaption>${c}</figcaption></figure>`).join('')}</div>`);
 const v = media.querySelector('video');
 if (v) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -92,6 +97,7 @@ if (v) {
 }
 const acts = document.getElementById('acts');
 if (X.glb) acts.innerHTML = `<a class="btn btn-solid" href="viewer/?m=${X.glb}">Turn it in 3D</a>`;
+if (X.link) acts.insertAdjacentHTML('beforeend', `<a class="btn" href="${X.link[0]}">${X.link[1]}</a>`);
 if (X.info) { const el = document.getElementById('info'); el.textContent = X.info; el.hidden = false; }
 const link = (el, k, lab) => { const r = R[(k + R.length) % R.length]; el.href = `model/?m=${r[0]}`; el.innerHTML = `<small>${lab}</small><b>${r[1]}</b>`; };
 link(document.getElementById('prev'), i - 1, '← Previous'); link(document.getElementById('next'), i + 1, 'Next →');

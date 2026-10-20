@@ -1,6 +1,7 @@
 // The model list, shared by the Models field and the model pages (Addendum 49).
 // [slug, title, note?]: note replaces "Modelled and rendered in Blender" (fan art credits).
 export const R = [
+  ['herrand', 'Herrand delivery robot', 'Concept design · simulated in Python, rendered in Blender Cycles'],
   ['perfume', 'JAMEEL perfume'], ['1966-headphones', '1966 Headphones'], ['wine', 'Wine pour'], ['snow-glode-paris', 'Snow globe, Paris'],
   ['potion', 'Potion'], ['milk-carton', 'Milk carton'], ['candy-geometry-nodes', 'Candy, geometry nodes'],
   ['statue-bust', 'Statue bust', 'Rendered in Blender'], ['skull-on-fire', 'Skull on fire', 'Rendered in Blender'], ['rocket', 'Rocket'], ['cosmetics', 'Magnolia strawberry perfume'],
@@ -19,9 +20,16 @@ export const R = [
 
 // Per-model extras. video: assets/video/models/<slug>.mp4 (+ .webp poster). glb: id in the 3D viewer.
 // info: Red's notes, added later. Leave empty rather than invent.
-const VIDEO = ['wine', 'snow-glode-paris', 'milk-carton', 'candy-geometry-nodes', 'statue-bust', 'statue-flake', 'skull-on-fire', 'smily-clip', 'topographic-map', 'rocket', 'car-gls-600', 'car-show-room', 'diwali-roof-top', 'road-car-drive', 'doc-ock-robot-arms', 'color-swatch-fans', 'asabco-motor-oil'];
-const GLB = { perfume: 'perfume', '1966-headphones': 'headphones', wine: 'wine', 'milk-carton': 'milk', rocket: 'rocket' };
+const VIDEO = ['herrand', 'wine', 'snow-glode-paris', 'milk-carton', 'candy-geometry-nodes', 'statue-bust', 'statue-flake', 'skull-on-fire', 'smily-clip', 'topographic-map', 'rocket', 'car-gls-600', 'car-show-room', 'diwali-roof-top', 'road-car-drive', 'doc-ock-robot-arms', 'color-swatch-fans', 'asabco-motor-oil'];
+const GLB = { herrand: 'herrand', perfume: 'perfume', '1966-headphones': 'headphones', wine: 'wine', 'milk-carton': 'milk', rocket: 'rocket' };
 export const EXTRA = Object.fromEntries(R.map(([slug]) => [slug, { video: VIDEO.includes(slug), glb: GLB[slug] || null, info: '' }]));
 
+// Herrand (21 Oct 2026): a gallery of part renders and a link to its product page. gallery: [file in assets/img/herrand/, caption]
+Object.assign(EXTRA.herrand, {
+  info: 'A sidewalk delivery robot I designed from first principles, then modelled and lit in Blender. Six 130 mm hub-motor wheels on a rocker-bogie climb a 120 mm kerb in the rain. A ceramic-white 40 L cargo pod hangs on a pendulum yoke, so it stays level.\n\nThe cast aluminium frame was grown by a topology optimiser and checked with FE: 3.99 kg, safety factor 18.4. A concept study, not a validated design. Built with AI assistance; every design decision is mine.',
+  gallery: [['studio-front', 'Front'], ['studio-side', 'Side'], ['pod', 'The pod'], ['frame', 'The cast frame'], ['wheel', 'A wheel'], ['lidar-scan', 'What the lidar sees']],
+  link: ['work/herrand/', 'See the product page'],
+});
+
 // [still w, still h, video w, video h]: reserves space so the model page doesn't shift as media loads (Addendum 51)
-export const DIMS = {"perfume":[1600,1600],"1966-headphones":[1600,1600],"wine":[900,1600,720,1280],"snow-glode-paris":[900,1600,720,1280],"potion":[1600,1600],"milk-carton":[1600,1600,1280,720],"candy-geometry-nodes":[1600,1600,1280,1280],"statue-bust":[900,1600,720,1280],"skull-on-fire":[900,1600,720,1280],"rocket":[900,1600,720,1280],"cosmetics":[905,1600],"topographic-map":[900,1600,720,1280],"smily-clip":[900,1600,720,1280],"jwellery":[1600,1600],"statue-flake":[900,1600,720,1280],"car-gls-600":[900,1600,720,1280],"baymax":[1600,1600],"doc-ock-robot-arms":[1080,1080,1080,1080],"elmo":[1600,1600],"huggy-wuggy":[900,1600],"car-show-room":[1080,1080,1080,1080],"color-swatch-fans":[900,1600,1280,1280],"color-swatch-fan-batom-outono":[900,1600],"cotton-candy-hand-moisturizer":[900,1600],"asabco-motor-oil":[1600,900,1280,720],"geodesic-dome":[1600,1600],"cappadocia":[900,1600],"hot-air-baloon":[900,1600],"armored-warior-under-a-cherry-blossom":[1280,1600],"hotel-elevation-3d-model":[900,1600],"diwali-roof-top":[900,1600,720,1280],"road-car-drive":[1600,900,1280,548],"surfer":[1600,900]};
+export const DIMS = {"herrand":[1600,1600,1280,720],"perfume":[1600,1600],"1966-headphones":[1600,1600],"wine":[900,1600,720,1280],"snow-glode-paris":[900,1600,720,1280],"potion":[1600,1600],"milk-carton":[1600,1600,1280,720],"candy-geometry-nodes":[1600,1600,1280,1280],"statue-bust":[900,1600,720,1280],"skull-on-fire":[900,1600,720,1280],"rocket":[900,1600,720,1280],"cosmetics":[905,1600],"topographic-map":[900,1600,720,1280],"smily-clip":[900,1600,720,1280],"jwellery":[1600,1600],"statue-flake":[900,1600,720,1280],"car-gls-600":[900,1600,720,1280],"baymax":[1600,1600],"doc-ock-robot-arms":[1080,1080,1080,1080],"elmo":[1600,1600],"huggy-wuggy":[900,1600],"car-show-room":[1080,1080,1080,1080],"color-swatch-fans":[900,1600,1280,1280],"color-swatch-fan-batom-outono":[900,1600],"cotton-candy-hand-moisturizer":[900,1600],"asabco-motor-oil":[1600,900,1280,720],"geodesic-dome":[1600,1600],"cappadocia":[900,1600],"hot-air-baloon":[900,1600],"armored-warior-under-a-cherry-blossom":[1280,1600],"hotel-elevation-3d-model":[900,1600],"diwali-roof-top":[900,1600,720,1280],"road-car-drive":[1600,900,1280,548],"surfer":[1600,900]};
