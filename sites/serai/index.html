@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SERAI — a tower that builds itself</title>
+<meta name="description" content="A 22-storey Hyderabad residential tower assembling itself in one screen. Procedural geometry, zero images, one request.">
+<meta name="theme-color" content="#12100e">
+<link rel="canonical" href="https://radwanjml.github.io/sites/serai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tibr Studio">
+<meta property="og:title" content="SERAI — a tower that builds itself">
+<meta property="og:description" content="A 22-storey Hyderabad residential tower assembling itself in one screen. Procedural geometry, zero images.">
+<meta property="og:url" content="https://radwanjml.github.io/sites/serai/">
+<meta property="og:image" content="https://radwanjml.github.io/sites/serai/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SERAI — a tower that builds itself">
+<meta name="twitter:description" content="A 22-storey Hyderabad residential tower assembling itself in one screen.">
+<meta name="twitter:image" content="https://radwanjml.github.io/sites/serai/og.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2312100e'/%3E%3Crect x='11' y='6' width='10' height='20' fill='%23c8703c'/%3E%3Crect x='11' y='17' width='10' height='9' fill='%23f0e4d4'/%3E%3C/svg%3E">
+<style>
+@font-face{font-family:'Display';src:url('vendor/fonts/playfair-latin.woff2') format('woff2');font-weight:400 900;font-display:swap}
+@font-face{font-family:'Text';src:url('vendor/fonts/montserrat-latin.woff2') format('woff2');font-weight:100 900;font-display:swap}
+
+:root{
+  --ink:#12100e; --ink-2:#1b1815;
+  --bone:#f2ebe1; --text:#cfc5b8; --dim:#9b9083; --faint:#8f8578;
+  --line:rgba(242,235,225,.13);
+  --accent:#c8703c;
+  --display:'Display',Georgia,serif;
+  --sans:'Text',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --k:1;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
+#stage{position:fixed;inset:0;isolation:isolate}
+canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* The scene is a bright morning sky and the type is pale. Without this the
+   headline sits on beige at roughly 1.4:1 and is simply not readable. Three
+   gradients, all reaching INWARD from an edge — a scrim that reaches down
+   past its parent adds scrollable height and orphans the footer. */
+.scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    linear-gradient(to right, rgba(18,16,14,.90) 0%, rgba(18,16,14,.62) 15%, rgba(18,16,14,0) 37%),
+    linear-gradient(to left,  rgba(18,16,14,.78) 0%, rgba(18,16,14,.42) 12%, rgba(18,16,14,0) 30%),
+    linear-gradient(to bottom,rgba(18,16,14,.62) 0%, rgba(18,16,14,0) 15%),
+    linear-gradient(to top,   rgba(18,16,14,.55) 0%, rgba(18,16,14,0) 14%)}
+
+.skip{position:absolute;left:-9999px;top:0;z-index:99;background:var(--bone);color:var(--ink);
+  padding:10px 16px;font-weight:700;letter-spacing:.04em;text-decoration:none}
+.skip:focus{left:12px;top:12px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+
+.top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:18px;
+  padding:calc(20px*var(--k)) calc(30px*var(--k));z-index:6;pointer-events:none}
+.mark{font-family:var(--display);font-weight:800;letter-spacing:.10em;
+  font-size:calc(23px*var(--k));color:var(--bone);line-height:1}
+.mark small{display:block;font-family:var(--sans);font-weight:600;letter-spacing:.08em;
+  font-size:max(11px,calc(8.5px*var(--k)));color:var(--accent);margin-top:calc(4px*var(--k))}
+.strap{flex:1;text-align:center;font-size:max(11px,calc(10px*var(--k)));letter-spacing:.24em;
+  color:var(--faint);font-weight:600;text-transform:uppercase}
+.ctrls{display:flex;gap:calc(7px*var(--k));pointer-events:auto}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.btn{font-size:max(11px,calc(9.5px*var(--k)));letter-spacing:.15em;font-weight:700;text-transform:uppercase;
+  color:var(--dim);padding:calc(6px*var(--k)) calc(9px*var(--k));
+  border-bottom:1.5px solid var(--line);transition:color .25s,border-color .25s;white-space:nowrap}
+.btn b{color:var(--bone);font-weight:700}
+.btn:hover,.btn:focus-visible{color:var(--bone);border-color:var(--accent)}
+
+.lede{position:absolute;left:calc(30px*var(--k));top:25vh;width:calc(300px*var(--k));z-index:5;
+  pointer-events:none}
+.eyebrow{font-size:max(11px,calc(9.5px*var(--k)));letter-spacing:.26em;color:var(--faint);font-weight:700;
+  text-transform:uppercase;margin-bottom:calc(14px*var(--k))}
+.h1{font-family:var(--display);font-weight:700;color:var(--bone);
+  font-size:calc(46px*var(--k));line-height:.98;letter-spacing:-.015em;margin:0}
+.h1 .sub{display:block;font-family:var(--sans);font-weight:600;color:var(--accent);
+  font-size:calc(11.5px*var(--k));letter-spacing:.20em;text-transform:uppercase;
+  margin-top:calc(12px*var(--k))}
+.blurb{margin:calc(20px*var(--k)) 0 0;font-size:calc(13px*var(--k));line-height:1.62;
+  color:var(--text);max-width:30ch}
+.specs{margin:calc(24px*var(--k)) 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;
+  gap:calc(13px*var(--k)) calc(16px*var(--k));max-width:calc(280px*var(--k))}
+.spec{position:relative;border-top:1px solid var(--line);padding-top:calc(8px*var(--k))}
+.spec dt{font-size:max(11px,calc(8.5px*var(--k)));letter-spacing:.18em;color:var(--faint);
+  text-transform:uppercase;font-weight:700}
+.spec dd{margin:calc(3px*var(--k)) 0 0;font-size:calc(15px*var(--k));color:var(--bone);font-weight:600;
+  font-variant-numeric:tabular-nums}
+.spec canvas{position:absolute;inset:-3px;width:calc(100% + 6px);height:calc(100% + 6px);
+  pointer-events:none;opacity:0}
+
+.rule{position:absolute;right:calc(34px*var(--k));top:23vh;z-index:5;text-align:right;pointer-events:none}
+.rule .n{font-family:var(--display);font-size:calc(84px*var(--k));line-height:.86;color:var(--bone);
+  font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;transition:color .5s}
+.rule .n.done{color:var(--accent)}
+.rule .u{font-size:max(11px,calc(9.5px*var(--k)));letter-spacing:.26em;color:var(--faint);font-weight:700;
+  text-transform:uppercase;margin-top:calc(6px*var(--k))}
+.rule .lvl{margin-top:calc(18px*var(--k));font-size:calc(11px*var(--k));color:var(--dim);
+  font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.rule .lvl b{color:var(--bone)}
+
+.plaque{position:absolute;z-index:6;transform:translate(-50%,-50%);left:50%;top:60%;
+  background:rgba(18,16,14,.80);border:1px solid var(--line);border-left:2px solid var(--accent);
+  padding:calc(6px*var(--k)) calc(12px*var(--k));white-space:nowrap;
+  font-size:max(11px,calc(10px*var(--k)));letter-spacing:.16em;font-weight:700;text-transform:uppercase;
+  color:var(--bone);pointer-events:none;transition:opacity .3s}
+.plaque em{font-style:normal;color:var(--dim);font-weight:600}
+
+.transport{position:absolute;left:0;right:0;bottom:0;z-index:7;display:flex;align-items:center;
+  gap:calc(14px*var(--k));padding:calc(14px*var(--k)) calc(30px*var(--k)) calc(16px*var(--k));
+  background:linear-gradient(to top,rgba(18,16,14,.82),transparent)}
+.play{width:calc(30px*var(--k));height:calc(30px*var(--k));border:1px solid var(--line);
+  border-radius:50%;display:grid;place-items:center;color:var(--dim);flex:none;
+  transition:color .25s,border-color .25s}
+.play:hover,.play:focus-visible{color:var(--bone);border-color:var(--accent)}
+.play svg{width:calc(11px*var(--k));height:calc(11px*var(--k));fill:currentColor}
+.track{position:relative;flex:1;height:calc(26px*var(--k));display:flex;align-items:center;
+  cursor:pointer;touch-action:none}
+.track::before{content:'';position:absolute;left:0;right:0;height:1px;background:var(--line)}
+.fill{position:absolute;left:0;height:1.5px;background:var(--accent);width:0}
+.knob{position:absolute;width:calc(9px*var(--k));height:calc(9px*var(--k));border-radius:50%;
+  background:var(--bone);left:0;transform:translateX(-50%);box-shadow:0 0 0 3px rgba(18,16,14,.7)}
+.tmark{position:absolute;width:1px;height:calc(7px*var(--k));background:var(--line);top:50%;
+  transform:translate(-50%,-50%)}
+.clock{font-size:max(11px,calc(10px*var(--k)));color:var(--faint);font-variant-numeric:tabular-nums;
+  letter-spacing:.02em;flex:none;min-width:calc(74px*var(--k));text-align:right}
+
+#boot{position:absolute;inset:0;z-index:20;background:var(--ink);display:grid;place-items:center;
+  transition:opacity .6s ease}
+#boot.gone{opacity:0;pointer-events:none}
+.bootin{width:min(300px,62vw);text-align:center}
+.bootbar{height:1px;background:var(--line);margin:18px 0 10px;position:relative;overflow:hidden}
+.bootbar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);width:0;transition:width .2s}
+.bootlbl{font-size:11px;letter-spacing:.24em;color:var(--faint);text-transform:uppercase;font-weight:700}
+
+#fallback{display:none;position:absolute;inset:0;z-index:19;padding:8vw;
+  background:linear-gradient(160deg,#1b1815,#12100e)}
+#fallback h2{font-family:var(--display);color:var(--bone);font-size:clamp(28px,5vw,54px);margin:0 0 14px}
+
+@media (max-width:860px){
+  :root{--k:.92}
+  .scrim{background:
+    linear-gradient(to bottom, rgba(18,16,14,.92) 0%, rgba(18,16,14,.74) 26%, rgba(18,16,14,0) 52%),
+    linear-gradient(to top,    rgba(18,16,14,.88) 0%, rgba(18,16,14,.40) 16%, rgba(18,16,14,0) 34%)}
+  .top{padding:14px 16px;gap:10px}
+  .strap{display:none}
+  /* The controls have to leave .top entirely. Absolute inside a header that
+     is itself absolute and auto-height means bottom:52px resolves against
+     the header, not the screen, and the whole row lands back under the
+     wordmark where it cannot be seen. */
+  .ctrls{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));
+    justify-content:space-between;gap:0;padding:0 16px;pointer-events:auto;z-index:8}
+  .btn{border-bottom:0;font-size:11px;padding:7px 4px;text-align:center;line-height:1.55;
+    letter-spacing:.12em}
+  .btn b{display:block}
+  .lede{left:16px;right:16px;top:88px;width:auto}
+  .h1{font-size:clamp(30px,8.6vw,44px)}
+  .blurb{display:none}
+  .specs{max-width:none;margin-top:16px;gap:10px 14px}
+  /* the readout moves to the bottom-left, inside the bottom scrim, where
+     it is not competing with the building for the same pixels */
+  .rule{left:16px;right:auto;top:auto;bottom:calc(104px + env(safe-area-inset-bottom));
+    text-align:left;width:130px}
+  .rule .n{font-size:40px;line-height:.9}
+  .rule .u{margin-top:2px;font-size:11px;letter-spacing:.16em}
+  .rule .lvl{margin-top:5px;font-size:11px}
+  .plaque{font-size:11px;padding:5px 9px}
+  .transport{padding:10px 16px calc(12px + env(safe-area-inset-bottom))}
+  .clock{min-width:62px}
+}
+@media (max-width:400px){ .specs .spec:nth-child(n+3){display:none} }
+
+@media (prefers-reduced-motion:reduce){ *{transition-duration:.01ms !important} }
+</style>
+</head>
+<body>
+<!-- With scripting off the boot panel would sit there for ever and the page
+     would say nothing at all. The specification is already in the markup;
+     this just swaps which panel is showing. -->
+<noscript><style>#boot{display:none !important}#fallback{display:block !important}</style></noscript>
+<a class="skip" href="#transport">Skip to the build controls</a>
+
+<div id="stage">
+  <canvas id="gl" role="img" aria-label="A twenty-two storey residential tower assembling itself from the ground up"></canvas>
+  <div class="scrim" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="mark">SERAI<small>Financial District &middot; Hyderabad</small></div>
+    <div class="strap">Construction study / 01</div>
+    <nav class="ctrls" aria-label="Scene controls">
+      <button class="btn" id="massBtn">Massing <b>Point</b></button>
+      <button class="btn" id="timeBtn">Light <b>Morning</b></button>
+      <button class="btn" id="rebuildBtn">&#8635; Rebuild</button>
+    </nav>
+  </header>
+
+  <div class="lede">
+    <p class="eyebrow">Tower 01 &middot; Nanakramguda</p>
+    <h1 class="h1">Watch it<br>go up.<span class="sub" id="subline">Twenty-two storeys, five seconds</span></h1>
+    <p class="blurb">Every buyer asks the same question and no brochure answers it: what will actually be standing here? This is the whole build, foundation to handover, in one screen.</p>
+    <dl class="specs" id="specs">
+      <div class="spec"><dt>Storeys</dt><dd id="sp1">22</dd><canvas></canvas></div>
+      <div class="spec"><dt>Height</dt><dd id="sp2">68 m</dd><canvas></canvas></div>
+      <div class="spec"><dt>Homes</dt><dd id="sp3">168</dd><canvas></canvas></div>
+      <div class="spec"><dt>Handover</dt><dd id="sp4">Q4 2028</dd><canvas></canvas></div>
+    </dl>
+  </div>
+
+  <div class="rule">
+    <div class="n" id="pct">0</div>
+    <div class="u">Per cent complete</div>
+    <div class="lvl">Level <b id="lvl">00</b> &nbsp;/&nbsp; <span id="lvlmax">22</span></div>
+  </div>
+
+  <div class="plaque" id="plaque">Site &middot; <em>Excavation</em></div>
+
+  <div class="transport" id="transport">
+    <button class="play" id="playBtn" aria-label="Pause the build">
+      <svg id="playIcon" viewBox="0 0 12 12" aria-hidden="true"><rect x="1.5" y="1" width="3" height="10"/><rect x="7.5" y="1" width="3" height="10"/></svg>
+    </button>
+    <div class="track" id="track" role="slider" tabindex="0"
+         aria-label="Build timeline" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0 per cent complete">
+      <div class="fill" id="fill"></div><div class="knob" id="knob"></div>
+    </div>
+    <div class="clock" id="clock">0.00 / 5.00</div>
+  </div>
+
+  <div id="boot"><div class="bootin">
+    <div class="mark" style="text-align:center">SERAI</div>
+    <div class="bootbar"><i id="bootbar"></i></div>
+    <div class="bootlbl" id="bootlbl">Setting out</div>
+  </div></div>
+
+  <div id="fallback">
+    <h2>SERAI</h2>
+    <p>Tower 01, Nanakramguda &middot; 22 storeys &middot; 68 m &middot; 168 homes &middot; handover Q4 2028.</p>
+    <p style="color:#9b9083">This page draws its building live in your browser, and needs JavaScript and WebGL to do it — one of the two is unavailable here. Everything above is the whole specification, and it is in the page itself rather than in the drawing.</p>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script>
+/* =====================================================================
+ * SERAI v2 — the build line
+ * A cut plane rises through a finished model; everything below it is
+ * built work. Original code, Tibr Studio 2026. Three.js r149 (MIT).
+ *
+ * v2 changes, against Red's note of 5 Sep:
+ *   - the build curve is C1 continuous (monotone cubic), so the line
+ *     never stops moving between stages
+ *   - a grade pass: bloom, ACES, split-tone, vignette, held grain
+ *   - the generic city blocks are gone; trees, a treeline and birds
+ *   - a real lattice crane, slewing on wall-clock rather than build time
+ *   - massing with setbacks, jali bands and a crown per scheme
+ *
+ * Debug: ?t=<sec> duration · ?q=low|high tier · ?nofx=1 no grade
+ *        ?noshadow=1 · window.SERAI.pick(x,y) / .only(name) / .all()
+ * ===================================================================== */
+(function () {
+'use strict';
+var T = window.THREE;
+var BOOT_T0 = performance.now();
+
+var canvas = document.getElementById('gl');
+if (!T || !(function(){ try { var c=document.createElement('canvas');
+      return !!(c.getContext('webgl2')||c.getContext('webgl')); } catch(e){ return false; } })()) {
+  document.getElementById('boot').style.display='none';
+  document.getElementById('fallback').style.display='block';
+  return;
+}
+
+var Q        = /[?&]q=(low|high)/.exec(location.search);
+var NOFX     = /[?&]nofx=1/.test(location.search);
+var NOSHADOW = /[?&]noshadow=1/.test(location.search);
+var REDUCED  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var narrow   = window.matchMedia('(max-width: 860px)').matches;
+var small    = Q ? Q[1]==='low' : (narrow || (window.innerWidth*window.innerHeight) < 620000);
+var WANT_POST = !NOFX;
+
+var DUR = 5.6;
+var qt  = /[?&]t=([\d.]+)/.exec(location.search);
+if (qt) DUR = Math.max(0.6, Math.min(60, +qt[1]));
+
+var CAM_AZ = 0.58;          /* the one azimuth the whole composition is built around */
+var FH     = 0.62;          /* one storey, in scene units */
+
+/* ------------------------------------------------------------------ *
+ * 1.  noise, and the surfaces drawn from it — the page ships no image
+ * ------------------------------------------------------------------ */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+function makeNoise(seed){
+  var r=mulberry32(seed), p=new Float32Array(65536), i;
+  for(i=0;i<65536;i++) p[i]=r();
+  function at(x,y){ return p[((y&255)<<8)+(x&255)]; }
+  return function(x,y){
+    var xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi;
+    var u=xf*xf*(3-2*xf), v=yf*yf*(3-2*yf);
+    var a=at(xi,yi), b=at(xi+1,yi), c=at(xi,yi+1), d=at(xi+1,yi+1);
+    return (a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v;
+  };
+}
+function fbm(n,x,y,oct,gain){ var s=0,a=.5,f=1,tot=0;
+  for(var i=0;i<oct;i++){ s+=a*n(x*f,y*f); tot+=a; a*=(gain||.5); f*=2; }
+  return s/tot; }
+
+function cv(w,h){ var c=document.createElement('canvas'); c.width=w; c.height=h||w; return c; }
+function toTex(c,rx,ry){
+  var t=new T.CanvasTexture(c);
+  t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(rx||1,ry||rx||1);
+  t.anisotropy=4; if('sRGBEncoding' in T) t.encoding=T.sRGBEncoding;
+  return t;
+}
+function bumpFrom(src,strength){
+  var S=src.width, out=cv(S,S);
+  var a=src.getContext('2d').getImageData(0,0,S,S).data;
+  var o=out.getContext('2d').createImageData(S,S), d=o.data, x,y;
+  for(y=0;y<S;y++) for(x=0;x<S;x++){
+    var i=(y*S+x)*4, l=(a[i]*.30+a[i+1]*.59+a[i+2]*.11)/255;
+    var v=l*255*strength + 128*(1-strength);
+    d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+  }
+  out.getContext('2d').putImageData(o,0,0);
+  return out;
+}
+
+function texConcrete(seed,tint){
+  var S=256, c=cv(S), g=c.getContext('2d'), n=makeNoise(seed), x,y;
+  var im=g.createImageData(S,S), d=im.data;
+  for(y=0;y<S;y++) for(x=0;x<S;x++){
+    var v = fbm(n,x/12,y/12,4,.55)*0.55 + fbm(n,x/2.6,y/2.6,2,.5)*0.45;
+    var band = Math.sin(y*Math.PI/32)>.965 ? -0.07 : 0;
+    var l = 0.55 + (v-0.5)*0.34 + band;
+    var i=(y*S+x)*4;
+    d[i]  = Math.min(255,255*l*tint[0]);
+    d[i+1]= Math.min(255,255*l*tint[1]);
+    d[i+2]= Math.min(255,255*l*tint[2]);
+    d[i+3]=255;
+  }
+  g.putImageData(im,0,0);
+  return c;
+}
+
+/* terracotta jali — the perforated screen that shades a Deccan facade */
+function texJali(seed){
+  var S=256, c=cv(S), g=c.getContext('2d'), n=makeNoise(seed), x,y;
+  var im=g.createImageData(S,S), d=im.data;
+  for(y=0;y<S;y++) for(x=0;x<S;x++){
+    var fx=((x%32)/32-.5)*2, fy=((y%32)/32-.5)*2;
+    var s1=Math.abs(fx)+Math.abs(fy), s2=Math.max(Math.abs(fx),Math.abs(fy));
+    var hole = Math.min(s1,s2*1.18) < 0.58 ? 1 : 0;
+    var grain = fbm(n,x/9,y/9,3,.5);
+    var l = hole ? 0.20 + grain*0.07 : 0.62 + grain*0.22;
+    var i=(y*S+x)*4;
+    d[i]  = Math.min(255,255*l*1.00);
+    d[i+1]= Math.min(255,255*l*0.78);
+    d[i+2]= Math.min(255,255*l*0.64);
+    d[i+3]=255;
+  }
+  g.putImageData(im,0,0);
+  return c;
+}
+
+/* Glazing. Without an environment map, metalness renders black — so the sky
+   is PAINTED into the pane rather than reflected by it. */
+function texGlass(seed){
+  var S=256, c=cv(S), g=c.getContext('2d'), r=mulberry32(seed);
+  var CW=32, CH=32, i, j;
+  g.fillStyle='#5f7383'; g.fillRect(0,0,S,S);
+  for(j=0;j<S/CH;j++) for(i=0;i<S/CW;i++){
+    var t=r(), head=1-j/(S/CH);
+    var base = 74 + t*26 + head*66;
+    g.fillStyle='rgb('+Math.round(base*0.80)+','+Math.round(base*0.92)+','+Math.round(base*1.04)+')';
+    g.fillRect(i*CW+2,j*CH+2,CW-4,CH-5);
+    g.fillStyle='rgb(46,53,59)';                    /* spandrel under each pane */
+    g.fillRect(i*CW+2,(j+1)*CH-5,CW-4,3);
+  }
+  g.fillStyle='rgba(150,158,164,.9)';
+  for(i=0;i<=S/CW;i++) g.fillRect(i*CW-1,0,2,S);
+  for(j=0;j<=S/CH;j++) g.fillRect(0,j*CH-1,S,2);
+  return c;
+}
+function texWindowsLit(seed){
+  var S=256, c=cv(S), g=c.getContext('2d'), r=mulberry32(seed+77);
+  var CW=32, CH=32, i, j;
+  g.fillStyle='#000'; g.fillRect(0,0,S,S);
+  for(j=0;j<S/CH;j++) for(i=0;i<S/CW;i++){
+    if(r()>0.38) continue;
+    var w=150+r()*70;
+    g.fillStyle='rgb('+(w|0)+','+((w*0.78+14)|0)+','+((w*0.50+8)|0)+')';
+    g.fillRect(i*CW+3,j*CH+3,CW-6,CH-7);
+  }
+  return c;
+}
+function texGround(seed){
+  var S=256, c=cv(S), g=c.getContext('2d'), n=makeNoise(seed), x,y;
+  var im=g.createImageData(S,S), d=im.data;
+  for(y=0;y<S;y++) for(x=0;x<S;x++){
+    var v=fbm(n,x/22,y/22,5,.55), w=fbm(n,x/4,y/4,2,.5);
+    var l=0.40+v*0.34+w*0.12;
+    var i=(y*S+x)*4;
+    d[i]=255*l*0.74; d[i+1]=255*l*0.80; d[i+2]=255*l*0.52; d[i+3]=255;
+  }
+  g.putImageData(im,0,0);
+  return c;
+}
+
+/* Sky. One canvas per time of day, gradient plus cloud, and the sky material
+   MIXES two of them. v1 swapped the texture at the midpoint of the cross-fade,
+   which was a visible pop in the middle of what was supposed to be a fade. */
+function texSky(stops, cloud, seed){
+  var W=256, H=256, c=cv(W,H), g=c.getContext('2d'), i;
+  var grad=g.createLinearGradient(0,0,0,H);
+  for(i=0;i<stops.length;i++) grad.addColorStop(i/(stops.length-1), stops[i]);
+  g.fillStyle=grad; g.fillRect(0,0,W,H);
+  if(cloud && cloud.a > 0.01){
+    var n=makeNoise(seed), im=g.getImageData(0,0,W,H), d=im.data, x,y;
+    for(y=0;y<H;y++) for(x=0;x<W;x++){
+      /* clouds live in a band: none at the zenith, none below the horizon */
+      var v=y/H;
+      var band=Math.max(0, Math.sin(Math.min(1,Math.max(0,(v-0.10)/0.62))*Math.PI));
+      if(band<0.02) continue;
+      var f=fbm(n,x/34,y/15,5,.56);
+      var m=Math.max(0,(f-0.40)/0.36);
+      m=m*m*(3-2*m)*band*cloud.a;
+      if(m<0.004) continue;
+      var k=(y*W+x)*4;
+      d[k]  =d[k]  *(1-m)+cloud.c[0]*m;
+      d[k+1]=d[k+1]*(1-m)+cloud.c[1]*m;
+      d[k+2]=d[k+2]*(1-m)+cloud.c[2]*m;
+    }
+    g.putImageData(im,0,0);
+  }
+  var t=new T.CanvasTexture(c);
+  t.wrapS=T.RepeatWrapping; t.wrapT=T.ClampToEdgeWrapping;
+  if('sRGBEncoding' in T) t.encoding=T.sRGBEncoding;
+  return t;
+}
+
+/* ------------------------------------------------------------------ *
+ * 2.  mesh builder — one buffer per material
+ * ------------------------------------------------------------------ */
+function Bld(){ this.p=[]; this.n=[]; this.u=[]; this.i=[]; }
+Bld.prototype.quad=function(a,b,c,d,uv){
+  var o=this.p.length/3, P=this.p, N=this.n, U=this.u;
+  var ux=b[0]-a[0], uy=b[1]-a[1], uz=b[2]-a[2];
+  var vx=d[0]-a[0], vy=d[1]-a[1], vz=d[2]-a[2];
+  var nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+  var L=Math.hypot(nx,ny,nz)||1; nx/=L; ny/=L; nz/=L;
+  var v=[a,b,c,d], k;
+  for(k=0;k<4;k++){ P.push(v[k][0],v[k][1],v[k][2]); N.push(nx,ny,nz); U.push(uv[k][0],uv[k][1]); }
+  this.i.push(o,o+1,o+2,o,o+2,o+3);
+  return this;
+};
+/* Axis-aligned box, UVs in WORLD units scaled by s — without that a 12 m
+   column and a 1 m nib get the same grain and both read as plastic. */
+Bld.prototype.box=function(cx,cy,cz,w,h,d,s,uvOverride){
+  var x0=cx-w/2,x1=cx+w/2,y0=cy-h/2,y1=cy+h/2,z0=cz-d/2,z1=cz+d/2;
+  s = s===undefined ? 1 : s;
+  function uv(a,b){ return uvOverride || [[0,0],[a*s,0],[a*s,b*s],[0,b*s]]; }
+  this.quad([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1], uv(w,h));
+  this.quad([x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0], uv(w,h));
+  this.quad([x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1], uv(d,h));
+  this.quad([x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0], uv(d,h));
+  this.quad([x0,y1,z1],[x1,y1,z1],[x1,y1,z0],[x0,y1,z0], uv(w,d));
+  this.quad([x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1], uv(w,d));
+  return this;
+};
+/* a strut between two points — the whole crane is made of these */
+Bld.prototype.strut=function(a,b,r){
+  var dx=b[0]-a[0], dy=b[1]-a[1], dz=b[2]-a[2];
+  var L=Math.hypot(dx,dy,dz); if(L<1e-5) return this;
+  var ux=dx/L, uy=dy/L, uz=dz/L;
+  /* any vector not parallel to u */
+  var hx=Math.abs(uy)<0.9?0:1, hy=Math.abs(uy)<0.9?1:0, hz=0;
+  var px=uy*hz-uz*hy, py=uz*hx-ux*hz, pz=ux*hy-uy*hx;
+  var pl=Math.hypot(px,py,pz)||1; px/=pl; py/=pl; pz/=pl;
+  var qx=uy*pz-uz*py, qy=uz*px-ux*pz, qz=ux*py-uy*px;
+  var o=this.p.length/3, P=this.p, N=this.n, U=this.u, k, s;
+  for(k=0;k<4;k++){
+    var ca=Math.cos(k*Math.PI/2)*r, sa=Math.sin(k*Math.PI/2)*r;
+    var nx=px*ca+qx*sa, ny=py*ca+qy*sa, nz=pz*ca+qz*sa;
+    var nl=Math.hypot(nx,ny,nz)||1;
+    P.push(a[0]+nx,a[1]+ny,a[2]+nz); N.push(nx/nl,ny/nl,nz/nl); U.push(k/4,0);
+    P.push(b[0]+nx,b[1]+ny,b[2]+nz); N.push(nx/nl,ny/nl,nz/nl); U.push(k/4,L*1.4);
+  }
+  for(k=0;k<4;k++){
+    var i0=o+k*2, i1=o+k*2+1, i2=o+((k+1)%4)*2, i3=o+((k+1)%4)*2+1;
+    this.i.push(i0,i2,i3, i0,i3,i1);
+  }
+  return this;
+};
+Bld.prototype.count=function(){ return this.p.length/3; };
+Bld.prototype.tris =function(){ return this.i.length/3; };
+Bld.prototype.geo=function(){
+  var g=new T.BufferGeometry();
+  g.setAttribute('position',new T.Float32BufferAttribute(this.p,3));
+  g.setAttribute('normal',  new T.Float32BufferAttribute(this.n,3));
+  g.setAttribute('uv',      new T.Float32BufferAttribute(this.u,2));
+  g.setIndex(this.i); g.computeBoundingSphere();
+  return g;
+};
+
+/* ------------------------------------------------------------------ *
+ * 3.  the cut plane
+ * ------------------------------------------------------------------ */
+var CLIP = new T.Plane(new T.Vector3(0,-1,0), 0);   /* keeps y < constant */
+
+/* ------------------------------------------------------------------ *
+ * 4.  materials
+ * ------------------------------------------------------------------ */
+var MAT={}, TEX={};
+function buildMaterials(){
+  var conc  = texConcrete(11,[0.86,0.84,0.80]);
+  var conc2 = texConcrete(29,[0.78,0.75,0.70]);
+  var jali  = texJali(41);
+  var glass = texGlass(7);
+
+  TEX.concrete = toTex(conc,1,1);
+  TEX.concreteB= toTex(bumpFrom(conc,0.85),1,1);
+  TEX.core     = toTex(conc2,1,1);
+  TEX.jali     = toTex(jali,1,1);
+  TEX.jaliB    = toTex(bumpFrom(jali,1.0),1,1);
+  TEX.glass    = toTex(glass,1,1);
+  TEX.lit      = toTex(texWindowsLit(7),1,1);
+  TEX.ground   = toTex(texGround(63),30,30);
+
+  MAT.slab = new T.MeshStandardMaterial({ map:TEX.concrete, bumpMap:TEX.concreteB, bumpScale:0.05,
+    color:0xbdb6aa, roughness:0.93, metalness:0.0 });
+  MAT.col  = new T.MeshStandardMaterial({ map:TEX.concrete, bumpMap:TEX.concreteB, bumpScale:0.04,
+    color:0xa79f93, roughness:0.95, metalness:0.0 });
+  MAT.podium = new T.MeshStandardMaterial({ map:TEX.jali, bumpMap:TEX.jaliB, bumpScale:0.09,
+    color:0xa8785a, roughness:0.90, metalness:0.0 });
+  /* metalness with no environment map is just black — the sky lives in the
+     texture instead and the material stays almost fully dielectric */
+  MAT.glass = new T.MeshStandardMaterial({ map:TEX.glass, color:0x8ea3b2,
+    roughness:0.26, metalness:0.10,
+    emissive:0xffb765, emissiveMap:TEX.lit, emissiveIntensity:0.0 });
+  MAT.metal = new T.MeshStandardMaterial({ color:0xb6bcc0, roughness:0.46, metalness:0.18 });
+  MAT.fin   = new T.MeshStandardMaterial({ color:0xeee7d8, roughness:0.60, metalness:0.06 });
+  MAT.core  = new T.MeshStandardMaterial({ map:TEX.core, bumpMap:TEX.concreteB, bumpScale:0.05,
+    color:0xd8d2c6, roughness:0.96, metalness:0.0 });
+  MAT.crane = new T.MeshStandardMaterial({ color:0xd8892f, roughness:0.58, metalness:0.28 });
+  MAT.craneD= new T.MeshStandardMaterial({ color:0x4a4844, roughness:0.70, metalness:0.30 });
+  MAT.ground= new T.MeshStandardMaterial({ map:TEX.ground, color:0x47512f, roughness:1.0, metalness:0.0 });
+  MAT.bark  = new T.MeshStandardMaterial({ color:0x4a3f33, roughness:0.98, metalness:0.0, flatShading:true });
+  MAT.leaf  = new T.MeshStandardMaterial({ color:0xffffff, roughness:0.88, metalness:0.0, flatShading:true });
+  MAT.far   = new T.MeshStandardMaterial({ color:0x18200f, roughness:1.0, metalness:0.0, flatShading:true });
+  MAT.fence = new T.MeshStandardMaterial({ color:0x8d8878, roughness:0.94, metalness:0.0 });
+
+  MAT.cap = [];   /* one per pool slot, so each can fade independently */
+
+  /* Everything that is BUILT WORK clips. The core and the crane do not —
+     they are ahead of the line, which is what makes it read as a site. */
+  ['slab','col','podium','glass','metal','fin'].forEach(function(k){
+    MAT[k].clippingPlanes=[CLIP]; MAT[k].clipShadows=true;
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * 5.  massing — three schemes, each with an idea rather than a size
+ * ------------------------------------------------------------------ */
+var MASSINGS = [
+  /* Each scheme steps differently, and the width and depth profiles are
+     separate — a slab that narrows only across its long face is a different
+     building from a point block that steps on both axes.
+     v2's first pass slid the upper half of the slab sideways instead. That
+     left a volume hanging in mid-air over nothing, with the fins still
+     running down the original centre line. A floating block is worse than
+     no idea, so the idea changed rather than the geometry being propped up. */
+  { id:'Point', label:'Point', floors:22, homes:168, metres:68, hand:'Q4 2028',
+    sub:'Twenty-two storeys, two setbacks',
+    shafts:[[0,0,2.34,2.34]],
+    podium:{w:4.20,d:4.20,levels:3},
+    pw:function(i,n){ return i > n*0.74 ? 0.76 : (i > n*0.42 ? 0.89 : 1.0); },
+    pd:function(i,n){ return i > n*0.74 ? 0.76 : (i > n*0.42 ? 0.89 : 1.0); },
+    crown:'blade' },
+
+  { id:'Slab',  label:'Slab',  floors:18, homes:204, metres:56, hand:'Q2 2028',
+    sub:'Eighteen storeys, one long face',
+    shafts:[[0,0,3.95,1.72]],
+    podium:{w:5.40,d:3.30,levels:2},
+    /* shoulders in across the long face only, and keeps its depth */
+    pw:function(i,n){ return i > n*0.62 ? 0.62 : 1.0; },
+    pd:function(i,n){ return 1.0; },
+    crown:'plate' },
+
+  { id:'Twin',  label:'Twin',  floors:24, homes:232, metres:74, hand:'Q1 2029',
+    sub:'Two shafts, one sky bridge',
+    shafts:[[-1.62,0,1.50,1.88],[1.62,0,1.50,1.88]],
+    heights:[24,19],                       /* deliberately not the same */
+    podium:{w:5.50,d:3.40,levels:3},
+    pw:function(i,n){ return 1.0; },
+    pd:function(i,n){ return 1.0; },
+    crown:'twin' }
+];
+
+var TRI_FIXED=0, TRI=0;
+
+function buildTower(M){
+  var g = new T.Group();
+  var slab=new Bld(), col=new Bld(), pod=new Bld(), glass=new Bld(),
+      metal=new Bld(), core=new Bld(), fin=new Bld();
+  var pl=M.podium.levels, podH=pl*FH*1.24;
+  var i, s, k, top=0;
+
+  /* ---- podium: decks behind a terracotta jali screen ---- */
+  for(k=0;k<pl;k++){
+    var y=k*FH*1.24;
+    pod.box(0, y+FH*0.62, 0, M.podium.w, FH*1.16, M.podium.d, 0.62);
+    slab.box(0, y+FH*1.235, 0, M.podium.w+0.10, 0.075, M.podium.d+0.10, 0.5);
+  }
+  slab.box(0, 0.055, 0, M.podium.w+0.36, 0.11, M.podium.d+0.36, 0.5);
+  /* the podium roof is a planted terrace, not a bare slab: a low parapet and
+     a run of planters, which is also what a developer is actually selling */
+  metal.box(0, podH+0.10, 0, M.podium.w+0.10, 0.18, M.podium.d+0.10, 1);
+  for(k=0;k<7;k++){
+    var px=(-1+2*(k+0.5)/7)*M.podium.w*0.44;
+    pod.box(px, podH+0.13, M.podium.d*0.40, 0.34, 0.22, 0.26, 1.2);
+    pod.box(px, podH+0.13,-M.podium.d*0.40, 0.34, 0.22, 0.26, 1.2);
+  }
+
+  /* ---- the shafts ---- */
+  for(s=0;s<M.shafts.length;s++){
+    var sh=M.shafts[s], cx0=sh[0], cz=sh[1], w0=sh[2], d0=sh[3];
+    var nf = M.heights ? M.heights[s] : M.floors;
+    for(i=0;i<nf;i++){
+      var w=w0*(M.pw?M.pw(i,nf):1), d=d0*(M.pd?M.pd(i,nf):1);
+      var cx = cx0;
+      var fy = podH + i*FH;
+      var gh = FH-0.13;
+
+      slab.box(cx, fy+0.045, cz, w+0.13, 0.09, d+0.13, 0.55);
+
+      /* every sixth storey is a jali band, tying the shaft to the podium */
+      var isBand = (i%6)===5 && i<nf-1;
+      if(isBand){
+        pod.box(cx, fy+0.09+gh/2, cz, w+0.02, gh, d+0.02, 0.90);
+      } else {
+        var ux = Math.max(2,Math.round(w/0.30));
+        var v0 = (i%8)/8, v1 = v0 + 1/8;
+        glass.box(cx, fy+0.09+gh/2, cz, w, gh, d, 1,
+          [[0,v0],[ux,v0],[ux,v1],[0,v1]]);
+      }
+      var hx=w/2-0.035, hz=d/2-0.035;
+      col.box(cx-hx, fy+0.09+gh/2, cz-hz, 0.10, gh, 0.10, 1.4);
+      col.box(cx+hx, fy+0.09+gh/2, cz-hz, 0.10, gh, 0.10, 1.4);
+      col.box(cx-hx, fy+0.09+gh/2, cz+hz, 0.10, gh, 0.10, 1.4);
+      col.box(cx+hx, fy+0.09+gh/2, cz+hz, 0.10, gh, 0.10, 1.4);
+
+      /* balcony rhythm in threes, not alternating — a 1-1-1 beat reads as a
+         stripe, a 1-0-1-0-0 beat reads as a building */
+      if(!isBand && (i%3)!==2 && i<nf-1){
+        var bz = cz + d/2 + 0.16;
+        slab.box(cx, fy+0.05, bz, w*0.52, 0.07, 0.32, 0.6);
+        metal.box(cx, fy+0.24, bz+0.15, w*0.52, 0.30, 0.02, 1);
+      }
+    }
+
+    /* ---- vertical fins, continuous over the shaft ----
+       Six boxes per face buy the strongest thing a tower can have: an
+       unbroken vertical line. Per-floor fins cost 130 boxes and read as a
+       grid; running them the full height costs 12 and reads as height. */
+    /* The fins belong to the full-width part of the shaft. Running them the
+       whole height means they stand proud of every setback above, hanging in
+       space with nothing behind them. */
+    var finTop = nf;
+    for(k=0;k<nf;k++){ if((M.pw?M.pw(k,nf):1) < 0.999 || (M.pd?M.pd(k,nf):1) < 0.999){ finTop=k; break; } }
+    var shaftH = finTop*FH, sy0 = podH;
+    var wm = w0*0.96, dm = d0*0.96;
+    var nfin = Math.max(3, Math.round(wm/0.46));
+    for(k=0;k<nfin;k++){
+      var fx = cx0 + (-1 + 2*(k+0.5)/nfin)*wm*0.5;
+      fin.box(fx, sy0+shaftH/2, cz+dm/2+0.035, 0.055, shaftH, 0.10, 1.6);
+      fin.box(fx, sy0+shaftH/2, cz-dm/2-0.035, 0.055, shaftH, 0.10, 1.6);
+    }
+    var ndf = Math.max(3, Math.round(dm/0.46));
+    for(k=0;k<ndf;k++){
+      var fz = cz + (-1 + 2*(k+0.5)/ndf)*dm*0.5;
+      fin.box(cx0+wm/2+0.035, sy0+shaftH/2, fz, 0.10, shaftH, 0.055, 1.6);
+      fin.box(cx0-wm/2-0.035, sy0+shaftH/2, fz, 0.10, shaftH, 0.055, 1.6);
+    }
+
+    /* ---- crown ---- */
+    var cw=w0*(M.pw?M.pw(nf-1,nf):1), cd=d0*(M.pd?M.pd(nf-1,nf):1);
+    var cxT = cx0;
+    var ty  = podH + nf*FH;
+    slab.box(cxT, ty+0.05, cz, cw+0.20, 0.10, cd+0.20, 0.5);
+    metal.box(cxT, ty+0.26, cz, cw+0.19, 0.32, cd+0.19, 1);
+    if(M.crown==='blade'){
+      metal.box(cxT, ty+0.86, cz, cw*0.30, 1.00, cd*0.62, 1);
+      metal.box(cxT, ty+1.62, cz, 0.055, 1.30, 0.055, 1);
+    } else if(M.crown==='plate'){
+      metal.box(cxT, ty+0.62, cz, cw*0.94, 0.10, cd*1.30, 1);
+      metal.box(cxT-cw*0.28, ty+0.44, cz, 0.09, 0.42, 0.09, 1);
+      metal.box(cxT+cw*0.28, ty+0.44, cz, 0.09, 0.42, 0.09, 1);
+      metal.box(cxT+cw*0.30, ty+1.10, cz, 0.05, 1.00, 0.05, 1);
+    } else {
+      metal.box(cxT, ty+0.66, cz, cw*0.46, 0.72, cd*0.52, 1);
+      metal.box(cxT, ty+1.36, cz, 0.05, 0.80, 0.05, 1);
+    }
+    if(ty > top) top = ty + 2.0;
+  }
+
+  /* ---- sky bridge, twin only ---- */
+  if(M.shafts.length===2){
+    var by = podH + Math.round((M.heights?M.heights[1]:M.floors)*0.70)*FH + 0.09;
+    slab.box(0, by, 0, 3.24, 0.10, 1.10, 0.55);
+    glass.box(0, by+0.32, 0, 3.10, 0.54, 0.96, 1, [[0,0.25],[10,0.25],[10,0.375],[0,0.375]]);
+    metal.box(0, by+0.64, 0, 3.24, 0.06, 1.10, 1);
+  }
+
+  /* ---- the lift core: NOT clipped, and it runs ahead of the frame.
+     Built base-anchored (0..1 in y) so one scale.y drives it. ---- */
+  for(s=0;s<M.shafts.length;s++){
+    var c=M.shafts[s];
+    core.box(c[0], 0.5, c[1], c[2]*0.26, 1.0, c[3]*0.30, 1);
+  }
+
+  function add(b,mat,name){
+    if(!b.count()) return;
+    var m=new T.Mesh(b.geo(),mat);
+    m.castShadow=true; m.receiveShadow=true; m.name=name;
+    TRI += b.tris(); g.add(m);
+  }
+  add(pod,MAT.podium,'podium');
+  add(slab,MAT.slab,'slab');
+  add(col,MAT.col,'col');
+  add(glass,MAT.glass,'glass');
+  add(fin,MAT.fin,'fin');
+  add(metal,MAT.metal,'metal');
+
+  var coreMesh=new T.Mesh(core.geo(),MAT.core);
+  coreMesh.castShadow=true; coreMesh.receiveShadow=true; coreMesh.name='core';
+  TRI += core.tris(); g.add(coreMesh);
+
+  g.userData = { podH:podH, top:top, coreMesh:coreMesh, M:M };
+  return g;
+}
+
+/* The cut plane has to know the plan of what it is cutting. One square cap
+   over a twin tower caps one shaft and leaves the other an open hole. */
+function capRects(M, y){
+  var pl=M.podium.levels, podH=pl*FH*1.24;
+  if(y < 0.11) return [];
+  if(y <= podH+0.02) return [[0,0,M.podium.w,M.podium.d]];
+  var out=[], s;
+  for(s=0;s<M.shafts.length;s++){
+    var sh=M.shafts[s], nf=M.heights?M.heights[s]:M.floors;
+    var i=Math.min(nf-1, Math.max(0, Math.floor((y-podH)/FH)));
+    if(y > podH + nf*FH + 0.42) continue;
+    out.push([sh[0], sh[1], sh[2]*(M.pw?M.pw(i,nf):1)+0.13,
+                             sh[3]*(M.pd?M.pd(i,nf):1)+0.13]);
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ *
+ * 6.  stages — labels on a continuous curve, not segments of a chopped one
+ * ------------------------------------------------------------------ */
+function stagesFor(M){
+  var pl=M.podium.levels, podH=pl*FH*1.24;
+  var tallest=0, s;
+  for(s=0;s<M.shafts.length;s++){
+    var nf=M.heights?M.heights[s]:M.floors;
+    tallest=Math.max(tallest, podH+nf*FH);
+  }
+  return [
+    ['Site',         'Excavation',          0],
+    ['Substructure', 'Raft and piles',      0.14],
+    ['Podium',       'Parking and terrace', podH],
+    ['Frame',        'Slabs and columns',   podH + (tallest-podH)*0.56],
+    ['Envelope',     'Glazing and screens', tallest],
+    ['Crown',        'Parapet and plant',   tallest + 1.75]
+  ];
+}
+var STAGE_T = [0, 0.05, 0.19, 0.46, 0.82, 0.96, 1.0];
+
+/* Fritsch–Carlson monotone cubic. This is the fix for "jittery, hard cuts":
+   v1 eased in-and-out INSIDE each stage, so velocity hit zero at both ends of
+   all six segments — six full stops in five seconds — and each stage also
+   finished at 94% of its slot and then held. A monotone cubic through the same
+   knots is C1 continuous, so the line never stops moving until it is done, and
+   it still cannot overshoot or run backwards. */
+function monotone(xs, ys){
+  var n=xs.length, dx=[], m=[], c=[], i;
+  for(i=0;i<n-1;i++){ dx[i]=xs[i+1]-xs[i]; m[i]=(ys[i+1]-ys[i])/dx[i]; }
+  c[0]=m[0];
+  for(i=1;i<n-1;i++){
+    if(m[i-1]*m[i]<=0) c[i]=0;
+    else { var w1=2*dx[i]+dx[i-1], w2=dx[i]+2*dx[i-1];
+           c[i]=(w1+w2)/(w1/m[i-1]+w2/m[i]); }
+  }
+  c[n-1]=m[n-2];
+  return function(x){
+    if(x<=xs[0]) return ys[0];
+    if(x>=xs[n-1]) return ys[n-1];
+    var i=0; while(i<n-2 && x>xs[i+1]) i++;
+    var h=dx[i], t=(x-xs[i])/h, t2=t*t, t3=t2*t;
+    return (2*t3-3*t2+1)*ys[i] + (t3-2*t2+t)*h*c[i]
+         + (-2*t3+3*t2)*ys[i+1] + (t3-t2)*h*c[i+1];
+  };
+}
+var heightAt = function(){ return 0; };
+function buildCurve(){
+  var xs=[], ys=[], i;
+  for(i=0;i<STAGES.length;i++){ xs.push(STAGE_T[i]*DUR); ys.push(STAGES[i][2]); }
+  /* a final knot at the same height gives zero slope at the end, so the line
+     settles rather than slamming into the top */
+  xs.push(DUR); ys.push(STAGES[STAGES.length-1][2]);
+  heightAt = monotone(xs, ys);
+}
+
+/* ------------------------------------------------------------------ *
+ * 7.  scene
+ * ------------------------------------------------------------------ */
+var renderer, scene, camera, key, hemi, amb, fill, rim, ground, skyMesh;
+var capPool=[], craneGrp, birdsMesh, treesGrp;
+var modelGroup=null, MASS=0, STAGES=[], CUR_M=null;
+
+/* the sky mixes two baked states, so a time change is a fade with no pop */
+var SKY_U = { tA:{value:null}, tB:{value:null}, uMix:{value:0}, uDrift:{value:0} };
+
+function initScene(){
+  renderer = new T.WebGLRenderer({ canvas:canvas, antialias:!small && !WANT_POST,
+                                   powerPreference:'high-performance' });
+  /* The grade is a full-screen pass, so every pixel is paid for twice. Buying
+     the look back out of resolution is the right trade here: a soft bloom and
+     a grain plate hide the aliasing that the extra pixels were buying, and
+     nobody looking at this can tell 1.4 from 1.75 — but the frame rate can. */
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,
+                                  WANT_POST ? (small?1.6:1.4) : (small?1.5:1.75)));
+  renderer.setSize(document.documentElement.clientWidth,
+                   document.documentElement.clientHeight, false);
+  renderer.localClippingEnabled = true;
+  renderer.shadowMap.enabled = !NOSHADOW;
+  renderer.shadowMap.type = T.PCFShadowMap;
+  /* With a grade pass the scene must stay LINEAR and untonemapped — the
+     composite does ACES and the gamma encode. Leave these on and the frame
+     is encoded twice and comes back milky. */
+  if(WANT_POST){
+    renderer.toneMapping = T.NoToneMapping;
+    if('outputEncoding' in renderer) renderer.outputEncoding = T.LinearEncoding;
+  } else {
+    renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    if('outputEncoding' in renderer) renderer.outputEncoding = T.sRGBEncoding;
+  }
+
+  scene = new T.Scene();
+  scene.fog = new T.Fog(0x9aa08c, 86, 300);
+  camera = new T.PerspectiveCamera(30, 1, 0.5, 420);
+
+  key = new T.DirectionalLight(0xffeacb, 2.4);
+  key.castShadow = !NOSHADOW;
+  key.shadow.mapSize.set(small?768:1280, small?768:1280);
+  key.shadow.bias = -0.0011; key.shadow.normalBias = 0.028;
+  scene.add(key); scene.add(key.target);
+
+  hemi = new T.HemisphereLight(0x9dbcdc, 0x5a5044, 0.80); scene.add(hemi);
+  amb  = new T.AmbientLight(0x8a94a0, 0.22); scene.add(amb);
+  /* the fill exists to open the face the key misses, which is +Z */
+  fill = new T.DirectionalLight(0xcfd8e0, 0.40); fill.position.set(-9,11,30); scene.add(fill);
+  /* a cold back rim: the single cheapest thing that separates a subject from
+     its background, and the reason a render stops looking flat */
+  rim  = new T.DirectionalLight(0xbcd2ee, 0.55); rim.position.set(-16,14,-22); scene.add(rim);
+
+  skyMesh = new T.Mesh(new T.SphereGeometry(240,32,20), new T.ShaderMaterial({
+    uniforms: SKY_U, side:T.BackSide, depthWrite:false, fog:false,
+    vertexShader:'varying vec3 vP; void main(){ vP=position; '+
+      'gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+    fragmentShader:
+      'uniform sampler2D tA; uniform sampler2D tB; uniform float uMix, uDrift;\n'+
+      'varying vec3 vP;\n'+
+      'void main(){\n'+
+      ' vec3 d = normalize(vP);\n'+
+      ' float v = clamp(d.y*0.5+0.5, 0.0, 1.0);\n'+
+      ' float u = fract(atan(d.z,d.x)*0.1591549 + uDrift);\n'+
+      ' vec2 uv = vec2(u, 1.0-v);\n'+
+      ' vec3 c = mix(texture2D(tA,uv).rgb, texture2D(tB,uv).rgb, uMix);\n'+
+      ' gl_FragColor = vec4(c, 1.0);\n'+
+      '}'
+  }));
+  skyMesh.frustumCulled=false;
+  scene.add(skyMesh);
+
+  ground = new T.Mesh(new T.PlaneGeometry(400,400,1,1), MAT.ground);
+  ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+
+  /* cap pool — two is enough for the twin, and it never reallocates.
+     Each slot owns its material so it can fade independently. */
+  for(var i=0;i<2;i++){
+    var mt=new T.MeshStandardMaterial({ map:TEX.concrete, color:0x9e968a,
+      roughness:0.96, metalness:0.0, side:T.DoubleSide, transparent:true, opacity:0 });
+    MAT.cap.push(mt);
+    var m=new T.Mesh(new T.PlaneGeometry(1,1), mt);
+    m.rotation.x=-Math.PI/2; m.receiveShadow=true; m.visible=false;
+    m.userData={ w:1, d:1, o:0 };
+    scene.add(m); capPool.push(m);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 8.  the site — trees, a treeline, a boundary. No generic city blocks:
+ *     a single tower ringed by grey boxes reads as lonely, and a
+ *     residential developer is selling greenery anyway.
+ * ------------------------------------------------------------------ */
+function buildSite(){
+  var r=mulberry32(90210);
+  treesGrp = new T.Group(); scene.add(treesGrp);
+
+  var trunkGeo = new T.CylinderGeometry(0.045,0.075,1,5,1);
+  trunkGeo.translate(0,0.5,0);
+  var leafGeo  = new T.IcosahedronGeometry(1,0);
+
+  /* two rings: planting on the plot, and a treeline holding the horizon */
+  var NEAR=54, FAR=210, FRAME=6;
+  var trunks = new T.InstancedMesh(trunkGeo, MAT.bark, NEAR+FRAME);
+  var leaves = new T.InstancedMesh(leafGeo, MAT.leaf, (NEAR+FRAME)*3);
+  var farTr  = new T.InstancedMesh(leafGeo, MAT.far,  FAR);
+  trunks.castShadow=true; leaves.castShadow=false; leaves.receiveShadow=true;
+  farTr.castShadow=false; farTr.receiveShadow=false;
+
+  var mtx=new T.Matrix4(), q=new T.Quaternion(), sc=new T.Vector3(), pos=new T.Vector3();
+  var e=new T.Euler(), col=new T.Color(), li=0, i;
+
+  for(i=0;i<NEAR;i++){
+    /* keep the plot itself clear, and keep the lens corridor clear or a tree
+       lands two metres from the camera and becomes a green wall */
+    var a, rad, off, guard=0;
+    do {
+      a=r()*Math.PI*2; rad=10.5+Math.pow(r(),0.62)*30;
+      off=Math.abs(Math.atan2(Math.sin(a-CAM_AZ), Math.cos(a-CAM_AZ)));
+      guard++;
+      /* Two exclusions. The plot itself, or a canopy grows through the
+         podium. And a wedge on the camera side out to beyond the lens, or a
+         tree lands two metres in front and becomes a green wall. */
+    } while(guard<40 && (off<0.58 && rad<40));
+
+    var x=Math.cos(a)*rad, z=Math.sin(a)*rad;
+    var h=1.5+Math.pow(r(),1.4)*2.4;
+    var lean=(r()-0.5)*0.13;
+
+    e.set(lean, r()*6.28, (r()-0.5)*0.10);
+    q.setFromEuler(e);
+    pos.set(x,0,z); sc.set(1,h,1);
+    mtx.compose(pos,q,sc); trunks.setMatrixAt(i,mtx);
+
+    /* three overlapping blobs make a canopy that reads as a tree rather than
+       as a lollipop, and flat shading keeps the facets */
+    var blobs=3, k;
+    for(k=0;k<blobs;k++){
+      var rr=h*(0.26+r()*0.24);
+      var by=h*(0.72+k*0.14) + rr*0.10;
+      var bx=x+(r()-0.5)*h*0.30+lean*by, bz=z+(r()-0.5)*h*0.30;
+      e.set(r()*3, r()*6.28, r()*3); q.setFromEuler(e);
+      pos.set(bx,by,bz);
+      sc.set(rr*(0.9+r()*0.3), rr*(0.72+r()*0.22), rr*(0.9+r()*0.3));
+      mtx.compose(pos,q,sc); leaves.setMatrixAt(li,mtx);
+      var t=r();
+      /* value range, not just hue range: a canopy set that all sits at one
+         luminance reads as plastic broccoli however good the hue is */
+      var val=0.42+Math.pow(t,1.6)*1.28;
+      col.setRGB(0.105*val+t*0.030, 0.165*val+t*0.028, 0.062*val+t*0.012);
+      leaves.setColorAt(li,col);
+      li++;
+    }
+  }
+  var FIELD_LEAVES=li;
+
+  /* The treeline. v2's first pass put this at radius 62-140, where the fog
+     bleached it to about half the fog colour and it came back as a ring of
+     pale boulders — the same failure as the city blocks, in green. Bring it
+     IN so the fog barely touches it, keep it dark, keep it low, and make it
+     dense enough to read as one continuous silhouette rather than as objects. */
+  for(i=0;i<FAR;i++){
+    var fa=r()*Math.PI*2, frad=52+Math.pow(r(),0.8)*46;
+    var fh=1.5+Math.pow(r(),1.3)*2.6;
+    e.set((r()-0.5)*0.5, r()*6.28, (r()-0.5)*0.5); q.setFromEuler(e);
+    pos.set(Math.cos(fa)*frad, fh*0.46, Math.sin(fa)*frad);
+    /* wider than tall: a canopy mass, not a ball */
+    sc.set(fh*(0.85+r()*0.55), fh*0.50, fh*(0.85+r()*0.55));
+    mtx.compose(pos,q,sc); farTr.setMatrixAt(i,mtx);
+  }
+
+  /* Framing. A flat frame reads as a diagram; a cinematographer puts
+     something dark and close at the edges so the eye has a near, a middle and
+     a far. These sit deliberately OUTSIDE the lens corridor but close enough
+     to crop, which is the whole point of them. */
+  /* Placed by where they land IN FRAME, not by radius from the tower. The
+     camera sits about 46 out; a tree at radius r and angular offset d is
+     roughly (46 - r*cos d) from the lens and r*sin d to the side of the axis,
+     so radius ~36 with d ~0.15 puts it about ten units from the lens and hard
+     against the edge of a 30-degree frame. Radius alone put them all in the
+     middle distance, which is not a foreground at all. */
+  var FRAME_TREES=[[-0.172,30.0],[-0.212,27.5],[0.166,30.5],[0.206,28.0],[-0.250,25.0],[0.246,25.5]];
+  for(i=0;i<FRAME_TREES.length; i++){
+    var fang=CAM_AZ+FRAME_TREES[i][0], frd=FRAME_TREES[i][1];
+    var fx2=Math.sin(fang)*frd, fz2=Math.cos(fang)*frd;
+    var fh2=3.3+r()*1.3;
+    e.set((r()-0.5)*0.10, r()*6.28, (r()-0.5)*0.08); q.setFromEuler(e);
+    pos.set(fx2,0,fz2); sc.set(1.5,fh2,1.5);
+    mtx.compose(pos,q,sc);
+    trunks.setMatrixAt(NEAR+i,mtx);
+    for(var kk=0;kk<3;kk++){
+      var rr2=fh2*(0.28+r()*0.18);
+      var by2=fh2*(0.70+kk*0.15)+rr2*0.10;
+      e.set(r()*3,r()*6.28,r()*3); q.setFromEuler(e);
+      pos.set(fx2+(r()-0.5)*fh2*0.34, by2, fz2+(r()-0.5)*fh2*0.34);
+      sc.set(rr2*(0.95+r()*0.3), rr2*(0.78+r()*0.2), rr2*(0.95+r()*0.3));
+      mtx.compose(pos,q,sc); leaves.setMatrixAt(li,mtx);
+      /* darker than the field planting: foreground reads as near because it
+         is denser and cooler, not because it is bigger */
+      col.setRGB(0.052+r()*0.020, 0.086+r()*0.028, 0.036+r()*0.014);
+      leaves.setColorAt(li,col); li++;
+    }
+  }
+
+  /* and a second, deliberately hazy band on the horizon. Fogging THIS one is
+     correct — it is distance, not a mistake — because it is a thin continuous
+     line rather than a ring of separable objects. */
+  var HZ=220, hzGeo=new T.IcosahedronGeometry(1,0);
+  var hz=new T.InstancedMesh(hzGeo, MAT.far.clone(), HZ);
+  hz.material.color.setHex(0x131a0d);
+  hz.castShadow=false; hz.receiveShadow=false;
+  for(i=0;i<HZ;i++){
+    var ha=r()*Math.PI*2, hrad=118+Math.pow(r(),0.9)*120;
+    var hh=2.4+r()*3.4;
+    e.set(0, r()*6.28, 0); q.setFromEuler(e);
+    pos.set(Math.cos(ha)*hrad, hh*0.40, Math.sin(ha)*hrad);
+    sc.set(hh*(1.5+r()*1.4), hh*0.44, hh*(1.5+r()*1.4));
+    mtx.compose(pos,q,sc); hz.setMatrixAt(i,mtx);
+  }
+  hz.instanceMatrix.needsUpdate=true;
+  treesGrp.add(hz);
+  TRI_FIXED += HZ*20;
+
+  for(i=li;i<(NEAR+FRAME)*3;i++){ mtx.makeScale(0.0001,0.0001,0.0001); leaves.setMatrixAt(i,mtx); }
+  trunks.instanceMatrix.needsUpdate=true;
+  leaves.instanceMatrix.needsUpdate=true;
+  if(leaves.instanceColor) leaves.instanceColor.needsUpdate=true;
+  farTr.instanceMatrix.needsUpdate=true;
+  treesGrp.add(trunks); treesGrp.add(leaves); treesGrp.add(farTr);
+  TRI_FIXED += (NEAR+FRAME)*10 + li*20 + FAR*20;
+
+  /* the site has an edge — a hoarding line, so the plot is a plot */
+  /* the site has an edge: a paved apron and a low kerb, so the tower stands
+     on a plot rather than on an infinite lawn */
+  var apron=new T.Mesh(new T.CircleGeometry(8.6, 40), new T.MeshStandardMaterial({
+    map:TEX.ground, color:0x6e6a5c, roughness:0.98, metalness:0.0 }));
+  apron.rotation.x=-Math.PI/2; apron.position.y=0.012;
+  apron.receiveShadow=true; apron.name='apron';
+  apron.material.map = TEX.ground.clone();
+  apron.material.map.repeat.set(3,3); apron.material.map.needsUpdate=true;
+  scene.add(apron);
+  TRI_FIXED += 40;
+
+  /* a ring, not a chain of boxes — axis-aligned boxes stepped round a circle
+     read as a bead necklace, which is worse than no edge at all */
+  var km=new T.Mesh(new T.RingGeometry(8.30, 8.62, 56), MAT.fence);
+  km.rotation.x=-Math.PI/2; km.position.y=0.030;
+  km.receiveShadow=true; km.name='kerb';
+  TRI_FIXED += 112;
+  scene.add(km);
+}
+
+/* Birds. The cheapest fix for the two worst problems at once: nothing moved
+   when the build was paused, and nothing in frame gave the tower a scale.
+   Flap is in the vertex shader off a per-instance phase, so the CPU only
+   writes one matrix per bird per frame. */
+var BIRD_U = { uT:{value:0} };
+function buildBirds(){
+  var N=26;
+  var g=new T.BufferGeometry();
+  /* a shallow V: body at the origin, one wing each side */
+  var pos=new Float32Array([ 0,0,0,  -1,0,-0.35,  -1,0,0.30,
+                             0,0,0,   1,0,0.30,    1,0,-0.35 ]);
+  var wing=new Float32Array([0,1,1, 0,1,1]);
+  g.setAttribute('position', new T.BufferAttribute(pos,3));
+  g.setAttribute('aWing',    new T.BufferAttribute(wing,1));
+  var phase=new Float32Array(N), i;
+  for(i=0;i<N;i++) phase[i]=Math.random()*6.28;
+  var im=new T.InstancedMesh(g, new T.ShaderMaterial({
+    uniforms: BIRD_U, transparent:true, depthWrite:true, side:T.DoubleSide,
+    vertexShader:
+      'attribute float aWing; attribute float aPhase; uniform float uT;\n'+
+      'varying float vE;\n'+
+      'void main(){\n'+
+      ' vec3 p = position;\n'+
+      ' float f = sin(uT*7.4 + aPhase);\n'+
+      ' p.y += aWing * f * 0.42 * abs(p.x);\n'+   /* wing tips lead the beat */
+      ' p.x *= 1.0 - aWing * abs(f) * 0.16;\n'+
+      ' vE = 0.62 + 0.38*abs(f);\n'+
+      ' vec4 mv = modelViewMatrix * instanceMatrix * vec4(p,1.0);\n'+
+      ' gl_Position = projectionMatrix * mv;\n'+
+      '}',
+    fragmentShader:
+      'varying float vE;\n'+
+      'void main(){ gl_FragColor = vec4(vec3(0.09,0.10,0.12)*vE, 0.88); }'
+  }), N);
+  g.setAttribute('aPhase', new T.InstancedBufferAttribute(phase,1));
+  im.frustumCulled=false; im.name='birds';
+  im.userData = { N:N, seed:mulberry32(4242) };
+  im.userData.paths = [];
+  for(i=0;i<N;i++){
+    var r=im.userData.seed;
+    im.userData.paths.push({
+      flock: i<9?0:(i<18?1:2),
+      rad: 26+r()*34, y: 7+r()*14, sp: 0.048+r()*0.045,
+      ph: r()*6.28, wob: r()*6.28, amp: 0.7+r()*1.9, sc: 0.20+r()*0.15
+    });
+  }
+  TRI_FIXED += N*2;
+  scene.add(im);
+  birdsMesh = im;
+}
+var _bm=new T.Matrix4(), _bq=new T.Quaternion(), _bp=new T.Vector3(),
+    _bs=new T.Vector3(), _be=new T.Euler();
+function updateBirds(wall){
+  if(!birdsMesh) return;
+  var P=birdsMesh.userData.paths, i;
+  for(i=0;i<P.length;i++){
+    var p=P[i];
+    var a = wall*p.sp + p.ph;
+    var x = Math.cos(a)*p.rad, z = Math.sin(a)*p.rad;
+    var y = p.y + Math.sin(wall*0.5 + p.wob)*p.amp;
+    /* face the direction of travel, and bank into the turn */
+    _be.set(0, -a + Math.PI*0.5, 0.20);
+    _bq.setFromEuler(_be);
+    _bp.set(x,y,z); _bs.set(p.sc,p.sc,p.sc);
+    _bm.compose(_bp,_bq,_bs);
+    birdsMesh.setMatrixAt(i,_bm);
+  }
+  birdsMesh.instanceMatrix.needsUpdate=true;
+}
+
+/* ------------------------------------------------------------------ *
+ * 9.  the crane — a lattice, not four boxes
+ * ------------------------------------------------------------------ */
+function latticeSection(b, y0, y1, hw, bays, r){
+  var i, k, dy=(y1-y0)/bays;
+  var C=[[hw,hw],[hw,-hw],[-hw,-hw],[-hw,hw]];
+  for(k=0;k<4;k++) b.strut([C[k][0],y0,C[k][1]],[C[k][0],y1,C[k][1]], r);
+  for(i=0;i<bays;i++){
+    var ya=y0+i*dy, yb=ya+dy;
+    for(k=0;k<4;k++){
+      var a=C[k], c=C[(k+1)%4];
+      b.strut([a[0],yb,a[1]],[c[0],yb,c[1]], r*0.72);          /* horizontal */
+      if(i%2===0) b.strut([a[0],ya,a[1]],[c[0],yb,c[1]], r*0.62);
+      else        b.strut([a[0],yb,a[1]],[c[0],ya,c[1]], r*0.62);
+    }
+  }
+}
+function buildCrane(){
+  var g=new T.Group();
+
+  /* mast: base-anchored 0..1, so one scale.y drives the climb */
+  var mast=new Bld();
+  latticeSection(mast, 0, 1, 0.17, 16, 0.022);
+  var mm=new T.Mesh(mast.geo(),MAT.crane);
+  mm.castShadow=true; mm.name='mast';
+  TRI_FIXED += mast.tris();
+
+  /* everything above the mast slews as one */
+  var t=new T.Group(); t.name='jib';
+  var jib=new Bld(), dark=new Bld();
+
+  /* slewing ring and the operator's cab */
+  jib.box(0,0.10,0,0.52,0.22,0.52,1.4);
+  dark.box(0.34,0.40,0,0.34,0.44,0.36,1.4);
+
+  /* jib: a tapering lattice running out over the building */
+  var L=5.4, bays=11, i, k;
+  for(i=0;i<bays;i++){
+    var x0=0.30+L*i/bays, x1=0.30+L*(i+1)/bays;
+    var h0=0.22*(1-i/bays*0.52), h1=0.22*(1-(i+1)/bays*0.52);
+    jib.strut([x0,0.30+h0,0],[x1,0.30+h1,0],0.020);
+    jib.strut([x0,0.30-h0, 0.11],[x1,0.30-h1, 0.11],0.018);
+    jib.strut([x0,0.30-h0,-0.11],[x1,0.30-h1,-0.11],0.018);
+    jib.strut([x0,0.30+h0,0],[x1,0.30-h1, 0.11],0.013);
+    jib.strut([x0,0.30+h0,0],[x1,0.30-h1,-0.11],0.013);
+    jib.strut([x1,0.30-h1,0.11],[x1,0.30-h1,-0.11],0.013);
+  }
+  /* counter-jib, counterweight, and the A-frame with its pendant ties */
+  for(i=0;i<3;i++){
+    var cx0=-0.30-1.7*i/3, cx1=-0.30-1.7*(i+1)/3;
+    jib.strut([cx0,0.42,0],[cx1,0.42,0],0.020);
+    jib.strut([cx0,0.24, 0.11],[cx1,0.24, 0.11],0.018);
+    jib.strut([cx0,0.24,-0.11],[cx1,0.24,-0.11],0.018);
+  }
+  dark.box(-2.20,0.34,0,0.56,0.46,0.50,1.4);
+  jib.strut([0,0.30,0],[0,1.28,0],0.026);                    /* the A-frame  */
+  jib.strut([0,1.28,0],[4.10,0.36,0],0.012);                 /* fore pendant */
+  jib.strut([0,1.28,0],[-1.95,0.42,0],0.012);                /* back pendant */
+
+  var jm=new T.Mesh(jib.geo(),MAT.crane); jm.castShadow=true;
+  var dm=new T.Mesh(dark.geo(),MAT.craneD); dm.castShadow=true;
+  TRI_FIXED += jib.tris()+dark.tris();
+  t.add(jm); t.add(dm);
+
+  /* trolley, cable and hook block, all base-anchored so one scale drives them */
+  var trolley=new T.Mesh(new T.BoxGeometry(0.20,0.11,0.20), MAT.craneD);
+  trolley.name='trolley'; t.add(trolley);
+  var cable=new T.Mesh(new T.BoxGeometry(0.022,1,0.022), MAT.craneD);
+  cable.name='cable'; t.add(cable);
+  var hook=new T.Mesh(new T.BoxGeometry(0.20,0.26,0.20), MAT.crane);
+  hook.name='hook'; hook.castShadow=true; t.add(hook);
+  TRI_FIXED += 36;
+
+  g.add(mm); g.add(t); g.name='crane';
+  return g;
+}
+
+/* ------------------------------------------------------------------ *
+ * 10. light states — a colour script, not three tints
+ * ------------------------------------------------------------------ */
+var TIMES=[
+  { id:'Morning', az: 1.15, el:0.40, sun:0xffeacb, sunI:2.65,
+    hemiS:0x9dbcdc, hemiG:0x5a5044, hemiI:0.78, ambI:0.20, rimI:0.50, rimC:0xbcd2ee,
+    fog:0x9aa08c, fogN:86, fogF:300, win:0.0,
+    exp:0.60, sat:1.10, bloom:0.16, rays:0.0, lift:0.008,
+    sky:['#1d4470','#2f6291','#5d8aab','#93aaae','#c6b899','#dcc9a4'],
+    cloud:{a:0.85, c:[250,246,238]} },
+
+  { id:'Dusk',    az: 1.86, el: 0.12, sun:0xff9a4e, sunI:3.15,
+    hemiS:0x8fa2c4, hemiG:0x50432f, hemiI:0.46, ambI:0.18, rimI:0.85, rimC:0x8fb2e8,
+    fog:0x8f6a4e, fogN:74, fogF:280, win:0.42,
+    exp:0.56, sat:1.18, bloom:0.30, rays:0.50, lift:0.012,
+    sky:['#101c3a','#2c3560','#6b4a66','#b0653f','#d9853c','#e8a44e'],
+    cloud:{a:0.90, c:[255,192,142]} },
+
+  { id:'Night',   az: 1.30, el: 0.32, sun:0x9fb4d8, sunI:0.42,
+    hemiS:0x3e4c68, hemiG:0x1b1a18, hemiI:0.30, ambI:0.14, rimI:0.42, rimC:0x8fa8d8,
+    fog:0x161b26, fogN:66, fogF:250, win:1.05,
+    exp:0.72, sat:0.96, bloom:0.46, rays:0.10, lift:0.020,
+    sky:['#03060e','#070d1a','#0d1728','#141f34','#1b2842','#243252'],
+    cloud:{a:0.42, c:[52,66,98]} }
+];
+var SKY_TEX=[];
+var TIME_I=0, TA=TIMES[0], TB=TIMES[0], tMix=1;
+var _c1=new T.Color(), _c2=new T.Color();
+var GRADE={ exp:1, sat:1, bloom:0.2, rays:0, lift:0.008 };
+
+function applyLight(A,B,t){
+  var L=function(a,b){ return a+(b-a)*t; };
+  var az=L(A.az,B.az), el=L(A.el,B.el), D=54;
+  var mid = modelGroup ? modelGroup.userData.top*0.5 : 8;
+  key.position.set(D*Math.cos(el)*Math.sin(az), mid+D*Math.sin(el), D*Math.cos(el)*Math.cos(az));
+  key.target.position.set(0, mid, 0);
+  key.color.copy(_c1.set(A.sun)).lerp(_c2.set(B.sun), t);
+  key.intensity=L(A.sunI,B.sunI);
+  /* Every extent is sized from the subject and ALL FOUR move. Fix left/right
+     and scale only top/bottom and the shadow map runs out the moment the sun
+     swings round — a dead straight line cut across the model that no amount
+     of bias will fix. */
+  var c=key.shadow.camera, ext=Math.max(16, mid*1.75);
+  c.left=-ext; c.right=ext; c.top=ext; c.bottom=-ext;
+  c.near=Math.max(1,D-ext*2.4); c.far=D+ext*3.0;
+  c.updateProjectionMatrix();
+
+  hemi.color.copy(_c1.set(A.hemiS)).lerp(_c2.set(B.hemiS),t);
+  hemi.groundColor.copy(_c1.set(A.hemiG)).lerp(_c2.set(B.hemiG),t);
+  hemi.intensity=L(A.hemiI,B.hemiI);
+  amb.intensity=L(A.ambI,B.ambI);
+  rim.color.copy(_c1.set(A.rimC)).lerp(_c2.set(B.rimC),t);
+  rim.intensity=L(A.rimI,B.rimI);
+  fill.intensity = 0.30 + 0.20*(1-L(A.win,B.win));
+
+  scene.fog.color.copy(_c1.set(A.fog)).lerp(_c2.set(B.fog),t);
+  scene.fog.near=L(A.fogN,B.fogN); scene.fog.far=L(A.fogF,B.fogF);
+  renderer.setClearColor(scene.fog.color,1);
+  MAT.glass.emissiveIntensity=L(A.win,B.win);
+
+  GRADE.exp=L(A.exp,B.exp); GRADE.sat=L(A.sat,B.sat);
+  GRADE.bloom=L(A.bloom,B.bloom); GRADE.rays=L(A.rays,B.rays);
+  GRADE.lift=L(A.lift,B.lift);
+  if(!WANT_POST) renderer.toneMappingExposure = GRADE.exp*1.72;
+
+  SKY_U.tA.value = SKY_TEX[TIMES.indexOf(A)];
+  SKY_U.tB.value = SKY_TEX[TIMES.indexOf(B)];
+  SKY_U.uMix.value = t;
+  document.querySelector('#timeBtn b').textContent = (t<0.5?A:B).id;
+}
+
+/* ------------------------------------------------------------------ *
+ * 11. camera — one composition, solved rather than authored
+ * ------------------------------------------------------------------ */
+var camBase={ az:CAM_AZ, fov:30 };
+var ptr={x:0,y:0}, ptrE={x:0,y:0};
+
+function placeCamera(){
+  var w=canvas.clientWidth, h=Math.max(1,canvas.clientHeight);
+  var a=w/h;
+  camera.aspect=a;
+  /* open the lens on a tall frame, but cap it: past ~44 degrees the verticals
+     splay and the tower stops looking like a tower */
+  camera.fov = Math.min(44, camBase.fov * (a<1.0 ? 1+(1/a-1)*0.30 : 1));
+  camera.updateProjectionMatrix();
+
+  var top   = modelGroup ? modelGroup.userData.top : 16;
+  var width = CUR_M ? Math.max(CUR_M.podium.w, CUR_M.podium.d)*1.15 : 5;
+  var mid   = top*0.50;
+  var vfov  = camera.fov*Math.PI/180;
+  /* headroom: the crown tag and the UI chrome sit over the frame, so fit the
+     tower loosely; tall frames lose more height to chrome and need more */
+  var fitV  = a<1.0 ? 0.78*(1+(1/a-1)*0.45) : 0.78;
+  var dV    = (top*fitV) / Math.tan(vfov/2);
+  var dH    = (width*0.64) / Math.tan(vfov/2) / a;
+  var d     = Math.max(dV,dH) * 1.05;
+
+  /* A portrait frame that keeps the landscape eye-line spends nearly half its
+     pixels on empty ground. Drop the lens and raise the target. */
+  var tall = a < 1.0;
+  var az=camBase.az + ptrE.x*0.05;
+  camera.position.set(Math.sin(az)*d,
+                      mid*(tall?0.80:1) + top*(tall?0.04:0.10) + ptrE.y*1.1,
+                      Math.cos(az)*d);
+  camera.lookAt(0, mid*(tall?1.16:1.04), 0);
+}
+
+/* ------------------------------------------------------------------ *
+ * 12. the grade — lifted from our own Kage-Study and retuned for daylight
+ * ------------------------------------------------------------------ */
+var POST={ levels:[] };
+var QUAD_VS='varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }';
+
+function initPost(){
+  POST.cam = new T.OrthographicCamera(-1,1,1,-1,0,1);
+  POST.quad = new T.Mesh(new T.PlaneGeometry(2,2), null);
+  POST.quad.frustumCulled=false;
+  POST.qScene = new T.Scene(); POST.qScene.add(POST.quad);
+  POST.up = new T.ShaderMaterial({
+    uniforms:{ tS:{value:null}, uAmt:{value:1} }, vertexShader:QUAD_VS,
+    fragmentShader:'uniform sampler2D tS; uniform float uAmt; varying vec2 vUv;\n'+
+      'void main(){ gl_FragColor=vec4(texture2D(tS,vUv).rgb*uAmt,1.0); }',
+    blending:T.AdditiveBlending, transparent:true, depthTest:false, depthWrite:false
+  });
+  if(!WANT_POST) return;
+
+  /* Render scale. The scene is shaded into a buffer smaller than the canvas
+     and the composite upscales it — the standard knob every stylised game
+     has, and the one place left with real savings once the shadow map and
+     the bloom chain are already trimmed. A soft bloom and a grain plate hide
+     the resample; the UI is DOM and stays pin sharp regardless. */
+  POST.scale = small ? 0.76 : 0.80;
+  var w=Math.round(renderer.domElement.width*POST.scale);
+  var h=Math.round(renderer.domElement.height*POST.scale);
+  var O={ minFilter:T.LinearFilter, magFilter:T.LinearFilter,
+          type:T.HalfFloatType, depthBuffer:false, stencilBuffer:false };
+  /* No multisampling on the scene buffer. On Intel integrated the resolve
+     blit of a half-float MSAA target costs more than the entire bloom chain,
+     and the grain plate plus a wide soft bloom is most of what MSAA was
+     buying on a frame like this one. */
+  POST.scene = new T.WebGLRenderTarget(w,h,
+    Object.assign({}, O, { depthBuffer:true, samples: 0 }));
+  var lw=Math.max(2,w>>2), lh=Math.max(2,h>>2), NL = 2, i;
+  for(i=0;i<NL;i++){
+    POST.levels.push({ a:new T.WebGLRenderTarget(lw,lh,O), b:new T.WebGLRenderTarget(lw,lh,O), w:lw, h:lh });
+    lw=Math.max(2,lw>>1); lh=Math.max(2,lh>>1);
+  }
+  POST.bright = new T.ShaderMaterial({
+    uniforms:{ tS:{value:null}, uThr:{value:1.15}, uKnee:{value:0.70} }, vertexShader:QUAD_VS,
+    fragmentShader:
+      'uniform sampler2D tS; uniform float uThr,uKnee; varying vec2 vUv;\n'+
+      'void main(){ vec3 c=texture2D(tS,vUv).rgb;\n'+
+      ' float l=dot(c,vec3(0.2126,0.7152,0.0722));\n'+
+      ' gl_FragColor=vec4(c*smoothstep(uThr,uThr+uKnee,l),1.0); }'
+  });
+  POST.blur = new T.ShaderMaterial({
+    uniforms:{ tS:{value:null}, uDir:{value:new T.Vector2(1,0)} }, vertexShader:QUAD_VS,
+    fragmentShader:
+      'uniform sampler2D tS; uniform vec2 uDir; varying vec2 vUv;\n'+
+      'void main(){ vec3 c=texture2D(tS,vUv).rgb*0.2270270270;\n'+
+      ' c+=texture2D(tS,vUv+uDir*1.3846153846).rgb*0.3162162162;\n'+
+      ' c+=texture2D(tS,vUv-uDir*1.3846153846).rgb*0.3162162162;\n'+
+      ' c+=texture2D(tS,vUv+uDir*3.2307692308).rgb*0.0702702703;\n'+
+      ' c+=texture2D(tS,vUv-uDir*3.2307692308).rgb*0.0702702703;\n'+
+      ' gl_FragColor=vec4(c,1.0); }'
+  });
+  /* Light shafts: a radial blur of the bloom buffer marched back toward the
+     sun's screen position. Cheapest effect here and it does the most — it
+     puts air between the lens and the building. Off at midday, on at dusk. */
+  POST.rays = new T.ShaderMaterial({
+    uniforms:{ tS:{value:null}, uLight:{value:new T.Vector2(0.5,0.7)},
+               uDensity:{value:0.60}, uDecay:{value:0.958}, uWeight:{value:0.066} },
+    vertexShader:QUAD_VS,
+    fragmentShader:
+      'uniform sampler2D tS; uniform vec2 uLight;\n'+
+      'uniform float uDensity,uDecay,uWeight; varying vec2 vUv;\n'+
+      'const int N=20;\n'+
+      'void main(){ vec2 uv=vUv; vec2 st=(uv-uLight)*(uDensity/float(N));\n'+
+      ' float il=1.0; vec3 acc=vec3(0.0);\n'+
+      ' for(int i=0;i<N;i++){ uv-=st; acc+=texture2D(tS,uv).rgb*il*uWeight; il*=uDecay; }\n'+
+      ' gl_FragColor=vec4(acc,1.0); }'
+  });
+  POST.comp = new T.ShaderMaterial({
+    uniforms:{ tS:{value:null}, tB:{value:null}, tR:{value:null},
+      uRes:{value:new T.Vector2(w,h)},
+      uT:{value:0}, uBloom:{value:0.2}, uRays:{value:0}, uCA:{value:1},
+      uGrain:{value:0.020}, uVig:{value:1}, uExp:{value:1}, uSat:{value:1.06},
+      uLift:{value:0.008}, uFade:{value:1} },
+    vertexShader:QUAD_VS,
+    fragmentShader:
+      'uniform sampler2D tS; uniform sampler2D tB; uniform sampler2D tR; uniform vec2 uRes;\n'+
+      'uniform float uT,uBloom,uRays,uCA,uGrain,uVig,uExp,uSat,uLift,uFade;\n'+
+      'varying vec2 vUv;\n'+
+      'vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }\n'+
+      'void main(){\n'+
+      ' vec2 d=vUv-0.5; float r2=dot(d,d);\n'+
+      /* chromatic aberration only in the corners, and gently: a lens
+         imperfection, not a fault */
+      ' float ca=uCA*(0.10+r2*2.2)*0.0011;\n'+
+      ' vec3 c;\n'+
+      ' c.r=texture2D(tS,vUv+d*ca).r;\n'+
+      ' c.g=texture2D(tS,vUv).g;\n'+
+      ' c.b=texture2D(tS,vUv-d*ca).b;\n'+
+      ' c+=texture2D(tB,vUv).rgb*uBloom;\n'+
+      ' c+=texture2D(tR,vUv).rgb*uRays*vec3(1.0,0.74,0.44);\n'+
+      ' c*=uExp;\n'+
+      ' c=aces(c);\n'+
+      ' float l=dot(c,vec3(0.2126,0.7152,0.0722));\n'+
+      ' c=mix(vec3(l),c,uSat);\n'+
+      /* split tone: shadows toward slate, highlights toward warm stone. This
+         is the single biggest reason a stylised frame reads as photographed
+         rather than as flat-shaded. */
+      ' c=mix(c,c*vec3(0.86,0.96,1.14),smoothstep(0.56,0.0,l)*0.68);\n'+
+      ' c=mix(c,c*vec3(1.045,1.005,0.955),smoothstep(0.48,1.0,l)*0.40);\n'+
+      ' float v=smoothstep(1.30,0.30,length(d*vec2(1.0,0.95))*1.38);\n'+
+      ' c*=mix(1.0,v,uVig);\n'+
+      /* Grain held for ~90 ms. Re-rolled every frame it is not grain, it is a
+         60 Hz shimmer over the whole picture. */
+      ' float gt=floor(uT*11.0);\n'+
+      ' float g=fract(sin(dot(vUv*uRes+gt*137.0,vec2(12.9898,78.233)))*43758.5453);\n'+
+      ' c+=(g-0.5)*uGrain;\n'+
+      ' c*=uFade;\n'+
+      ' vec3 e=pow(max(c,0.0),vec3(1.0/2.2));\n'+
+      ' e=clamp((e-0.46)*1.09+0.46,0.0,1.0);\n'+
+      ' e+=vec3(0.6,0.8,1.0)*uLift*(1.0-smoothstep(0.0,0.30,l));\n'+
+      ' gl_FragColor=vec4(min(e,1.0),1.0);\n'+
+      '}'
+  });
+}
+function pass(mat,target,additive){
+  POST.quad.material=mat;
+  renderer.setRenderTarget(target||null);
+  if(!additive) renderer.clear(true,false,false);
+  renderer.render(POST.qScene, POST.cam);
+}
+var _sunV=new T.Vector3();
+function renderPost(wall){
+  var L=POST.levels;
+  POST.bright.uniforms.tS.value=POST.scene.texture;
+  pass(POST.bright, L[0].a);
+  for(var i=0;i<L.length;i++){
+    if(i>0){ POST.up.blending=T.NoBlending; POST.up.uniforms.uAmt.value=1;
+             POST.up.uniforms.tS.value=L[i-1].a; pass(POST.up, L[i].a); }
+    POST.blur.uniforms.tS.value=L[i].a; POST.blur.uniforms.uDir.value.set(1/L[i].w,0); pass(POST.blur,L[i].b);
+    POST.blur.uniforms.tS.value=L[i].b; POST.blur.uniforms.uDir.value.set(0,1/L[i].h); pass(POST.blur,L[i].a);
+  }
+  POST.up.blending=T.AdditiveBlending; POST.up.uniforms.uAmt.value=0.50;
+  for(i=L.length-1;i>0;i--){ POST.up.uniforms.tS.value=L[i].a; pass(POST.up,L[i-1].a,true); }
+
+  if(GRADE.rays>0.02){
+    _sunV.copy(key.position).project(camera);
+    POST.rays.uniforms.uLight.value.set(_sunV.x*0.5+0.5, -_sunV.y*0.5+0.5);
+    POST.rays.uniforms.tS.value=L[0].a;
+    pass(POST.rays, L[1].b);
+  }
+  POST.comp.uniforms.tR.value=L[1].b.texture;
+  POST.comp.uniforms.tS.value=POST.scene.texture;
+  POST.comp.uniforms.tB.value=L[0].a;
+  POST.comp.uniforms.uT.value=wall;
+  POST.comp.uniforms.uBloom.value=GRADE.bloom;
+  POST.comp.uniforms.uRays.value=GRADE.rays;
+  POST.comp.uniforms.uExp.value=GRADE.exp;
+  POST.comp.uniforms.uSat.value=GRADE.sat;
+  POST.comp.uniforms.uLift.value=GRADE.lift;
+  pass(POST.comp, null);
+}
+function resizePost(cw,ch){
+  if(!WANT_POST || !POST.scene) return;
+  var w=Math.round(cw*POST.scale), h=Math.round(ch*POST.scale);
+  POST.scene.setSize(w,h);
+  POST.comp.uniforms.uRes.value.set(w,h);
+  var lw=Math.max(2,w>>2), lh=Math.max(2,h>>2);
+  for(var i=0;i<POST.levels.length;i++){
+    POST.levels[i].a.setSize(lw,lh); POST.levels[i].b.setSize(lw,lh);
+    POST.levels[i].w=lw; POST.levels[i].h=lh;
+    lw=Math.max(2,lw>>1); lh=Math.max(2,lh>>1);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 13. the dissolve — adapted from the pixel reveal in the Sylva study.
+ *     Ours samples the page's own tokens, so it needs no image at all.
+ * ------------------------------------------------------------------ */
+function dissolve(host, cnv, delay){
+  if(REDUCED) return;
+  var CUT_MS=760, STEPS=22;
+  setTimeout(function(){
+    var box=host.getBoundingClientRect();
+    if(!box.width||!box.height) return;
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    cnv.width=Math.max(1,Math.round(box.width*dpr));
+    cnv.height=Math.max(1,Math.round(box.height*dpr));
+    var g=cnv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+    var cols=26, rows=Math.max(5,Math.round(cols*box.height/box.width));
+    var cs=getComputedStyle(document.documentElement);
+    function hex(h){ h=(h||'').trim().replace('#',''); if(h.length<6) return [200,200,200];
+      return [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]; }
+    var A=hex(cs.getPropertyValue('--accent')), B=hex(cs.getPropertyValue('--bone'));
+    cnv.style.opacity='1';
+    var t0=performance.now();
+    (function paint(now){
+      var t=Math.min(1,(now-t0)/CUT_MS);
+      /* quantised, not continuous: a smooth front reads as a gradient wipe,
+         a stepped one reads as something being laid down */
+      var stepped=Math.floor(t*STEPS)/STEPS;
+      var tail = t<0.86 ? 1 : (1-t)/0.14;
+      g.clearRect(0,0,box.width,box.height);
+      for(var y=0;y<rows;y++) for(var x=0;x<cols;x++){
+        var an=(x+0.5)/cols, delta=an-stepped;
+        /* symmetric about the front: an asymmetric band puts the pattern's
+           centre of mass ahead of the edge it belongs to */
+        if(delta<-0.19||delta>0.19) continue;
+        var band=1-Math.abs(delta)/0.19;
+        var pulse=0.66+0.34*Math.sin(x*2.71+y*1.93+t*24);
+        var alpha=band*pulse*tail;
+        if(alpha<0.09) continue;
+        var m=(y+x)%3===0?A:B;
+        var px=(x+0.5)*box.width/cols, py=(y+0.5)*box.height/rows;
+        var j=(1-band)*3.4;
+        px+=Math.sin(y*3.17+x)*j; py+=Math.cos(x*2.41-y)*j;
+        g.fillStyle='rgba('+m[0]+','+m[1]+','+m[2]+','+(alpha*0.80)+')';
+        g.fillRect(px-1.1,py-1.1,2.2,2.2);
+      }
+      if(t<1) requestAnimationFrame(paint);
+      else { g.clearRect(0,0,box.width,box.height); cnv.style.opacity='0'; }
+    })(performance.now());
+  }, delay);
+}
+
+/* ------------------------------------------------------------------ *
+ * 14. the drive
+ * ------------------------------------------------------------------ */
+var tNow=0, playing=true, lastStage=-1, WALL=0;
+var elPct=document.getElementById('pct'), elLvl=document.getElementById('lvl'),
+    elFill=document.getElementById('fill'), elKnob=document.getElementById('knob'),
+    elClock=document.getElementById('clock'), elPlaque=document.getElementById('plaque'),
+    elTrack=document.getElementById('track'), elIcon=document.getElementById('playIcon');
+var plaqueX=null, plaqueY=null;
+
+function stageAt(tt){ var i=0; for(var k=0;k<STAGES.length;k++) if(tt>=STAGE_T[k]*DUR) i=k; return i; }
+
+function applyTime(tt, dt){
+  tNow=tt;
+  var h=heightAt(tt);
+  CLIP.constant=h;
+
+  /* caps: cross-faded rather than popped. v1 replaced one wide rectangle with
+     two narrow ones on a single frame when the line left the podium. */
+  var rects=capRects(CUR_M,h), i, k=(dt===undefined)?1:Math.min(1,dt*9);
+  for(i=0;i<capPool.length;i++){
+    var m=capPool[i], r=rects[i], u=m.userData;
+    if(r){
+      if(u.o<0.02){ u.w=r[2]*0.82; u.d=r[3]*0.82; }   /* grow in, never pop in */
+      u.w += (r[2]-u.w)*k; u.d += (r[3]-u.d)*k;
+      u.o += (1-u.o)*k;
+      m.position.set(r[0], h-0.004, r[1]);
+    } else {
+      u.o += (0-u.o)*k;
+    }
+    m.visible = u.o>0.015;
+    m.scale.set(u.w,u.d,1);
+    MAT.cap[i].opacity = u.o;
+  }
+
+  var ud=modelGroup.userData;
+  var lead=Math.min(ud.top, h + (h>0.12 ? 1.75 : 0));
+  ud.coreMesh.scale.y=Math.max(0.001, lead);
+  ud.coreMesh.visible = h>0.10;
+
+  /* the crane climbs with the line, but SLEWS on wall-clock — v1 tied the
+     slew to build time, so scrubbing spun it like a fan and pausing froze it */
+  var mastH=Math.max(1.4, lead+2.9);
+  craneGrp.visible = tt < DUR-0.001;
+  craneGrp.getObjectByName('mast').scale.y=mastH;
+  var jib=craneGrp.getObjectByName('jib');
+  jib.position.y=mastH;
+  var trolley=jib.getObjectByName('trolley');
+  var cable=jib.getObjectByName('cable');
+  var hook=jib.getObjectByName('hook');
+  var tx=1.4+Math.sin(WALL*0.21)*1.1;
+  trolley.position.set(tx,0.22,0);
+  var drop=Math.max(0.3, mastH-h*0.86-0.4+Math.sin(WALL*0.17)*0.6);
+  cable.scale.y=drop; cable.position.set(tx,0.22-drop/2,0);
+  hook.position.set(tx,0.22-drop,0);
+
+  var si=stageAt(tt);
+  if(si!==lastStage){
+    lastStage=si;
+    elPlaque.innerHTML = STAGES[si][0]+' &middot; <em>'+STAGES[si][1]+'</em>';
+  }
+  var frac=Math.min(1,tt/DUR), pct=Math.round(frac*100);
+  elPct.textContent=pct;
+  elPct.classList.toggle('done', tt>=DUR-0.001);
+  var nfTop = CUR_M.heights ? Math.max.apply(null,CUR_M.heights) : CUR_M.floors;
+  var lv=Math.max(0, Math.min(nfTop, Math.round((h-ud.podH)/FH)));
+  elLvl.textContent=(lv<10?'0':'')+lv;
+  elFill.style.width=(frac*100)+'%';
+  elKnob.style.left=(frac*100)+'%';
+  elClock.textContent=tt.toFixed(2)+' / '+DUR.toFixed(2);
+  elTrack.setAttribute('aria-valuenow', pct);
+  elTrack.setAttribute('aria-valuetext', pct+' per cent complete, '+STAGES[si][0]);
+}
+
+var _v=new T.Vector3();
+function placePlaque(dt){
+  var h=CLIP.constant;
+  if(h<0.05){ elPlaque.style.opacity='0'; return; }
+  elPlaque.style.opacity='1';
+  var az=camBase.az+ptrE.x*0.05;
+  _v.set(Math.sin(az)*3.4, h, Math.cos(az)*3.4).project(camera);
+  var W=canvas.clientWidth, H=canvas.clientHeight, narrowNow=W<860;
+  var lo=narrowNow?H*0.42:96, hi=narrowNow?H-200:H-96;
+  var tx=Math.max(78,Math.min(W-78,(_v.x*0.5+0.5)*W));
+  var ty=Math.max(lo,Math.min(hi,(-_v.y*0.5+0.5)*H));
+  /* eased, so the plaque does not snap when the line crosses a clamp bound */
+  var k=Math.min(1,(dt||0.016)*10);
+  plaqueX = plaqueX===null ? tx : plaqueX+(tx-plaqueX)*k;
+  plaqueY = plaqueY===null ? ty : plaqueY+(ty-plaqueY)*k;
+  elPlaque.style.left=plaqueX.toFixed(1)+'px';
+  elPlaque.style.top =plaqueY.toFixed(1)+'px';
+}
+
+/* ------------------------------------------------------------------ *
+ * 15. massing swap
+ * ------------------------------------------------------------------ */
+function disposeGroup(g){
+  g.traverse(function(o){ if(o.geometry) o.geometry.dispose(); });
+  scene.remove(g);
+}
+function applyMassing(i){
+  MASS=((i%MASSINGS.length)+MASSINGS.length)%MASSINGS.length;
+  var M=MASSINGS[MASS]; CUR_M=M;
+  if(modelGroup) disposeGroup(modelGroup);
+  TRI=0;
+  modelGroup=buildTower(M); scene.add(modelGroup);
+  STAGES=stagesFor(M);
+  buildCurve();
+  document.querySelector('#massBtn b').textContent=M.label;
+  document.getElementById('sp1').textContent=M.floors;
+  document.getElementById('sp2').textContent=M.metres+' m';
+  document.getElementById('sp3').textContent=M.homes;
+  document.getElementById('sp4').textContent=M.hand;
+  document.getElementById('lvlmax').textContent=M.floors;
+  document.getElementById('subline').textContent=M.sub;
+  lastStage=-1;
+  for(var k=0;k<capPool.length;k++){ capPool[k].userData.o=0; }
+  [].forEach.call(document.querySelectorAll('.spec'), function(s,k){
+    dissolve(s, s.querySelector('canvas'), 60+k*90);
+  });
+  applyTime(REDUCED ? DUR : 0);
+  playing = !REDUCED;
+  setPlayIcon();
+}
+function setPlayIcon(){
+  elIcon.innerHTML = playing
+    ? '<rect x="1.5" y="1" width="3" height="10"></rect><rect x="7.5" y="1" width="3" height="10"></rect>'
+    : '<path d="M2 1 L11 6 L2 11 Z"></path>';
+  document.getElementById('playBtn').setAttribute('aria-label', playing?'Pause the build':'Play the build');
+}
+
+/* ------------------------------------------------------------------ *
+ * 16. input
+ * ------------------------------------------------------------------ */
+function wireInput(){
+  document.getElementById('massBtn').addEventListener('click',function(){ applyMassing(MASS+1); });
+  document.getElementById('rebuildBtn').addEventListener('click',function(){
+    playing=true; setPlayIcon(); applyTime(0); });
+  document.getElementById('playBtn').addEventListener('click',function(){
+    if(tNow>=DUR-0.001) applyTime(0);
+    playing=!playing; setPlayIcon(); });
+  document.getElementById('timeBtn').addEventListener('click',function(){
+    TIME_I=(TIME_I+1)%TIMES.length; TA=TB; TB=TIMES[TIME_I]; tMix=REDUCED?1:0;
+    if(REDUCED) applyLight(TB,TB,1); });
+
+  var scrubbing=false;
+  function scrubTo(clientX){
+    var b=elTrack.getBoundingClientRect();
+    var f=Math.max(0,Math.min(1,(clientX-b.left)/b.width));
+    playing=false; setPlayIcon(); applyTime(f*DUR);
+  }
+  elTrack.addEventListener('pointerdown',function(e){
+    scrubbing=true; elTrack.setPointerCapture(e.pointerId); scrubTo(e.clientX); });
+  elTrack.addEventListener('pointermove',function(e){ if(scrubbing) scrubTo(e.clientX); });
+  elTrack.addEventListener('pointerup',function(){ scrubbing=false; });
+  elTrack.addEventListener('keydown',function(e){
+    var step=DUR/20, d=0;
+    if(e.key==='ArrowRight'||e.key==='ArrowUp') d=step;
+    else if(e.key==='ArrowLeft'||e.key==='ArrowDown') d=-step;
+    else if(e.key==='Home'){ playing=false; setPlayIcon(); applyTime(0); e.preventDefault(); return; }
+    else if(e.key==='End'){ playing=false; setPlayIcon(); applyTime(DUR); e.preventDefault(); return; }
+    else return;
+    e.preventDefault(); playing=false; setPlayIcon();
+    applyTime(Math.max(0,Math.min(DUR,tNow+d)));
+  });
+
+  window.addEventListener('keydown',function(e){
+    if(e.target.closest('button,[role=slider]')) return;
+    var k=e.key.toLowerCase();
+    if(k===' '){ e.preventDefault(); document.getElementById('playBtn').click(); }
+    else if(k==='m'){ applyMassing(MASS+1); }
+    else if(k==='l'){ document.getElementById('timeBtn').click(); }
+    else if(k==='r'){ playing=true; setPlayIcon(); applyTime(0); }
+  });
+
+  if(!REDUCED && window.matchMedia('(hover:hover)').matches){
+    window.addEventListener('pointermove',function(e){
+      ptr.x=(e.clientX/window.innerWidth-0.5)*2;
+      ptr.y=(e.clientY/window.innerHeight-0.5)*2;
+    },{passive:true});
+  }
+
+  /* Measure once and you are wrong the moment a webfont swaps or a scrollbar
+     appears. Watch the body, not the window. */
+  if(window.ResizeObserver){ new ResizeObserver(resize).observe(document.body); }
+  window.addEventListener('resize',resize);
+  window.addEventListener('orientationchange',function(){ setTimeout(resize,120); });
+}
+
+function resize(){
+  /* innerWidth is not the layout viewport on a phone; the canvas ends up wider
+     than the page and the right edge is lost off-screen. */
+  var w=document.documentElement.clientWidth;
+  var h=document.documentElement.clientHeight;
+  renderer.setSize(w,h,false);
+  resizePost(renderer.domElement.width, renderer.domElement.height);
+  placeCamera();
+  var marks=elTrack.querySelectorAll('.tmark');
+  [].forEach.call(marks,function(m){ m.remove(); });
+  for(var i=1;i<STAGES.length;i++){
+    var d=document.createElement('div'); d.className='tmark';
+    d.style.left=(STAGE_T[i]*100)+'%'; elTrack.appendChild(d);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 17. loop
+ * ------------------------------------------------------------------ */
+var prev=performance.now(), fpsN=0, fpsT=0, FPS=0;
+function damp(cur,to,rate,dt){ return cur+(to-cur)*(1-Math.exp(-rate*dt)); }
+
+function loop(now){
+  requestAnimationFrame(loop);
+  var dt=Math.min(0.05,(now-prev)/1000); prev=now;
+  fpsN++; fpsT+=dt; if(fpsT>1){ FPS=Math.round(fpsN/fpsT); fpsN=0; fpsT=0; }
+  if(document.hidden) return;
+
+  /* wall-clock, independent of the build — this is what keeps the frame alive
+     while the visitor is paused, scrubbing, or on reduced motion */
+  if(!REDUCED) WALL += dt;
+
+  ptrE.x=damp(ptrE.x,ptr.x,4.0,dt);
+  ptrE.y=damp(ptrE.y,ptr.y,4.0,dt);
+
+  if(tMix<1){ tMix=Math.min(1,tMix+dt/1.1); applyLight(TA,TB,tMix); }
+
+  if(playing && !REDUCED){
+    var t=tNow+dt;
+    if(t>=DUR){ t=DUR; playing=false; setPlayIcon(); }
+    applyTime(t, dt);
+  } else {
+    applyTime(tNow, dt);        /* caps keep easing, the crane keeps working */
+  }
+
+  if(!REDUCED){
+    updateBirds(WALL);
+    BIRD_U.uT.value = WALL;
+    SKY_U.uDrift.value = WALL * 0.0016;
+  }
+
+  placeCamera();
+  placePlaque(dt);
+
+  if(WANT_POST && POST.scene){
+    renderer.setRenderTarget(POST.scene);
+    renderer.clear();
+    renderer.render(scene,camera);
+    renderPost(WALL);
+    renderer.setRenderTarget(null);
+    renderer.setViewport(0,0,renderer.domElement.width,renderer.domElement.height);
+  } else {
+    renderer.render(scene,camera);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 18. boot — named jobs, one per tick, so the bar advances on real
+ *     completions and the browser gets a paint between them
+ * ------------------------------------------------------------------ */
+var JOBS=[
+  ['Mixing surfaces',   buildMaterials],
+  ['Setting out',       initScene],
+  ['Baking the sky',    function(){
+      for(var i=0;i<TIMES.length;i++) SKY_TEX.push(texSky(TIMES[i].sky, TIMES[i].cloud, 7+i*13));
+      SKY_U.tA.value=SKY_TEX[0]; SKY_U.tB.value=SKY_TEX[0];
+  }],
+  ['Planting the site', buildSite],
+  ['Letting the birds out', function(){ if(!REDUCED) buildBirds(); }],
+  ['Raising the crane', function(){ craneGrp=buildCrane(); scene.add(craneGrp); }],
+  ['Casting the frame', function(){ applyMassing(0); }],
+  ['Grading',           initPost],
+  ['First light',       function(){ applyLight(TIMES[0],TIMES[0],1); }],
+  ['Handing over',      function(){ wireInput(); resize(); }]
+];
+var bar=document.getElementById('bootbar'), lbl=document.getElementById('bootlbl'), ji=0;
+function step(){
+  if(ji>=JOBS.length){
+    var BOOT_MS=Math.round(performance.now()-BOOT_T0);
+    document.getElementById('boot').classList.add('gone');
+    setTimeout(function(){ document.getElementById('boot').style.display='none'; },700);
+    requestAnimationFrame(loop);
+    var _rc=new T.Raycaster();
+    /* Debug affordances, shipped on day one rather than when something breaks.
+       pick() names the mesh under a screen point, which beats an hour of
+       reasoning about which object is the grey rectangle. */
+    window.SERAI={ boot:BOOT_MS, tris:TRI+TRI_FIXED,
+      scene:scene, camera:camera, renderer:renderer, clip:CLIP, grade:GRADE,
+      model:function(){ return modelGroup; },
+      calls:function(){ return renderer.info.render.calls; },
+      fps:function(){ return FPS; },
+      height:function(t){ return heightAt(t===undefined?tNow:t); },
+      pick:function(x,y){
+        var r=canvas.getBoundingClientRect();
+        _rc.setFromCamera(new T.Vector2(((x-r.left)/r.width)*2-1,
+                                        -((y-r.top)/r.height)*2+1), camera);
+        return _rc.intersectObjects(scene.children,true).slice(0,4).map(function(h){
+          return { name:h.object.name||h.object.type, dist:+h.distance.toFixed(2),
+                   y:+h.point.y.toFixed(2) };
+        });
+      },
+      only:function(n){ scene.traverse(function(o){ if(o.isMesh) o.visible=(!n||o.name===n); }); },
+      all:function(){ scene.traverse(function(o){ if(o.isMesh) o.visible=true; }); } };
+    console.info('SERAI ready in '+BOOT_MS+' ms · '+(TRI+TRI_FIXED).toLocaleString()+' triangles');
+    return;
+  }
+  var j=JOBS[ji];
+  lbl.textContent=j[0];
+  bar.style.width=(ji/JOBS.length*100)+'%';
+  try { j[1](); }
+  catch(err){
+    console.error('SERAI boot failed at "'+j[0]+'"', err);
+    document.getElementById('boot').style.display='none';
+    document.getElementById('fallback').style.display='block';
+    return;
+  }
+  ji++;
+  requestAnimationFrame(step);
+}
+requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>

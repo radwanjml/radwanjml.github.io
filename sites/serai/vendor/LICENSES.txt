@@ -1,0 +1,20 @@
+Third-party components vendored into this build
+===============================================
+
+three.min.js — Three.js r149
+    Copyright 2010-2023 Three.js Authors
+    SPDX-License-Identifier: MIT
+    https://github.com/mrdoob/three.js
+    The MIT notice is preserved at the head of the minified file.
+
+fonts/playfair-latin.woff2  — Playfair Display
+fonts/montserrat-latin.woff2 — Montserrat
+    SIL Open Font License 1.1
+    https://openfontlicense.org/
+    Latin subsets, self-hosted. No remote font host is contacted.
+
+Everything else in this bundle — all geometry, shaders, textures, layout and
+copy — is original work by Tibr Studio, 2026.
+
+SERAI is a fictional building. It is not a real development, is not for sale,
+and is not affiliated with any developer, project or address in Hyderabad.
