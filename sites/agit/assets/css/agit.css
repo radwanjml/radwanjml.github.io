@@ -1,0 +1,677 @@
+/* ===========================================================================
+   AGIT V5 — "The Prospectus"
+   Design system. Three colours, two typefaces, hard-edged blocks.
+   Built from the AGIT Brand Identity Design PDF (Oct 2025).
+
+   Functional greys (#F4F4F4, #6B6B6B) are BUILD DECISIONS, not brand colours.
+   Declared here so that is on the record.
+
+   Banned by J2 (brand purity), and absent from this file by construction:
+   gradients, glows, glass, shadow-as-depth, border-radius, blue/teal,
+   red text on black, any third typeface.
+   =========================================================================== */
+
+@font-face {
+  font-family: "Playfair Display";
+  src: url("../fonts/playfair-latin.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                 U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+                 U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Montserrat";
+  src: url("../fonts/montserrat-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                 U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+                 U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* Brand. This is the entire palette. */
+  --black: #000000;
+  --red:   #D9372A;
+  --white: #FFFFFF;
+
+  /* Functional. Build decisions, not brand colours. */
+  --surface: #F4F4F4;
+  --muted:   #6B6B6B;   /* 5.32:1 on white — passes WCAG AA */
+  --rule:    rgba(0,0,0,.12);
+
+  /* Section folio numerals. Computed, not eyeballed:
+     #8D8D8D = 3.32:1 on white AND 3.02:1 on the #F4F4F4 tint;
+     rgba(255,255,255,.36) = 3.09:1 on black. The first value was #949494,
+     which passed on white and quietly failed at 2.75:1 on the tinted
+     sections — a reminder to check a token against every ground it lands on.
+     Both clear the 3:1 large-text threshold. They were rgba(0,0,0,.12)
+     (1.32:1) and Lighthouse caught it. Decorative text is arguably exempt
+     under WCAG 1.4.3, but "it's decorative" is the excuse every failing
+     site uses, so these pass on their own merits instead. */
+  --folio:      #8D8D8D;
+  --folio-dark: rgba(255,255,255,.36);
+
+  --display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --body:    "Montserrat", system-ui, -apple-system, Segoe UI, sans-serif;
+
+  --gut: clamp(16px, 4vw, 40px);
+  --maxw: 1440px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--body);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+/* Focus: 3px red ring, offset out onto the white page ground.
+   Never red-on-black — that combination is banned outright. */
+:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 3px;
+}
+
+.shell {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding-inline: var(--gut);
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--black);
+  color: var(--white);
+  padding: 12px 18px;
+  z-index: 99;
+  font-size: 13px;
+  font-weight: 600;
+}
+.skip:focus { left: 0; }
+
+/* Codes — ICT60220, RTO 46471. Montserrat with tabular figures and tracking,
+   NOT a third typeface. A monospace face here would be a J2 veto. */
+.code {
+  font-weight: 600;
+  letter-spacing: .1em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===================== NAV ===================== */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 3vw, 32px);
+  padding-block: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+.nav__mark { display: block; height: 28px; width: auto; flex: none; }
+.nav__links {
+  display: none;
+  gap: clamp(14px, 2.4vw, 30px);
+  margin-left: auto;
+  list-style: none;
+  padding: 0;
+  margin-block: 0;
+}
+.nav__links a {
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding-block: 6px;
+  border-bottom: 2px solid transparent;
+}
+.nav__links a:hover { border-bottom-color: var(--red); }
+.nav__tel {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav__tel:hover { color: var(--red); }
+@media (min-width: 900px) {
+  .nav__links { display: flex; }
+  .nav__tel { margin-left: 0; }
+}
+
+/* ===================== HERO ===================== */
+.hero {
+  position: relative;
+  padding-block: clamp(18px, 4vw, 52px) clamp(18px, 3vw, 32px);
+}
+
+/* The index motif from the reference: a large Playfair section numeral. */
+.sectionno {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(34px, 6vw, 74px);
+  line-height: .8;
+  color: var(--folio);
+  display: block;
+  margin-bottom: clamp(8px, 2vw, 20px);
+  user-select: none;
+}
+
+/* Source order is: text, Spine, trust. On mobile that is also the visual
+   order, which is what keeps the mechanic above the fold at 360x640.
+   On desktop the trust strip spans the full width beneath both columns. */
+.hero__grid { display: grid; gap: clamp(18px, 3.4vw, 48px); }
+.hero__grid > .trust { margin-top: 0; }
+@media (min-width: 1000px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, .92fr);
+    align-items: start;
+    column-gap: clamp(40px, 5vw, 90px);
+    row-gap: clamp(28px, 3.4vw, 46px);
+  }
+  .hero__grid > .trust { grid-column: 1 / -1; }
+}
+
+.kicker {
+  margin: 0 0 clamp(12px, 2vw, 22px);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.kicker span { color: var(--red); }
+
+h1, .h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(33px, 7vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -.015em;
+  margin: 0;
+}
+
+.deck {
+  margin: clamp(14px, 2.4vw, 26px) 0 0;
+  max-width: 36ch;
+  font-size: clamp(13px, 1.15vw, 16px);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.deck strong { color: var(--black); font-weight: 600; }
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: clamp(16px, 2.6vw, 28px);
+  padding: 14px 22px;
+  min-height: 48px;
+  background: var(--black);
+  color: var(--white);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.hero__cta:hover { background: var(--red); }
+.hero__cta i { font-style: normal; }
+
+/* Trust strip — must sit INSIDE the first screen at 360x640.
+   HEADLINE_SCREENING.md section 4: the trust strip is what convinces
+   Mr. Sharma, not the headline. */
+.trust {
+  margin-top: clamp(18px, 3vw, 34px);
+  padding-top: 12px;
+  border-top: 2px solid var(--black);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 18px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  line-height: 1.45;
+}
+.trust a { text-decoration: none; }
+.trust a:hover { color: var(--red); }
+.trust b { font-weight: 700; }
+
+/* ===================== THE SPINE ===================== */
+.spine {
+  position: relative;
+  perspective: 1100px;
+  perspective-origin: 50% 42%;
+  /* pan-y hands vertical scrolling back to the browser, always. The stack is
+     scrubbed by horizontal swipe on touch, and by any drag direction with a
+     mouse. The page never loses its scroll to this component. */
+  touch-action: pan-y;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  cursor: grab;
+  /* Room above for three receding plates at 24px each, and room below for
+     the drag hint. Centring the stack instead of reserving this space made
+     the back plates overflow upward onto the deck copy at 360px. */
+  padding-top: 76px;
+  padding-bottom: 26px;
+}
+.spine.is-dragging { cursor: grabbing; }
+
+.spine__stack {
+  position: relative;
+  transform-style: preserve-3d;
+  width: min(100%, 420px);
+  height: 200px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+
+.plate a {
+  display: block;
+  height: 100%;
+  padding: 18px 22px 16px;
+  background: var(--black);
+  color: var(--white);
+  text-decoration: none;
+  border-left: 5px solid transparent;
+}
+.plate.is-front a { border-left-color: var(--red); }
+
+.plate__code {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  color: var(--white);
+}
+.plate__title {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(20px, 2.2vw, 27px);
+  line-height: 1.12;
+  letter-spacing: -.01em;
+}
+.plate__meta {
+  position: absolute;
+  left: 27px;
+  right: 22px;
+  bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  /* 72% white on black is roughly 9.9:1. Comfortably AA. */
+  color: rgba(255,255,255,.72);
+}
+.plate__meta em { font-style: normal; color: var(--white); font-weight: 600; }
+
+/* Drag affordance and position readout */
+.spine__hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none;
+}
+.spine__dots { display: flex; gap: 5px; }
+.spine__dots b {
+  width: 16px;
+  height: 2px;
+  background: var(--rule);
+  display: block;
+}
+.spine__dots b.on { background: var(--red); }
+
+/* ===================== REDUCED MOTION ===================== */
+/* The Spine becomes a plain vertical list. Every qualification stays readable
+   and linked — no information is carried by motion alone. */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+.rm .spine {
+  perspective: none;
+  min-height: 0;
+  cursor: auto;
+  display: block;
+}
+.rm .spine__stack {
+  transform-style: flat;
+  width: 100%;
+  height: auto;
+  display: grid;
+  gap: 10px;
+}
+.rm .plate {
+  position: static;
+  transform: none !important;
+  opacity: 1 !important;
+}
+.rm .plate a { height: auto; border-left-color: var(--red); }
+.rm .plate__meta {
+  position: static;
+  margin-top: 14px;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+.rm .spine__hint { display: none; }
+
+/* ===================== SCAFFOLD BELOW THE FOLD ===================== */
+/* Present so scroll behaviour is testable against the Spine drag. */
+.band {
+  border-top: 1px solid var(--rule);
+  padding-block: clamp(40px, 6vw, 80px);
+}
+.band--dark {
+  background: var(--black);
+  color: var(--white);
+  border-top: 0;
+}
+.band h2 {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(26px, 4vw, 44px);
+  line-height: 1.1;
+  margin: 0 0 16px;
+  letter-spacing: -.01em;
+}
+.band p { max-width: 60ch; color: var(--muted); margin: 0; }
+.band--dark p { color: rgba(255,255,255,.72); }
+
+/* ===========================================================================
+   MOBILE COMPRESSION
+   Last in the cascade deliberately: these values must beat the base rules.
+
+   Every number here was set by measuring a real 360x640 render, not guessed.
+   The goal is a single, non-negotiable one: at 360px the Spine and the trust
+   strip must BOTH sit inside the first screen. P6 Fatima needs the mechanic
+   visible and moving on arrival; P3 Mr. Sharma needs the address, phone and
+   codes without scrolling to a footer he will never reach.
+   =========================================================================== */
+@media (max-width: 899px) {
+  .hero { padding-block: 10px 16px; }
+  .sectionno { font-size: 27px; margin-bottom: 4px; }
+  .kicker { margin-bottom: 8px; letter-spacing: .11em; }
+
+  /* The plates below are themselves links. On mobile this button duplicates
+     them and costs 64px of the only screen that matters. */
+  .hero__cta { display: none; }
+
+  h1, .h1 { font-size: 31px; }
+  .deck { margin-top: 10px; font-size: 12.5px; line-height: 1.5; max-width: none; }
+
+  .hero__grid { gap: 14px; }
+
+  .spine { padding-top: 74px; padding-bottom: 24px; }
+  .spine__stack { height: 152px; }
+  .plate a { padding: 13px 16px 12px; border-left-width: 4px; }
+  .plate__code { font-size: 11px; }
+  .plate__title { font-size: 18px; margin-top: 6px; line-height: 1.1; }
+  .plate__meta { left: 20px; right: 16px; bottom: 11px; font-size: 10px; gap: 2px 10px; }
+  .spine__hint { font-size: 9px; letter-spacing: .13em; }
+
+  .trust { font-size: 10.5px; gap: 2px 12px; padding-top: 9px; }
+}
+
+/* ---------------------------------------------------------------------------
+   Tap targets. J4 vetoes anything under 44x44 at 360px.
+   Measured: the nav phone link was 19px tall before this block.
+   --------------------------------------------------------------------------- */
+.nav > a,
+.nav__tel,
+.nav__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.nav__links a { padding-block: 0; }
+
+/* ---------------------------------------------------------------------------
+   Desktop corrections, made after looking at a real 1440x880 render.
+   --------------------------------------------------------------------------- */
+@media (min-width: 900px) {
+  /* At 28px the three descriptor lines of the lockup were illegible mush.
+     Their lockup is 2.6:1 with three lines of sans in it — it simply has a
+     floor below which it stops being a logo. 40px is that floor.
+     Worth raising with AGIT: they need a nav-scale lockup variant. */
+  .nav__mark { height: 40px; }
+
+  /* The stack was ending 180px above the trust strip, leaving a void in the
+     right column. Taller plates fill the column and give the object weight. */
+
+  .spine__stack { height: 244px; }
+  .plate a { padding: 24px 26px 20px; }
+  .plate__meta { left: 31px; right: 26px; bottom: 22px; }
+}
+
+/* Contents of the receding plates fade out, so the stack reads as clean black
+   plates rather than a pile of half-cut text. --fade is driven from spine.js
+   and interpolates during the drag, so text resolves in as a plate arrives. */
+.plate a > * { opacity: var(--fade, 1); }
+
+/* Folio numeral on the black bands. */
+.band--dark .sectionno { color: var(--folio-dark); }
+
+/* ===========================================================================
+   HOMEPAGE SECTIONS
+   Numbering is consecutive across what actually ships. Gated sections are
+   ABSENT, not placeholder-filled, so the folios never advertise a hole.
+   =========================================================================== */
+
+.sec { border-top: 1px solid var(--rule); padding-block: clamp(44px, 6.5vw, 96px); }
+.sec--dark { background: var(--black); color: var(--white); border-top: 0; }
+.sec--dark .sectionno { color: var(--folio-dark); }
+.sec--dark p { color: rgba(255,255,255,.72); }
+.sec--tint { background: var(--surface); }
+
+.sec__head { display: grid; gap: clamp(10px, 2vw, 22px); margin-bottom: clamp(24px, 3.6vw, 44px); }
+@media (min-width: 900px) { .sec__head { grid-template-columns: minmax(0,1fr) minmax(0,.8fr); align-items: end; } }
+.sec h2 {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(27px, 4.4vw, 52px);
+  line-height: 1.06;
+  letter-spacing: -.015em;
+  margin: 0;
+}
+.sec__sub { margin: 0; max-width: 52ch; color: var(--muted); font-size: clamp(13px, 1.1vw, 15.5px); }
+.sec--dark .sec__sub { color: rgba(255,255,255,.72); }
+
+/* ---------- 02 the cost estimator ---------- */
+.dial { display: grid; gap: clamp(20px, 3vw, 40px); }
+@media (min-width: 1000px) { .dial { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); } }
+
+.q { border-top: 1px solid rgba(255,255,255,.18); padding-top: 16px; margin-bottom: 22px; }
+.q:first-child { border-top: 0; padding-top: 0; }
+.q__label {
+  font-size: 11px; font-weight: 700; letter-spacing: .13em;
+  text-transform: uppercase; margin: 0 0 12px; color: rgba(255,255,255,.72);
+}
+.q__label i { font-style: normal; color: var(--red); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.chip span {
+  display: flex; align-items: center; min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255,255,255,.34);
+  font-size: 12.5px; font-weight: 600; letter-spacing: .03em;
+  color: var(--white);
+}
+.chip input:checked + span { background: var(--red); border-color: var(--red); }
+.chip input:focus-visible + span { outline: 3px solid var(--white); outline-offset: 3px; }
+.chip small { display: block; font-weight: 500; opacity: .7; font-size: 10.5px; letter-spacing: .04em; }
+
+.result { border: 1px solid rgba(255,255,255,.24); padding: clamp(18px, 2.6vw, 30px); }
+.result[hidden] { display: none; }
+.result__wait { color: rgba(255,255,255,.55); font-size: 13.5px; margin: 0; }
+.row {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.14);
+  font-size: 13.5px;
+}
+.row:last-of-type { border-bottom: 0; }
+.row dt { margin: 0; color: rgba(255,255,255,.72); }
+.row dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.row--total { border-top: 2px solid var(--red); border-bottom: 0; margin-top: 6px; padding-top: 14px; }
+.row--total dt { color: var(--white); font-weight: 600; }
+.row--total dd { font-size: clamp(20px, 2.6vw, 27px); font-family: var(--display); font-weight: 600; }
+.verified {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--red); font-weight: 700; display: block;
+}
+.honesty {
+  margin: 18px 0 0; padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,.14);
+  font-size: 12.5px; line-height: 1.6; color: rgba(255,255,255,.72);
+}
+.honesty strong { color: var(--white); font-weight: 600; }
+.privacy { margin: 10px 0 0; font-size: 11.5px; color: rgba(255,255,255,.55); }
+
+/* ---------- 03 the catalogue index ---------- */
+.index { border-top: 1px solid var(--rule); }
+.index__row {
+  display: grid; gap: 4px 20px;
+  padding: clamp(16px, 2.2vw, 26px) 0;
+  border-bottom: 1px solid var(--rule);
+  text-decoration: none;
+  align-items: baseline;
+}
+@media (min-width: 820px) {
+  .index__row { grid-template-columns: 120px minmax(0,1fr) 186px 152px; }
+}
+.index__row:hover { background: var(--surface); }
+.index__row:hover .index__ttl { color: var(--red); }
+.index__code { font-size: 12px; font-weight: 700; letter-spacing: .16em; font-variant-numeric: tabular-nums; }
+.index__ttl { font-family: var(--display); font-size: clamp(19px, 2.2vw, 26px); font-weight: 500; line-height: 1.15; }
+.index__fac { font-size: 12px; color: var(--muted); letter-spacing: .03em; }
+.index__num { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+
+/* ---------- generic content grid ---------- */
+.cols { display: grid; gap: clamp(18px, 2.6vw, 34px); }
+@media (min-width: 760px) { .cols--2 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (min-width: 760px) { .cols--3 { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+.card { border-top: 2px solid var(--black); padding-top: 16px; }
+.sec--dark .card { border-top-color: var(--red); }
+.card h3 {
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(18px, 1.9vw, 23px); line-height: 1.18; margin: 0 0 8px;
+}
+.card p { font-size: 13.5px; color: var(--muted); margin: 0; }
+.sec--dark .card p { color: rgba(255,255,255,.72); }
+
+/* numbered process steps — the admissions path genuinely is a sequence */
+.steps { counter-reset: s; display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.step {
+  counter-increment: s;
+  display: grid; gap: 4px 22px;
+  padding: clamp(14px, 2vw, 22px) 0;
+  border-bottom: 1px solid var(--rule);
+}
+@media (min-width: 760px) { .step { grid-template-columns: 54px minmax(0,1fr) 170px; align-items: baseline; } }
+.step::before {
+  content: counter(s, decimal-leading-zero);
+  font-family: var(--display); font-size: 24px; color: var(--folio); line-height: 1;
+}
+.step h3 { margin: 0; font-size: 15.5px; font-weight: 600; }
+.step p { margin: 4px 0 0; font-size: 13.5px; color: var(--muted); }
+.step .when { font-size: 12px; color: var(--red); font-weight: 600; letter-spacing: .04em; }
+
+/* ---------- footer ---------- */
+.foot { background: var(--black); color: var(--white); padding-block: clamp(40px, 5vw, 72px); }
+.foot a { color: var(--white); }
+.foot__grid { display: grid; gap: clamp(24px, 3vw, 40px); }
+@media (min-width: 820px) { .foot__grid { grid-template-columns: minmax(0,1.3fr) repeat(2, minmax(0,1fr)); } }
+.foot h3 { font-size: 11px; letter-spacing: .13em; text-transform: uppercase; margin: 0 0 12px; color: rgba(255,255,255,.55); font-weight: 700; }
+.foot ul { list-style: none; margin: 0; padding: 0; }
+.foot li { margin-bottom: 8px; font-size: 13.5px; }
+.foot li a { text-decoration: none; }
+.foot li a:hover { color: var(--red); }
+.aoc {
+  margin-top: clamp(30px, 4vw, 52px); padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,.2);
+  font-size: 12.5px; line-height: 1.7; color: rgba(255,255,255,.72); max-width: 74ch;
+}
+.foot__codes {
+  margin-top: 22px; font-size: 11.5px; letter-spacing: .06em;
+  color: rgba(255,255,255,.55); font-variant-numeric: tabular-nums;
+}
+
+/* ---------- estimator result internals ---------- */
+.result__ctx {
+  margin: 0 0 16px; padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.14);
+  font-size: 12.5px; letter-spacing: .04em; color: rgba(255,255,255,.72);
+}
+.result dl { margin: 0; }
+.result__meta { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.14); }
+.row dt .sub { display: block; font-size: 11px; color: rgba(255,255,255,.55); margin-top: 3px; max-width: 30ch; }
+.sec--dark .code, .result .code { font-weight: 600; letter-spacing: .06em; color: var(--white); }
+
+/* ---------- estimator corrections, made after looking at a real render ---------- */
+/* fieldset ships with a default border on all four sides; only the top rule
+   is wanted, and the legend must sit in the normal flow rather than notched
+   into a box edge. */
+.q {
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,.18);
+  margin-inline: 0;
+  padding: 16px 0 0;
+}
+.q legend { padding: 0; }
+/* the chip label and its code/duration were running together on one line */
+.chip span {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1.25;
+}
+
+/* ---------- inline contact links: 16px tall is not a tap target ---------- */
+.trust a,
+.card p a,
+.foot li a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding-inline: 1px;
+}
+.card p a { min-height: 30px; }

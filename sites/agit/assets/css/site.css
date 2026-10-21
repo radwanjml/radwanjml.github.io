@@ -1,0 +1,732 @@
+/* ===========================================================================
+   AGIT V5 — the site system
+   Every page that is not the dice hero is built out of this file.
+
+   THE WORLD
+   The hero is a printed comic: a photographed desk under a halftone screen,
+   props drawn in ink, hard black keylines, red as the one structural accent.
+   The interior pages are the same press, printing on white stock instead of
+   wood. That is the whole idea, and it is why a zero-blur block shadow is
+   correct here when it is a costume nearly everywhere else: this world is
+   actually a printed page, so ink offset is the native depth cue and a soft
+   drop shadow would be the foreign object.
+
+   THE PALETTE IS THREE COLOURS
+   #000000, #D9372A, #FFFFFF, from the AGIT Brand Identity PDF (Oct 2025).
+   Two greys exist and are declared here as BUILD DECISIONS, not brand
+   colours — the brand book permits functional grey and names none, so the
+   record has to live somewhere. Nothing else is a colour.
+
+   BANNED BY CONSTRUCTION, and absent from this file
+   gradients as decoration, glows, frosted glass, blue or teal, red type on
+   black, a third typeface, border-radius on anything structural.
+   =========================================================================== */
+
+@font-face{font-family:"Playfair Display";
+  src:url("/sites/agit/assets/fonts/playfair-latin.woff2") format("woff2");
+  font-weight:400 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Montserrat";
+  src:url("/sites/agit/assets/fonts/montserrat-latin.woff2") format("woff2");
+  font-weight:100 900;font-style:normal;font-display:swap}
+
+:root{
+  --red:#D9372A;
+  --black:#000;
+  --white:#fff;
+
+  /* build decisions, not brand colours */
+  --ink-1:#2b2b2b;   /* 14.8:1 on white */
+  --ink-2:#5c5c5c;   /* 6.4:1  on white */
+  --paper-2:#F4F1EA; /* the tint of unprinted stock */
+
+  --display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --body:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;
+
+  --gut:clamp(20px,5vw,72px);
+  --maxw:1280px;
+  --rule:3px;
+  --ease:cubic-bezier(.16,1,.3,1);   /* exponential ease-out */
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;background:var(--white);color:var(--black);
+  font-family:var(--body);font-size:17px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ---- browser surfaces. These ship with defaults belonging to no design
+   system, so they are themed from the palette like everything else. ---- */
+::selection{background:var(--red);color:var(--white)}
+html{scrollbar-color:var(--black) var(--paper-2);scrollbar-width:thin}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--paper-2)}
+::-webkit-scrollbar-thumb{background:var(--black);border:3px solid var(--paper-2)}
+::-webkit-scrollbar-thumb:hover{background:var(--red)}
+:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+input,select,textarea{caret-color:var(--red)}
+a{color:inherit;text-underline-offset:.22em;text-decoration-thickness:1.5px}
+img,svg{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+/* =========================================================================
+   1 · THE PRESS — halftone, ink, misregistration
+   ========================================================================= */
+
+/* every white surface carries the same screen as the desk in the hero, so
+   the wood and the paper are demonstrably one print job */
+.screen{position:relative;isolation:isolate}
+.screen::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  opacity:.5;mix-blend-mode:multiply;
+  background-image:radial-gradient(#000 .5px,transparent .6px);
+  background-size:5px 5px}
+.screen > *{position:relative;z-index:2}
+
+/* the dissolve between two stocks: dots of the incoming colour grow out of
+   the outgoing one and then close over it. Same mechanic as the hero's
+   desk-to-white transition, reused rather than re-invented. */
+.dissolve{position:relative;height:clamp(72px,10vw,140px);pointer-events:none;
+  --from:var(--white);--to:var(--black)}
+.dissolve::before{content:"";position:absolute;inset:0;background:var(--from)}
+.dissolve::after{content:"";position:absolute;inset:0;
+  background-image:radial-gradient(var(--to) 52%,transparent 55%);
+  background-size:9px 9px;
+  -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,0) 4%,#000 88%);
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,0) 4%,#000 88%)}
+.dissolve--solid::after{background-image:none;background:var(--to);
+  -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,0),#000);
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,0),#000)}
+
+/* =========================================================================
+   2 · LAYOUT
+   ========================================================================= */
+.shell{max-width:var(--maxw);margin-inline:auto;padding-inline:var(--gut)}
+.skip{position:absolute;left:-9999px;top:0;z-index:200;background:var(--black);
+  color:var(--white);padding:14px 20px;font-weight:700;font-size:14px;
+  letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+.skip:focus{left:0}
+
+section[id]{scroll-margin-top:84px}
+
+.band{padding-block:clamp(56px,8vw,124px)}
+.band--tight{padding-block:clamp(40px,5vw,72px)}
+.band--ink{background:var(--black);color:var(--white)}
+.band--red{background:var(--red);color:var(--white)}
+.band--stock{background:var(--paper-2)}
+
+.band--ink ::selection{background:var(--white);color:var(--black)}
+.band--red ::selection{background:var(--black);color:var(--white)}
+
+/* =========================================================================
+   3 · TYPE
+   ========================================================================= */
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;margin:0;
+  letter-spacing:-.028em;line-height:1.02;text-wrap:balance}
+h1{font-size:clamp(38px,6.4vw,84px)}
+h2{font-size:clamp(29px,4vw,54px);letter-spacing:-.024em;line-height:1.06}
+h3{font-size:clamp(20px,2.1vw,28px);letter-spacing:-.018em;line-height:1.14}
+h4{font-family:var(--body);font-weight:800;font-size:14px;letter-spacing:.13em;
+  text-transform:uppercase;line-height:1.3}
+p{margin:0 0 1.05em;max-width:68ch}
+p:last-child{margin-bottom:0}
+.lede{font-size:clamp(18px,1.55vw,21px);line-height:1.58;color:var(--ink-1);max-width:56ch}
+.band--ink .lede,.mast .lede,.pmast .lede{color:rgba(255,255,255,.86)}
+
+/* ---- ON RED, TEXT IS PURE WHITE OR PURE BLACK. NEVER TRANSLUCENT. ----
+   #D9372A is a mid-luminance colour: solid white on it measures 4.62:1,
+   which clears AA with almost nothing to spare. Drop that white to 86% and
+   it falls to 3.78:1 and fails. Every muted-text convention that works on
+   the black bands is therefore wrong on the red one, and the fix is a rule
+   rather than a list of exceptions: on red, secondary text is separated by
+   size and weight, never by opacity. */
+.band--red .lede,.band--red .small,.band--red p,.band--red dd,.band--red li,
+.band--red .link{color:var(--white)}
+.band--red .ledger > div{border-bottom-color:rgba(0,0,0,.34)}
+.small{font-size:14.5px;line-height:1.6;color:var(--ink-2)}
+.band--ink .small,.mast .small,.pmast .small{color:rgba(255,255,255,.74)}
+.band--ink .field .hint{color:rgba(255,255,255,.74)}
+/* Red type is permitted on black ONLY at display size, where it reads as a
+   graphic element and clears 3:1 comfortably (4.55:1 measured). At body size
+   #D9372A on #000 vibrates, and the brand book bans it. There is no class in
+   this file that puts red on black below 29px. */
+.r{color:var(--red)}
+.band--red .r{color:var(--black)}
+strong,b{font-weight:700}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* a training-package code is a fixed identifier, not prose. It gets a fixed
+   treatment so a reader can spot one at a glance across the whole site. */
+.code{font-family:var(--body);font-weight:800;letter-spacing:.09em;
+  font-variant-numeric:tabular-nums}
+
+/* section opener: rule, then heading. No eyebrow, no 01 / 02 folio —
+   the sequence carries no information the reader needs. */
+.head{margin-bottom:clamp(28px,4vw,56px);max-width:34ch}
+.head--wide{max-width:52ch}
+.head > .lede{margin-top:18px}
+.head::before{content:"";display:block;width:64px;height:var(--rule);
+  background:var(--red);margin-bottom:clamp(20px,2.4vw,30px)}
+.band--red .head::before{background:var(--black)}
+
+/* =========================================================================
+   4 · NAV
+   ========================================================================= */
+.nav{position:sticky;top:0;z-index:100;background:var(--black);color:var(--white);
+  border-bottom:var(--rule) solid var(--red)}
+.nav__in{max-width:var(--maxw);margin-inline:auto;padding:0 var(--gut);
+  display:flex;align-items:center;gap:clamp(16px,3vw,44px);min-height:64px}
+.nav__mark{display:flex;align-items:center;gap:10px;text-decoration:none;
+  flex:none;margin-right:auto;padding-block:12px}
+.nav__mark b{font-family:var(--display);font-size:23px;font-weight:700;letter-spacing:.01em}
+.nav__mark span{display:block;font-size:9px;font-weight:700;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--white);background:var(--red);padding:4px 7px;line-height:1}
+.nav__links{display:flex;align-items:center;gap:clamp(14px,2.2vw,32px);list-style:none;
+  margin:0;padding:0}
+.nav__links a{font-size:13.5px;font-weight:600;letter-spacing:.04em;text-decoration:none;
+  padding:20px 0;display:block;position:relative}
+.nav__links a::after{content:"";position:absolute;left:0;right:0;bottom:14px;height:2px;
+  background:var(--red);transform:scaleX(0);transform-origin:left;
+  transition:transform .34s var(--ease)}
+.nav__links a:hover::after,.nav__links a[aria-current="page"]::after{transform:scaleX(1)}
+.nav__cta{flex:none;display:inline-flex;align-items:center;gap:8px;
+  background:var(--red);color:var(--white);text-decoration:none;
+  font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  padding:12px 18px;min-height:44px;
+  transition:background .2s,color .2s}
+.nav__cta:hover{background:var(--white);color:var(--black)}
+.nav__burger{display:none;flex:none;appearance:none;background:none;border:0;
+  color:var(--white);padding:12px;margin-right:-12px;cursor:pointer}
+.nav__burger svg{display:block;width:24px;height:24px}
+
+@media (max-width:919px){
+  .nav__burger{display:block}
+  .nav__links,.nav .nav__cta{display:none}
+  .nav.is-open .nav__links{display:flex;position:fixed;inset:64px 0 0;background:var(--black);
+    flex-direction:column;align-items:stretch;gap:0;padding:12px var(--gut) 40px;
+    overflow-y:auto}
+  .nav.is-open .nav__links li{border-bottom:1px solid rgba(255,255,255,.16)}
+  .nav.is-open .nav__links a{font-size:20px;font-family:var(--display);font-weight:700;
+    letter-spacing:-.01em;padding:20px 0}
+  .nav.is-open .nav__links a::after{display:none}
+  .nav.is-open .nav__cta{display:inline-flex;justify-content:center;margin-top:24px}
+}
+
+/* =========================================================================
+   5 · BUTTONS — ink on paper, so the shadow is an offset impression
+   ========================================================================= */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:52px;padding:15px 26px;
+  font-family:var(--body);font-size:14px;font-weight:800;letter-spacing:.08em;
+  text-decoration:none;cursor:pointer;
+  background:var(--red);color:var(--white);
+  border:2.5px solid var(--black);box-shadow:5px 5px 0 0 var(--black);
+  position:relative;overflow:hidden;
+  transition:background .2s,color .2s,transform .12s var(--ease),box-shadow .12s var(--ease)}
+/* the press sheen: a hard-edged bar of bare stock crossing the ink, the way
+   a sheet catches the light coming off a press. Not a soft gradient — this
+   world has no soft gradients. */
+.btn::after{content:"";position:absolute;top:-60%;bottom:-60%;width:34px;
+  left:-60px;background:rgba(255,255,255,.28);transform:skewX(-22deg);
+  transition:left .55s var(--ease)}
+.btn:hover::after{left:130%}
+.btn:hover{background:var(--black);color:var(--white)}
+.btn:active{transform:translate(4px,4px);box-shadow:1px 1px 0 0 var(--black)}
+.btn i{font-style:normal;transition:transform .3s var(--ease)}
+.btn:hover i{transform:translateX(4px)}
+.btn--ghost{background:var(--white);color:var(--black)}
+.btn--ghost:hover{background:var(--red);color:var(--white)}
+.btn--onink{background:var(--white);color:var(--black);border-color:var(--white);
+  box-shadow:5px 5px 0 0 var(--red)}
+.btn--onink:hover{background:var(--red);color:var(--white);border-color:var(--white)}
+.btn--onink:active{box-shadow:1px 1px 0 0 var(--red)}
+.btn--onred{background:var(--black);color:var(--white);border-color:var(--black);
+  box-shadow:5px 5px 0 0 rgba(0,0,0,.34)}
+.btn--onred:hover{background:var(--white);color:var(--black)}
+@media (prefers-reduced-motion:reduce){.btn::after{display:none}}
+
+.link{display:inline-flex;align-items:center;gap:9px;font-size:14.5px;font-weight:700;
+  letter-spacing:.03em;text-decoration:none;color:inherit;
+  border-bottom:2px solid var(--red);padding-bottom:3px}
+.link i{font-style:normal;transition:transform .3s var(--ease)}
+.link:hover{color:var(--red)}
+.link:hover i{transform:translateX(4px)}
+.band--red .link{border-bottom-color:var(--black)}
+.band--red .link:hover{color:var(--black)}
+.band--ink .link:hover{color:var(--red)}
+
+/* =========================================================================
+   6 · THE COURSE PLATE
+   A plate is not a decorative card. It carries the five things a reader
+   compares courses on — code, title, length, unit count, indicative cost —
+   and nothing else, so a row of them is a comparison table that happens to
+   be laid out in two dimensions.
+   ========================================================================= */
+.plates{display:grid;gap:var(--rule);background:var(--black);border:var(--rule) solid var(--black);
+  grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}
+.plate{position:relative;display:flex;flex-direction:column;gap:14px;
+  background:var(--white);padding:clamp(24px,2.6vw,36px);text-decoration:none;
+  overflow:hidden;isolation:isolate;
+  transition:background .32s var(--ease),color .32s var(--ease)}
+.plate__code{font-family:var(--body);font-weight:800;font-size:12.5px;letter-spacing:.13em;
+  color:var(--red);font-variant-numeric:tabular-nums;
+  transition:color .32s var(--ease)}
+.plate__title{font-family:var(--display);font-weight:700;font-size:clamp(21px,2vw,27px);
+  line-height:1.1;letter-spacing:-.02em;margin:0}
+.plate__spec{font-size:14px;color:var(--ink-2);margin:0;
+  transition:color .32s var(--ease)}
+.plate__cost{margin-top:auto;padding-top:16px;border-top:2px solid var(--black);
+  font-size:14px;font-weight:700;display:flex;align-items:baseline;
+  justify-content:space-between;gap:12px;
+  transition:border-color .32s var(--ease)}
+.plate__cost em{font-style:normal;font-variant-numeric:tabular-nums;font-size:17px}
+.plate__go{font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:7px}
+.plate__go i{font-style:normal;transition:transform .3s var(--ease)}
+/* the ink flood: the plate takes the red on hover, the way a plate takes ink */
+.plate::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--red);
+  transform:translateY(101%);transition:transform .42s var(--ease)}
+.plate:hover,.plate:focus-visible{color:var(--white)}
+.plate:hover::before,.plate:focus-visible::before{transform:translateY(0)}
+.plate:hover .plate__code,.plate:focus-visible .plate__code,
+.plate:hover .plate__spec,.plate:focus-visible .plate__spec{color:var(--white)}
+.plate:hover .plate__cost,.plate:focus-visible .plate__cost{border-color:var(--white)}
+.plate:hover .plate__go i{transform:translateX(5px)}
+@media (prefers-reduced-motion:reduce){
+  .plate::before{transition:none}
+}
+
+/* the reflection Red asked for, done the way this world would do it:
+   the code repeats upside down beneath the plate as wet ink picked up by
+   the facing sheet — soft, screened back, and mirrored, not a glass sheen */
+.plate__mirror{position:absolute;left:clamp(24px,2.6vw,36px);bottom:-4px;
+  font-family:var(--body);font-weight:800;font-size:52px;letter-spacing:.02em;
+  line-height:1;color:var(--black);opacity:.06;pointer-events:none;user-select:none;
+  transform:scaleY(-1);transform-origin:bottom;
+  -webkit-mask-image:linear-gradient(to top,#000,rgba(0,0,0,0) 74%);
+  mask-image:linear-gradient(to top,#000,rgba(0,0,0,0) 74%);
+  transition:opacity .32s var(--ease),color .32s var(--ease)}
+.plate:hover .plate__mirror{color:var(--white);opacity:.15}
+
+/* =========================================================================
+   7 · THE LEDGER — a fact list that is not four identical cards
+   ========================================================================= */
+.ledger{display:grid;gap:0;border-top:2px solid currentColor;margin:0}
+/* 15ch, not 20ch. A ledger inside a .split column has about 500px to work
+   with, and a 20ch term column left the definitions wrapping at ~28 characters
+   — well under the 45-75 character measure that is comfortable to read. */
+.ledger > div{display:grid;grid-template-columns:minmax(118px,15ch) 1fr;gap:clamp(14px,2.2vw,32px);
+  padding:clamp(16px,1.9vw,24px) 0;border-bottom:1px solid rgba(0,0,0,.16);align-items:baseline}
+.band--ink .ledger > div,.band--red .ledger > div{border-bottom-color:rgba(255,255,255,.22)}
+.ledger dt{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0}
+.ledger dd{margin:0;font-size:16.5px;line-height:1.55;max-width:62ch}
+.ledger dd .code{color:var(--red)}
+.band--ink .ledger dd .code,.band--red .ledger dd .code{color:inherit}
+@media (max-width:639px){
+  .ledger > div{grid-template-columns:1fr;gap:6px}
+}
+
+/* numbered argument — used only where the order genuinely is the content
+   (the five application steps, which happen in that order) */
+.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:var(--rule);
+  background:currentColor;border:var(--rule) solid currentColor}
+.steps li{counter-increment:s;background:var(--white);color:var(--black);
+  padding:clamp(22px,2.6vw,34px);display:grid;
+  grid-template-columns:auto 1fr;gap:clamp(16px,2.2vw,30px);align-items:start}
+.steps li::before{content:counter(s,decimal-leading-zero);
+  font-family:var(--display);font-weight:700;font-size:clamp(34px,4.4vw,58px);
+  line-height:.86;color:var(--red);font-variant-numeric:tabular-nums}
+.steps h3{margin-bottom:8px}
+.steps p{color:var(--ink-1);font-size:15.5px;margin:0}
+
+/* =========================================================================
+   8 · UNIT TABLES
+   ========================================================================= */
+.units{width:100%;border-collapse:collapse;font-size:15px;
+  font-variant-numeric:tabular-nums}
+.units caption{text-align:left;font-size:13px;font-weight:800;letter-spacing:.11em;
+  text-transform:uppercase;padding-bottom:14px;color:var(--red)}
+.band--ink .units caption{color:var(--white)}
+.units th,.units td{text-align:left;padding:13px 16px 13px 0;
+  border-bottom:1px solid rgba(0,0,0,.14);vertical-align:top}
+.units thead th{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  border-bottom:2px solid var(--black)}
+.units td:first-child{white-space:nowrap;font-weight:800;letter-spacing:.06em;width:1%;
+  padding-right:26px}
+.units tbody tr:hover td{background:var(--paper-2)}
+.band--ink .units th,.band--ink .units td{border-bottom-color:rgba(255,255,255,.2)}
+.band--ink .units thead th{border-bottom-color:var(--white)}
+.band--ink .units tbody tr:hover td{background:rgba(255,255,255,.06)}
+
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroller:focus-visible{outline:3px solid var(--red);outline-offset:4px}
+
+/* =========================================================================
+   9 · DISCLOSURE — used for shared core units and FAQs
+   ========================================================================= */
+.reveal-group{border-top:2px solid var(--black)}
+.band--ink .reveal-group{border-top-color:var(--white)}
+details{border-bottom:1px solid rgba(0,0,0,.16)}
+.band--ink details{border-bottom-color:rgba(255,255,255,.22)}
+details > summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:16px;
+  padding:clamp(16px,2vw,22px) 0;font-family:var(--display);font-weight:700;
+  font-size:clamp(17px,1.6vw,21px);line-height:1.25;letter-spacing:-.015em}
+details > summary::-webkit-details-marker{display:none}
+details > summary::after{content:"";flex:none;margin-left:auto;align-self:center;
+  width:15px;height:15px;
+  background:currentColor;
+  -webkit-mask:linear-gradient(currentColor,currentColor) center/100% 2.5px no-repeat,
+       linear-gradient(currentColor,currentColor) center/2.5px 100% no-repeat;
+  mask:linear-gradient(#000,#000) center/100% 2.5px no-repeat,
+       linear-gradient(#000,#000) center/2.5px 100% no-repeat;
+  transition:transform .32s var(--ease)}
+details[open] > summary::after{transform:rotate(45deg);
+  -webkit-mask:linear-gradient(currentColor,currentColor) center/100% 2.5px no-repeat;
+  mask:linear-gradient(#000,#000) center/100% 2.5px no-repeat}
+details > summary:hover{color:var(--red)}
+.band--ink details > summary:hover,.band--red details > summary:hover{color:var(--white);opacity:.72}
+.details__body{padding:0 0 clamp(20px,2.4vw,28px);max-width:70ch}
+.details__body p{font-size:15.5px;color:var(--ink-1)}
+.band--ink .details__body p{color:rgba(255,255,255,.8)}
+
+/* =========================================================================
+   10 · THE ANNOTATION LAYER
+
+   Two voices are trying to speak on this site and they must never be
+   mistaken for each other.
+
+   The site itself speaks as AGIT: clear, confident, and honest in the way
+   a good institution is honest. It never criticises itself, because a real
+   institution's website does not.
+
+   Tibr's audit findings — the conflicting fee sources, the corrupted unit
+   title, the arithmetic that does not reconcile — are pinned to the exact
+   element they concern and drawn as annotation ON TOP of the page, in a
+   visibly different object. They can be switched off, and with them off
+   this is simply AGIT's site.
+
+   That switch is the whole pitch in one control: here is your website, and
+   here is every problem, in place, on the thing it affects.
+   ========================================================================= */
+.tnote{position:relative;display:block;
+  border:2.5px solid var(--black);box-shadow:6px 6px 0 0 var(--red);
+  padding:clamp(18px,2.2vw,26px);margin:clamp(30px,3.6vw,46px) 0 clamp(36px,4.2vw,54px);
+  max-width:66ch;background:var(--white);color:var(--black)}
+.tnote::before{content:"Tibr note";position:absolute;top:-2.5px;left:-2.5px;
+  background:var(--black);color:var(--white);
+  font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  padding:5px 10px}
+.tnote .note-h{margin:18px 0 9px;color:var(--red);font-family:var(--body);
+  font-weight:800;font-size:14px;letter-spacing:.13em;text-transform:uppercase;
+  line-height:1.3}
+.tnote p{font-size:15.5px;line-height:1.62;color:var(--ink-1);margin-bottom:.7em}
+.tnote p:last-child{margin-bottom:0}
+.tnote__ref{display:block;margin-top:14px;font-size:11.5px;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.band--ink .tnote,.band--red .tnote{background:var(--white);color:var(--black)}
+.band--red .tnote{box-shadow:6px 6px 0 0 var(--black)}
+
+/* AGIT's own callout — a keyline box, no tab, always visible. Distinct from
+   .tnote at a glance, which is the entire point of having two. */
+.callout{border:2px solid var(--black);padding:clamp(18px,2.2vw,26px);
+  margin:clamp(28px,3.4vw,44px) 0;max-width:66ch;background:var(--paper-2)}
+.callout .note-h{margin:0 0 9px;font-family:var(--body);font-weight:800;font-size:14px;
+  letter-spacing:.13em;text-transform:uppercase;line-height:1.3}
+.callout p{font-size:15.5px;line-height:1.62;color:var(--ink-1);margin-bottom:.7em}
+.callout p:last-child{margin-bottom:0}
+.callout:last-child,.tnote:last-child{margin-bottom:0}
+.band--ink .callout{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.5);
+  color:var(--white)}
+.band--ink .callout .note-h{color:var(--white)}
+.band--ink .callout .note-h::before,.band--ink .units caption::before,
+.band--ink .result__ctx::before{content:"";display:block;width:34px;height:3px;
+  background:var(--red);margin-bottom:11px}
+.band--ink .callout p{color:rgba(255,255,255,.84)}
+.band--red .callout{background:rgba(0,0,0,.34);border-color:var(--black);color:var(--white)}
+.band--red .callout .note-h{color:var(--white)}
+.band--red .callout p{color:var(--white)}
+
+/* a value AGIT has not published. It reads as ordinary copy with the
+   annotation layer off, and as a visibly unfilled slot with it on — so no
+   build can ever quietly ship a plausible invention in its place. */
+.tok{font-weight:700}
+.tok::after{content:"";display:none}
+body:not(.notes-off) .tok{
+  display:inline-block;font-family:var(--body);font-weight:800;font-size:.88em;
+  letter-spacing:.04em;color:var(--black);
+  background:repeating-linear-gradient(-45deg,
+    var(--white) 0 6px,var(--paper-2) 6px 12px);
+  border:2px solid var(--black);padding:1px 8px;line-height:1.5}
+body:not(.notes-off) .tok::after{display:inline;content:" · " attr(data-owner);
+  font-weight:700;font-size:.86em;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--red)}
+body:not(.notes-off) .band--ink .tok,
+body:not(.notes-off) .band--red .tok{color:var(--white);border-color:var(--white);
+  background:repeating-linear-gradient(-45deg,
+    transparent 0 6px,rgba(255,255,255,.18) 6px 12px)}
+/* ...but a note on light stock inside that band is light stock again */
+body:not(.notes-off) .band--ink .tnote .tok,
+body:not(.notes-off) .band--red .tnote .tok{color:var(--black);border-color:var(--black);
+  background:repeating-linear-gradient(-45deg,
+    var(--white) 0 6px,var(--paper-2) 6px 12px)}
+body:not(.notes-off) .band--ink .tnote .tok::after,
+body:not(.notes-off) .band--red .tnote .tok::after{color:var(--red);opacity:1}
+body:not(.notes-off) .band--ink .tok::after,
+body:not(.notes-off) .band--red .tok::after{color:var(--white);opacity:.74}
+
+body.notes-off .tnote{display:none}
+
+/* the control. Fixed, small, and it names its own state. */
+.notes-toggle{position:fixed;right:clamp(14px,2vw,26px);bottom:clamp(14px,2vw,26px);
+  z-index:150;display:inline-flex;align-items:center;gap:10px;
+  appearance:none;cursor:pointer;
+  background:var(--black);color:var(--white);border:2.5px solid var(--white);
+  box-shadow:4px 4px 0 0 var(--red);
+  font-family:var(--body);font-size:11.5px;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;padding:11px 15px;min-height:44px;
+  transition:background .2s,color .2s,transform .12s var(--ease),box-shadow .12s var(--ease)}
+.notes-toggle:hover{background:var(--red)}
+.notes-toggle:active{transform:translate(3px,3px);box-shadow:1px 1px 0 0 var(--red)}
+.notes-toggle b{display:inline-block;min-width:3.2em;text-align:left;color:var(--white)}
+.notes-toggle__dot{width:9px;height:9px;flex:none;background:var(--red)}
+.notes-toggle:hover .notes-toggle__dot{background:var(--white)}
+body.notes-off .notes-toggle__dot{background:rgba(255,255,255,.34)}
+/* On a phone this control floats over the last two lines of whatever you are
+   reading, so it loses its long label and keeps only its state. */
+@media (max-width:560px){
+  .notes-toggle{right:10px;bottom:10px;padding:9px 11px;font-size:10.5px;gap:8px}
+  .notes-toggle__label{display:none}
+  .notes-toggle b{min-width:0}
+}
+
+/* =========================================================================
+   10b · PHOTOGRAPHY — a picture in this world is a printed plate
+
+   The site is a press. A full-colour photograph dropped into it reads as a
+   foreign object, so every image gets the same three things the props and
+   the die get: a hard black keyline, an offset ink shadow, and the halftone
+   screen over the top. Saturation comes down a little and contrast up a
+   little, which is what happens to a photograph when it is actually printed.
+
+   Every caption carries its provenance. None of this imagery is of AGIT's
+   own premises, and a site whose argument is "we do not invent facts" does
+   not get to quietly imply otherwise with a photograph.
+   ========================================================================= */
+.shot{margin:0;position:relative}
+.shot__plate{display:block;position:relative;isolation:isolate;
+  border:2.5px solid var(--black);box-shadow:8px 8px 0 0 var(--red);
+  background:var(--paper-2)}
+.shot img{display:block;width:100%;height:auto;
+  filter:saturate(.84) contrast(1.05)}
+.shot__plate::after{content:"";position:absolute;inset:0;pointer-events:none;
+  mix-blend-mode:multiply;opacity:.44;
+  background-image:radial-gradient(#000 .55px,transparent .72px);
+  background-size:4px 4px}
+.shot figcaption{margin-top:clamp(14px,1.6vw,18px);display:flex;flex-wrap:wrap;
+  gap:8px 12px;align-items:baseline;
+  font-size:12.5px;line-height:1.5;color:var(--ink-2);max-width:56ch}
+.shot__flag{flex:none;font-size:10px;font-weight:800;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--white);background:var(--black);
+  padding:4px 8px;line-height:1.3}
+
+.band--ink .shot__plate{border-color:var(--white);box-shadow:8px 8px 0 0 var(--red)}
+.band--ink .shot figcaption{color:rgba(255,255,255,.74)}
+.band--ink .shot__flag{background:var(--red)}
+.band--red .shot__plate{border-color:var(--black);box-shadow:8px 8px 0 0 var(--black)}
+.band--red .shot figcaption{color:var(--white)}
+
+/* a full-bleed plate used as a rhythm break between two bands */
+.shot--bleed{position:relative}
+.shot--bleed .shot__plate{border-left:0;border-right:0;box-shadow:none}
+.shot--bleed img{max-height:clamp(240px,42vh,460px);object-fit:cover}
+.shot--bleed figcaption{max-width:var(--maxw);margin-inline:auto;
+  padding-inline:var(--gut);padding-top:16px}
+
+/* =========================================================================
+   11 · TRUST STRIP — Mr. Sharma decides here, so it is never below the fold
+   ========================================================================= */
+.trust{display:flex;flex-wrap:wrap;gap:8px var(--rule);background:var(--black);
+  border:var(--rule) solid var(--black)}
+.trust > *{flex:1 1 160px;background:var(--white);padding:16px 20px;
+  display:flex;flex-direction:column;gap:3px;text-decoration:none;
+  transition:background .24s,color .24s}
+.trust a:hover{background:var(--red);color:var(--white)}
+.trust a:hover .trust__k{color:var(--white)}
+.trust__k{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--red);transition:color .24s}
+.trust__v{font-size:16px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+
+/* =========================================================================
+   12 · PAGE MASTHEAD — interior hero
+   ========================================================================= */
+.mast{background:var(--black);color:var(--white);position:relative;overflow:hidden;
+  padding-block:clamp(52px,7.5vw,110px) clamp(44px,6vw,84px)}
+/* the misregistration Red asked for: on a cheap press the red plate lands a
+   fraction off the black one, and you see the red ghost at the edge of the
+   type. Purely decorative, aria-hidden, and it is the reason the masthead
+   reads as printed rather than rendered. */
+.mast__ghost{position:absolute;left:0;right:0;top:0;pointer-events:none;
+  font-family:var(--display);font-weight:700;color:var(--red);opacity:.16;
+  font-size:clamp(90px,20vw,260px);line-height:.82;letter-spacing:-.05em;
+  transform:translate(-2.5%,-14%);white-space:nowrap;user-select:none}
+.mast__in{position:relative;z-index:2}
+.mast h1{max-width:20ch}
+.mast .lede{margin-top:clamp(18px,2.2vw,28px)}
+.mast__meta{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:clamp(22px,3vw,36px);
+  padding-top:20px;border-top:2px solid rgba(255,255,255,.3);
+  font-size:14px;font-weight:600;color:rgba(255,255,255,.8)}
+.mast__meta b{color:var(--white);font-weight:800;font-variant-numeric:tabular-nums}
+.crumb{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0 0 clamp(20px,2.6vw,32px);
+  padding:0;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:rgba(255,255,255,.62)}
+.crumb a{text-decoration:none}
+.crumb a:hover{color:var(--red)}
+.crumb li+li::before{content:"/";margin-right:8px;color:rgba(255,255,255,.34)}
+
+/* =========================================================================
+   13 · SPLIT — two columns that are not two equal cards
+   ========================================================================= */
+.split{display:grid;gap:clamp(28px,4vw,72px);align-items:start}
+.split > *,.dial > *,.row2 > *,.plates > *{min-width:0}
+@media (min-width:900px){
+  .split{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+  .split--sticky > :first-child{position:sticky;top:96px}
+  .split--even{grid-template-columns:1fr 1fr}
+}
+
+/* =========================================================================
+   14 · THE ESTIMATOR
+   ========================================================================= */
+.dial{display:grid;gap:clamp(24px,3vw,44px)}
+@media (min-width:900px){.dial{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}}
+.q{padding-block:20px;border-top:1px solid rgba(255,255,255,.22)}
+.q:first-child{border-top:0;padding-top:0}
+.q__label{display:block;font-size:13px;font-weight:800;letter-spacing:.11em;
+  text-transform:uppercase;margin-bottom:14px}
+.q__label i{font-style:normal;margin-right:10px;color:var(--white);
+  background:var(--red);padding:3px 7px;letter-spacing:.06em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;border:0}
+.chip{position:relative;display:block}
+.chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.chip span{display:block;padding:11px 16px;min-height:44px;
+  border:2px solid rgba(255,255,255,.5);font-size:13.5px;font-weight:700;letter-spacing:.03em;
+  transition:background .22s,border-color .22s,color .22s}
+.chip small{display:block;font-weight:500;font-size:11px;letter-spacing:.05em;opacity:.72;
+  margin-top:2px}
+.chip:hover span{border-color:var(--white)}
+.chip input:checked+span{background:var(--red);border-color:var(--red);color:var(--white)}
+.chip input:focus-visible+span{outline:3px solid var(--white);outline-offset:3px}
+
+.result{border:2px solid rgba(255,255,255,.34);padding:clamp(20px,2.8vw,32px)}
+.result__wait{margin:0;font-size:14.5px;color:rgba(255,255,255,.6)}
+.result__ctx{font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--white);margin:0 0 18px}
+.result dl{margin:0}
+.result .row{display:flex;justify-content:space-between;align-items:baseline;gap:20px;
+  padding:11px 0;border-bottom:1px solid rgba(255,255,255,.18)}
+.result .row dt{margin:0;font-size:15px;color:rgba(255,255,255,.8)}
+.result .row dt .sub{display:block;font-size:12px;color:rgba(255,255,255,.55);font-weight:400}
+.result .row dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;
+  text-align:right}
+.result .row--total{border-bottom:0;border-top:2px solid var(--white);margin-top:6px;
+  padding-top:16px}
+.result .row--total dt{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--white)}
+.result .row--total dd{font-family:var(--display);font-size:clamp(30px,4vw,44px);line-height:1;
+  letter-spacing:-.03em}
+.result .verified{display:block;font-size:10.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:rgba(255,255,255,.62);margin-top:2px}
+.result__meta{margin-top:20px;padding-top:8px;border-top:1px solid rgba(255,255,255,.18)}
+.result__meta .row{padding:7px 0;border-bottom:0}
+.result__meta .row dt,.result__meta .row dd{font-size:13.5px}
+.result .honesty{margin:24px 0 0;font-size:14px;line-height:1.6;color:rgba(255,255,255,.84);
+  border:2px solid var(--red);padding:16px 18px}
+.result .honesty strong{color:var(--white)}
+.result .privacy{margin:14px 0 0;font-size:12.5px;color:rgba(255,255,255,.55)}
+
+/* =========================================================================
+   15 · FORM
+   ========================================================================= */
+.field{display:grid;gap:7px;margin-bottom:20px}
+.field label{font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.field input,.field select,.field textarea{
+  width:100%;min-width:0;max-width:100%;
+  font-family:var(--body);font-size:16px;padding:13px 15px;min-height:50px;
+  background:var(--white);color:var(--black);border:2px solid var(--black);
+  transition:border-color .2s,box-shadow .2s}
+.field textarea{min-height:130px;resize:vertical;line-height:1.55}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:0;border-color:var(--red);box-shadow:4px 4px 0 0 var(--red)}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink-2)}
+.field .hint{font-size:12.5px;color:var(--ink-2)}
+.row2{display:grid;gap:0 20px}
+@media (min-width:640px){.row2{grid-template-columns:1fr 1fr}}
+
+/* =========================================================================
+   16 · LOCALITY MAP — drawn, not embedded. A third-party map frame would be
+   the single heaviest thing on the site and would ship a tracker with it.
+   ========================================================================= */
+.map{background:var(--paper-2);border:var(--rule) solid var(--black);display:block;width:100%}
+.map .road{stroke:var(--black);fill:none;stroke-linecap:square}
+.map .plotline{stroke:var(--black);stroke-width:1;fill:#fff}
+.map .pin{fill:var(--red)}
+.map text{font-family:var(--body);font-size:9px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;fill:var(--ink-2)}
+.map text.here{fill:var(--red);font-size:10px}
+
+/* =========================================================================
+   17 · FOOTER
+   ========================================================================= */
+.foot{background:var(--black);color:var(--white);padding-block:clamp(48px,6vw,80px) 32px}
+.foot__grid{display:grid;gap:clamp(28px,4vw,56px);
+  grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))}
+.foot .foot__h{margin:0 0 14px;color:var(--white);font-family:var(--body);
+  font-weight:800;font-size:14px;letter-spacing:.13em;text-transform:uppercase;
+  line-height:1.3}
+.foot .foot__h::before{content:"";display:block;width:30px;height:3px;background:var(--red);
+  margin-bottom:12px}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.foot a{display:inline-flex;align-items:center;min-height:26px;padding-block:4px;
+  text-decoration:none;font-size:14.5px;line-height:1.45;color:rgba(255,255,255,.82);
+  transition:color .2s}
+.foot a:hover{color:var(--red)}
+.foot__ack{margin-top:clamp(40px,5vw,64px);padding-top:28px;
+  border-top:2px solid rgba(255,255,255,.28)}
+.foot__ack p{font-size:14.5px;line-height:1.7;color:rgba(255,255,255,.82);max-width:74ch}
+.foot__legal{margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,.18);
+  display:flex;flex-wrap:wrap;gap:8px 28px;font-size:12.5px;color:rgba(255,255,255,.56)}
+.foot__legal b{color:rgba(255,255,255,.9);font-variant-numeric:tabular-nums}
+
+/* the unsolicited-concept notice. It stays. */
+.concept{background:var(--red);color:var(--white);padding:12px var(--gut);
+  font-size:12.5px;font-weight:700;letter-spacing:.04em;text-align:center;
+  border-bottom:var(--rule) solid var(--black)}
+.concept a{color:var(--white)}
+
+/* =========================================================================
+   18 · THE ONE AUTHORED MOMENT — the press laying down four impressions
+
+   Exactly one thing on this site animates in on scroll: the row of course
+   plates, which ink in one after another the way a press lays impressions.
+   Nothing else has an entrance. A site where every section fades up has no
+   authored moment at all — it has a template — and it also means a visitor
+   whose IntersectionObserver never fires is looking at a blank page.
+
+   The default state is visible. The hidden start is opted into by JS, and
+   released again unconditionally after three seconds no matter what the
+   observer did, because "content nobody can read" is not a failure state
+   this site is willing to have.
+   ========================================================================= */
+.js .plates .plate{opacity:0;transform:translateY(18px);
+  transition:opacity .66s var(--ease),transform .66s var(--ease)}
+.js .plates.is-set .plate{opacity:1;transform:none}
+.js .plates.is-set .plate:nth-child(2){transition-delay:.08s}
+.js .plates.is-set .plate:nth-child(3){transition-delay:.16s}
+.js .plates.is-set .plate:nth-child(4){transition-delay:.24s}
+
+@media (prefers-reduced-motion:reduce){
+  .js .plates .plate{opacity:1;transform:none;transition:none}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;
+    animation-iteration-count:1!important}
+}

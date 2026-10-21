@@ -38,7 +38,7 @@ document.querySelectorAll('video.loop').forEach((v) => warmV.observe(v));
 // it now builds only when scrolled near, and shaders/textures warm before the first visible frame, Addendum 48)
 const slotEl = document.getElementById('char-slot');
 let pick = () => {};
-const RIG_URL = { pip: 'https://closer-pip.netlify.app', moobi: 'https://closer-mlkshk.netlify.app', eli3: 'https://closer-eli3.netlify.app' };
+const RIG_URL = { pip: 'sites/closer-pip/', moobi: 'https://closer-mlkshk.netlify.app', eli3: 'https://closer-eli3.netlify.app' };
 const pickers = [...document.querySelectorAll('[data-char]')];
 function mark(name) {
   pickers.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.char === name)));

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agit.edu.au — what we found, four free fixes, and three replacements</title>
+<meta name="description" content="An unsolicited read of agit.edu.au by Tibr Studio: twenty findings, four fixes given free, and three complete replacement directions built and deployed.">
+<link rel="canonical" href="https://radwanjml.github.io/sites/agit/pitch/">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex, nofollow">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AGIT — Australian Global Institute of Technology">
+<meta property="og:locale" content="en_AU">
+<meta property="og:url" content="https://radwanjml.github.io/sites/agit/pitch/">
+<meta property="og:title" content="agit.edu.au — twenty findings, four free fixes, three replacements">
+<meta property="og:description" content="An unsolicited read and three working builds, from Tibr Studio. Nothing here asks AGIT for anything.">
+<meta property="og:image" content="https://radwanjml.github.io/sites/agit/assets/img/og-pitch.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AGIT — RTO 46471, CRICOS 04394M, Jandakot, Perth">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="/sites/agit/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/sites/agit/assets/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/sites/agit/assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/sites/agit/assets/css/site.css">
+<script>document.documentElement.className+=" js";try{if(localStorage.getItem("agit-notes")==="off"){document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("notes-off")})}}catch(e){}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "EducationalOrganization", "@id": "https://radwanjml.github.io/sites/agit/#org", "name": "Australian Global Institute of Technology", "alternateName": "AGIT", "url": "https://radwanjml.github.io/sites/agit/", "logo": "https://radwanjml.github.io/sites/agit/assets/img/agit-logo-full.svg", "email": "info@agit.edu.au", "telephone": "+61 8 6295 5076", "identifier": [{"@type": "PropertyValue", "name": "RTO Code", "value": "46471"}, {"@type": "PropertyValue", "name": "CRICOS Provider Code", "value": "04394M"}, {"@type": "PropertyValue", "name": "ABN", "value": "19 682 209 418"}], "address": {"@type": "PostalAddress", "streetAddress": "Unit 3, 4 Monash Gate", "addressLocality": "Jandakot", "addressRegion": "WA", "postalCode": "6164", "addressCountry": "AU"}, "geo": {"@type": "GeoCoordinates", "latitude": -32.12452, "longitude": 115.86506}, "sameAs": ["https://www.facebook.com/profile.php?id=61584188849173", "http://cricos.education.gov.au/Institution/InstitutionDetails.aspx?ProviderID=4394", "https://training.gov.au/organisation/details/46471"]}</script>
+<style>/* The pitch page. Tibr's document about AGIT, not AGIT's page — so it uses
+   the same three colours and two typefaces (they are AGIT's, and the point
+   is to demonstrate them) but it carries no AGIT navigation and its own
+   masthead is unmistakably a cover, not a homepage. */
+
+.pmast{background:var(--black);color:var(--white);position:relative;overflow:hidden;
+  padding-block:clamp(48px,7vw,96px) clamp(40px,5.5vw,76px);
+  border-bottom:var(--rule) solid var(--red)}
+/* the press screen, at cover scale */
+.pmast::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(rgba(255,255,255,.28) .6px,transparent .7px);
+  background-size:6px 6px}
+.pmast > *{position:relative;z-index:2}
+.pmast__from{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--white);background:var(--red);padding:7px 12px;
+  margin:0 0 clamp(24px,3vw,38px)}
+.pmast h1{font-size:clamp(34px,5.4vw,72px);max-width:19ch}
+.pmast .lede{margin-top:clamp(22px,2.6vw,34px);max-width:62ch}
+.pmast .lede b{color:var(--white);font-weight:700}
+.pmast__nav{display:flex;flex-wrap:wrap;gap:14px;margin-top:clamp(30px,3.6vw,46px)}
+
+/* severity groups. The number is information — the reader needs to know
+   these are ordered by how much damage each group is doing — so it stays. */
+.grp{display:flex;align-items:baseline;gap:16px;
+  margin:clamp(38px,4.6vw,64px) 0 clamp(16px,2vw,24px);
+  padding-bottom:12px;border-bottom:var(--rule) solid var(--black)}
+.grp:first-of-type{margin-top:0}
+.grp::before{font-family:var(--body);font-weight:800;font-size:12px;letter-spacing:.12em;
+  color:var(--white);background:var(--red);padding:5px 9px;line-height:1;flex:none;
+  align-self:center}
+.grp--1::before{content:"01 · SEVERE"}
+.grp--2::before{content:"02 · SEO"}
+.grp--3::before{content:"03 · COMPLIANCE"}
+.grp--4::before{content:"04 · CREDIBILITY"}
+.grp--3::before{background:var(--black)}
+
+/* the three directions */
+.vs{display:grid;gap:var(--rule);background:rgba(255,255,255,.28);
+  border:var(--rule) solid rgba(255,255,255,.28)}
+.vs > *{min-width:0}
+@media (min-width:1000px){.vs{grid-template-columns:repeat(3,1fr)}}
+.v{background:var(--black);padding:clamp(26px,2.6vw,38px);
+  display:flex;flex-direction:column;gap:14px}
+.v p.v__no{font-family:var(--display);font-weight:700;font-size:clamp(44px,5vw,68px);
+  line-height:.82;margin:0;color:rgba(255,255,255,.42);font-variant-numeric:tabular-nums}
+.v h3{margin:0}
+.v p.v__axis{font-size:15px;font-weight:700;color:var(--white);margin:0;max-width:none;
+  padding-left:14px;border-left:4px solid var(--red)}
+.v p{font-size:15px;line-height:1.6;color:rgba(255,255,255,.78);margin:0;max-width:none}
+.v__cost{padding-top:14px;border-top:1px solid rgba(255,255,255,.24)}
+.v__cost b{color:var(--white);font-weight:800;letter-spacing:.03em}
+.v__cost--bad b{color:var(--white);background:var(--red);padding:2px 7px;
+  margin-right:2px}
+.v .btn{margin-top:auto;align-self:flex-start}
+
+/* the recommendation. It is louder because it is a recommendation, and a
+   pitch that offers three options without naming one produces a Frankenstein. */
+.v--pick{background:var(--red);position:relative}
+.v--pick p.v__no{color:var(--black)}
+.v--pick p.v__axis{color:var(--white);border-left-color:var(--black)}
+.v--pick p{color:var(--white)}
+.v--pick .v__cost{border-top-color:rgba(0,0,0,.45)}
+.v--pick .v__cost--bad b{color:var(--white);background:var(--black)}
+.v p.v__flag{font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--white);background:var(--black);padding:7px 12px;align-self:flex-start;margin:0}
+.v--pick .btn{background:var(--black);color:var(--white);border-color:var(--black);
+  box-shadow:5px 5px 0 0 rgba(0,0,0,.4)}
+.v--pick .btn:hover{background:var(--white);color:var(--black)}
+
+.pfoot{background:var(--black);color:rgba(255,255,255,.6);
+  padding-block:clamp(34px,4vw,56px);border-top:var(--rule) solid var(--red)}
+.pfoot p{font-size:13px;line-height:1.65;max-width:82ch;margin:0}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
+<header class="pmast">
+  <div class="shell">
+    <p class="pmast__from">Tibr Studio &nbsp;&middot;&nbsp; 22 August 2026 &nbsp;&middot;&nbsp;
+      For Australian Global Institute of Technology, Jandakot</p>
+    <h1>We read your website closely.<br>
+      <span class="r">Four of the fixes are yours, whatever you decide.</span></h1>
+    <p class="lede">Nobody asked us to do this. We read <b>agit.edu.au</b> closely on 10 August,
+      found twenty things worth fixing and a fee table that does not add up, and then built three
+      complete replacements to see which approach was right. All three are live and you can
+      open them on your phone right now.</p>
+    <p class="pmast__nav">
+      <a class="btn btn--onink" href="#fixes">The four free fixes <i aria-hidden="true">&rarr;</i></a>
+      <a class="btn btn--onink" href="#audit">What we found <i aria-hidden="true">&rarr;</i></a>
+      <a class="btn btn--onink" href="#directions">The three builds <i aria-hidden="true">&rarr;</i></a>
+    </p>
+  </div>
+</header>
+
+<!-- =====================================================================
+     THE GIFT, FIRST. No conditions, no reply required.
+     ===================================================================== -->
+<section class="band band--red" id="fixes">
+  <div class="shell">
+    <div class="head head--wide">
+      <h2>Four fixes. Take them whether you hire us or not.</h2>
+      <p class="lede">These are an afternoon of work on your existing WordPress site. They
+        need no design decision, no new content and no budget. We are giving them to you
+        because they are costing you enrolments this week.</p>
+    </div>
+
+    <ol class="steps" style="color:#000">
+      <li>
+        <div>
+          <h3>Add a title tag and meta description to the homepage</h3>
+          <p>Your highest-value page currently has neither. Google is guessing what to
+            display, on the one page you most need it to get right. Ten minutes.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Add Open Graph tags</h3>
+          <p><strong>This is the one that matters most.</strong> Your site has no Open Graph
+            tags at all, so every link an agent shares on WhatsApp renders as a blank grey
+            box with a URL under it. For a student in Hyderabad who has never heard of you,
+            that grey box is AGIT. Your primary distribution channel is currently showing
+            nothing. Thirty minutes.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Compress six oversized images</h3>
+          <p>Your homepage is roughly 14.7&nbsp;MB. On throttled 4G in India or Nepal that
+            is a 25 to 40 second load, which in practice means it does not load slowly &mdash;
+            it fails. The same six images at the same visible quality come to about
+            1.5&nbsp;MB. One afternoon.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Point &ldquo;Contact Us&rdquo; at a contact page</h3>
+          <p>It currently resolves to <span class="code">/home/</span>. Your highest-intent
+            navigation item takes people nowhere. Two minutes.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout" style="max-width:70ch">
+      <p class="note-h">And eight more, at the same price</p>
+      <p>Two dead
+        <span class="code">#</span> call-to-action buttons. A course card linking to the
+        wrong course. A <span class="code">blob (1)</span> placeholder image live in your
+        partnerships carousel. A malformed agent link. Your logo being served as a WhatsApp
+        screenshot instead of the SVG we already made for you. Say the word and we will send
+        the list with the exact replacement text.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     THE AUDIT
+     ===================================================================== -->
+<section class="band screen" id="audit">
+  <div class="shell">
+    <div class="head head--wide">
+      <h2>What we found, worst first</h2>
+      <p class="lede">Twenty findings, confirmed by direct inspection of the live site on
+        10&nbsp;August 2026, and cross-checked against your four course flyers, your brand
+        book, the CRICOS register and training.gov.au.</p>
+    </div>
+
+    <h3 class="grp grp--1">Losing you enrolments now</h3>
+    <dl class="ledger">
+      <div><dt>14.7 MB homepage</dt><dd>A 25&ndash;40 second load on 4G in your two largest
+        source markets. Most of your target audience never sees the page render.</dd></div>
+      <div><dt>No Open Graph tags</dt><dd>Every agent&rsquo;s WhatsApp share is a blank grey
+        box. This is your primary recruitment channel and it is currently transmitting
+        nothing.</dd></div>
+      <div><dt>Dead &ldquo;Enroll&rdquo; button</dt><dd>Two Enroll links exist; one points at
+        <span class="code">#</span>. Your primary conversion control does nothing.</dd></div>
+      <div><dt>&ldquo;Contact Us&rdquo; &rarr; <span class="code">/home/</span></dt>
+        <dd>Highest-intent nav item, nonsensical destination.</dd></div>
+      <div><dt>Wrong course card link</dt><dd>The Cyber Security card opens the IT Strategy
+        page. A visitor who wanted cyber security reads about something else and
+        leaves.</dd></div>
+      <div><dt>&ldquo;View all courses&rdquo; &rarr; <span class="code">#</span></dt>
+        <dd>A second dead call to action, on the short-courses page.</dd></div>
+      <div><dt>No named human anywhere</dt><dd>Not one person is named on the entire site.
+        For a parent deciding whether an overseas college is real, an institution with no
+        named person is indistinguishable from a shell.</dd></div>
+    </dl>
+
+    <h3 class="grp grp--2">Costing you search traffic</h3>
+    <dl class="ledger">
+      <div><dt>No title, no meta description</dt><dd>On the homepage. Zero control over how
+        your most valuable page appears in results.</dd></div>
+      <div><dt>Typo baked into a permalink</dt>
+        <dd><span class="code">/ct60220-&hellip;</span> is missing the
+          <span class="code">i</span>. That URL will never rank for the course code it is
+          about.</dd></div>
+      <div><dt>Slug does not match content</dt><dd>Advanced Data Management lives at
+        <span class="code">&hellip;it-strategy-organisational-development-2/</span>.</dd></div>
+      <div><dt>Abandoned original</dt><dd>The <span class="code">-2</span> on
+        <span class="code">/how-to-apply-2/</span> means something still occupies
+        <span class="code">/how-to-apply/</span>.</dd></div>
+      <div><dt>Agent journey collapsed</dt><dd>&ldquo;Agents&rdquo; and &ldquo;Apply
+        Now&rdquo; both go to the same page. Agents are a primary channel and they have no
+        route of their own.</dd></div>
+    </dl>
+
+    <h3 class="grp grp--3">Compliance exposure</h3>
+    <dl class="ledger">
+      <div><dt>Five fee rows do not add up</dt><dd>Three domestic
+        <span class="code">ICT60220</span> rows state $18,500 tuition against a $15,000 total.
+        Offshore <span class="code">BSB80120</span> parts sum to $14,500 against a stated
+        $14,000. Two payment plans do not sum to their own totals. A prospective student
+        cannot compute a correct figure from your published table, and published fee
+        information carries obligations under the ESOS framework.</dd></div>
+      <div><dt>Four sources, four fee structures</dt><dd>Website, course flyers, the
+        onshore/offshore flyer and the agent flyer each publish different numbers for the
+        same qualifications. The spread on <span class="code">ICT60220</span> tuition is
+        $16,000. All four are in circulation.</dd></div>
+      <div><dt>A prescribed unit title has been overwritten</dt>
+        <dd><span class="code">ICTICT618</span> prints on your flyer as &ldquo;Manage
+          <strong>AGIT</strong>, ethics and privacy&rdquo;. The national training package
+          says &ldquo;Manage <strong>IP</strong>&rdquo;. A find-and-replace on your own
+          acronym has corrupted a title you are not permitted to alter. This is the most
+          serious documentation error we found.</dd></div>
+      <div><dt>Provider code in the course code field</dt><dd>Every flyer prints
+        &ldquo;CRICOS COURSE CODE: 04394M&rdquo;. That is your <em>provider</em> code. Four
+        qualifications cannot share one course code. This may be a labelling shortcut rather
+        than a registration issue &mdash; but it needs resolving before any page publishes a
+        course code, and we are asking rather than asserting.</dd></div>
+      <div><dt>One duration contradicts itself</dt><dd><span class="code">BSB80120</span> is
+        52 weeks in three sources and 104 weeks on the agent flyer.</dd></div>
+    </dl>
+
+    <h3 class="grp grp--4">Undermining your credibility</h3>
+    <dl class="ledger">
+      <div><dt>RTO and CRICOS codes absent from the homepage</dt><dd>Registration is claimed
+        in prose four times and never once evidenced with the number. The codes are the
+        evidence; the prose is not.</dd></div>
+      <div><dt>A placeholder is live in production</dt><dd><span class="code">blob (1)</span>
+        is sitting in your Industry Engagement carousel.</dd></div>
+      <div><dt>Your logo is a WhatsApp screenshot</dt><dd>Served as
+        <span class="code">WhatsApp-Image-&hellip;.jpeg</span>, with the favicon derived from
+        the same file &mdash; when a proper SVG of that logo already exists, because we drew
+        it in October 2025.</dd></div>
+      <div><dt>Your brand book says three colours</dt><dd>Black, red, white. The live site
+        uses blues, teals, photographic gradients and multi-colour icons. The identity you
+        commissioned is not the identity you are running.</dd></div>
+      <div><dt>Three sections say the same thing</dt><dd>Consecutive homepage blocks restate
+        the same four claims with no progression.</dd></div>
+      <div><dt>Your best credential is buried</dt><dd>The EC-Council Academia partnership is
+        the strongest thing you have and it is inside a news carousel. EC-Council issues the
+        CEH. It is the one certification body your cyber applicants already
+        recognise.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<div class="dissolve" aria-hidden="true" style="--from:#fff;--to:#000"></div>
+
+<!-- =====================================================================
+     THE THREE DIRECTIONS
+     ===================================================================== -->
+<section class="band band--ink" id="directions">
+  <div class="shell">
+    <div class="head head--wide">
+      <h2>Three replacements, differing on one question</h2>
+      <p class="lede">Not three levels of polish. Three answers to the same question:
+        <strong>how much of the site do you replace?</strong> All three are built, deployed
+        and openable on a phone.</p>
+    </div>
+
+    <div class="vs">
+      <article class="v">
+        <p class="v__no">01</p>
+        <h3>The conservative rebuild</h3>
+        <p class="v__axis">One page. Familiar structure, disciplined execution.</p>
+        <p>Everything the current site should be and is not: 109&nbsp;KB against
+          14.7&nbsp;MB, zero contrast failures, ESOS-safe wording throughout, and it works
+          with JavaScript disabled. The interactive course-pathway graph is present but sits
+          below a conventional hero.</p>
+        <p class="v__cost"><b>Best if</b> you want the least disruption and the fastest
+          decision.</p>
+        <p class="v__cost v__cost--bad"><b>Costs you</b> the eighteen-page URL surface. It is
+          a single page, so every course URL that currently ranks would need redirecting into
+          one document.</p>
+        <p><a class="btn btn--onink" href="https://agit-1-tibr.netlify.app/"
+          rel="noopener">Open V1 <i aria-hidden="true">&rarr;</i></a></p>
+      </article>
+
+      <article class="v">
+        <p class="v__no">02</p>
+        <h3>The interactive network</h3>
+        <p class="v__axis">One page. The curriculum as a live graph, front and centre.</p>
+        <p>V1&rsquo;s discipline with a completely different surface. The pathway network
+          moves into the hero and works on touch, the palette goes dark-dominant, and it adds
+          a cost estimator, a course filter, an application timeline and form prefill. Built
+          because V1 did not look like the thing its own documentation claimed it was.</p>
+        <p class="v__cost"><b>Best if</b> you want a site nobody confuses with a competitor,
+          and you are comfortable being the boldest-looking provider in Perth.</p>
+        <p class="v__cost v__cost--bad"><b>Costs you</b> the same eighteen-page surface, and
+          it is dark &mdash; which some of your audience reads as tech-sector rather than
+          educational.</p>
+        <p><a class="btn btn--onink" href="https://agit-2-tibr.netlify.app/"
+          rel="noopener">Open V2 <i aria-hidden="true">&rarr;</i></a></p>
+      </article>
+
+      <article class="v v--pick">
+        <p class="v__no">05</p>
+        <p class="v__flag">What we would ship</p>
+        <h3>The whole estate</h3>
+        <p class="v__axis">Eleven pages now, eighteen at launch. Your SEO survives.</p>
+        <p>A real multi-page site: every course its own page with its own title, description,
+          canonical, Open Graph card and structured data. A 301 map so nothing that ranks
+          today is lost. The cost estimator answering the fee question on the page. And an
+          audit layer you can switch off &mdash; every finding above is pinned to the exact
+          element it affects, so you can see the site and the findings at the same time.</p>
+        <p class="v__cost"><b>Best if</b> you care about the organic traffic you already
+          have.</p>
+        <p class="v__cost v__cost--bad"><b>Costs you</b> the most build time, and it makes
+          your open questions visible &mdash; every fee we could not verify shows as an
+          unfilled slot rather than a confident number.</p>
+        <p><a class="btn btn--onink" href="https://radwanjml.github.io/sites/agit/"
+          rel="noopener">Open V5 <i aria-hidden="true">&rarr;</i></a></p>
+      </article>
+    </div>
+
+    <p class="small" style="margin-top:26px;color:rgba(255,255,255,.8)">
+      V5&rsquo;s homepage opens on a desk you can throw a die across &mdash; each face is a
+      real qualification. Two other opening treatments were built and are still live if you
+      want to compare them:
+      <a class="link" href="/sites/agit/heroes/lattice.html">the curriculum as a ball-and-stick model</a>,
+      which is honest because <span class="code">BSBTWK502</span> genuinely is a core unit in
+      three different qualifications, and
+      <a class="link" href="/sites/agit/heroes/deep-field.html">the same geometry played for mood</a>.
+      Both cost 620&nbsp;KB of third-party JavaScript. The desk costs none, which is why it
+      is the one on the front door.</p>
+
+    <div class="callout" style="max-width:74ch;margin-top:clamp(36px,4vw,56px)">
+      <p class="note-h">We would ship V5, and here is the one reason</p>
+      <p>Your live site is roughly eighteen pages and three PDFs. Those course pages pull
+        organic search on terms like &ldquo;ICT60220 Perth&rdquo; and &ldquo;civil
+        construction design diploma Perth&rdquo; &mdash; traffic you are already earning and
+        not paying for.</p>
+      <p><strong>V1 and V2 are both single-page, and a single-page rebuild would cost you
+        that.</strong> We are telling you this about our own work because discovering it later
+        would be worse for both of us. If you pick V1 or V2 anyway, that is a legitimate
+        decision, but make it knowing the trade.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     WHAT WE NEED
+     ===================================================================== -->
+<section class="band screen" id="register">
+  <div class="shell">
+    <div class="split">
+      <div>
+        <div class="head"><h2>What we need from you before anything publishes</h2></div>
+        <p>Twenty items, and five of them block everything else. Not one figure on any of the
+          three builds was invented to fill a gap &mdash; where we could not verify something,
+          it renders as a visibly unfilled slot.</p>
+        <p style="margin-top:18px">That is deliberate. On a page whose whole purpose is
+          telling a student what a course costs, a plausible-looking wrong number is not a
+          placeholder. It is a liability.</p>
+      </div>
+      <div>
+        <dl class="ledger">
+          <div><dt>Blocking</dt><dd>Which of your four fee sources is current and
+            authoritative, and the corrected arithmetic for the five defective rows.</dd></div>
+          <div><dt>Blocking</dt><dd>The individual CRICOS course code for each
+            qualification.</dd></div>
+          <div><dt>Blocking</dt><dd>A privacy policy URL. No form we build collects a single
+            field before one exists.</dd></div>
+          <div><dt>Blocking</dt><dd>Whether <span class="code">BSB80120</span> is 52 or 104
+            weeks.</dd></div>
+          <div><dt>Blocking</dt><dd>Refund policy and Tuition Protection Service
+            statement.</dd></div>
+          <div><dt>High value</dt><dd>Trainer names, photographs and credentials, with written
+            consent. Real campus photography. One named student advisor with a direct
+            WhatsApp.</dd></div>
+          <div><dt>High value</dt><dd>Twelve months of intake commencement dates, and the
+            application deadline for each.</dd></div>
+          <div><dt>High value</dt><dd>Whether the Foundational Cohort Scholarship 2026 is
+            live, and its value and criteria.</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     CLOSE
+     ===================================================================== -->
+<section class="band band--red" id="next">
+  <div class="shell">
+    <div class="split split--even" style="align-items:center">
+      <div>
+        <h2>The next step is a twenty-minute call.</h2>
+      </div>
+      <div>
+        <p class="lede" style="margin-bottom:24px">Not a proposal, not a quote. Twenty
+          minutes to confirm which fee schedule is real, and to hand over the four fixes so
+          you can apply them yourself this week.</p>
+        <p class="small">Tibr Studio &mdash; Radwan Jameel<br>
+          <a href="mailto:jameelradwan4@gmail.com">jameelradwan4@gmail.com</a></p>
+        <p class="small" style="margin-top:20px">Everything on these three sites was built
+          from information AGIT has already published: the website, four course flyers, the
+          brand identity document we produced in October 2025, the CRICOS register and
+          training.gov.au. No AGIT system was accessed and no data was collected.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="pfoot">
+  <div class="shell">
+    <p>These three sites are unsolicited concepts by Tibr Studio. They are not AGIT
+      properties, they are excluded from search indexing, and they will be taken down on
+      request. AGIT&rsquo;s name, RTO number, CRICOS code and brand marks appear on them for
+      the sole purpose of showing AGIT what its own site could be.</p>
+    <p style="margin-top:14px">Reviewed 10 August 2026 against agit.edu.au as it stood on that
+      date. If the site has since changed, we will re-check before quoting.</p>
+  </div>
+</footer>
+</main>
+
+<script src="/sites/agit/assets/js/site.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- maximum-scale=1 / user-scalable=no used to be here. Blocking pinch
+     zoom is a WCAG 1.4.4 failure and it was never needed: #stage already
+     declares touch-action:pan-y, so the browser does not pinch-zoom over
+     the field anyway. Removing it only gives the zoom back over the type. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AGIT — four qualifications, one Perth campus</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/sites/agit/favicon.svg" type="image/svg+xml">
+<style>
+  /* --- palette: nebula re-theme. --silver/--gold names kept (referenced throughout
+     the CSS below) but repointed to a cool periwinkle + warm-ember cosmic pair so
+     "warm = interactive" still reads even though the background is no longer black. --- */
+  :root{
+    --void:#000; --red:#D9372A; --white:#fff;
+    --silver:#d5d7db; --gold:#D9372A; --dim:#6d6a68;
+    --display:"Playfair Display",Georgia,serif;
+    --body:"Montserrat",system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--void);overflow-x:hidden}
+  body{font-family:"Montserrat",system-ui,-apple-system,sans-serif;color:var(--silver);
+       -webkit-font-smoothing:antialiased}
+  #stage{position:fixed;inset:0;z-index:0;touch-action:pan-y;
+    transition:opacity .5s linear}
+  canvas{display:block}
+  /* the grade pass now carries the primary vignette (see GradeShader) - this
+     stays only as a soft edge cleanup on top, much lighter than before. */
+  #vignette{position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 48%,rgba(4,4,14,0) 55%,rgba(4,4,14,.20) 85%,rgba(3,3,12,.40) 100%)}
+
+  .hud{position:fixed;pointer-events:none;font-size:10px;letter-spacing:.22em;
+       text-transform:uppercase;color:var(--dim);opacity:0;transition:opacity 1.2s ease 1.4s;line-height:1.9}
+  body.ready .hud{opacity:1}
+  #tl{top:22px;left:22px}
+  #tl b{color:var(--silver);font-weight:500}
+  #bl{bottom:22px;left:22px}
+  #bl span{color:var(--gold)}
+  #br{bottom:22px;right:22px;text-align:right}
+
+  #controls{position:fixed;top:18px;right:18px;display:flex;gap:8px;opacity:0;
+            transition:opacity 1.2s ease 1.4s}
+  body.ready #controls{opacity:1}
+  button{font:inherit;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    background:transparent;color:var(--dim);border:1px solid rgba(200,204,212,.16);
+    padding:8px 14px;border-radius:2px;cursor:pointer;transition:color .25s,border-color .25s}
+  button:hover,button:focus-visible{color:var(--gold);border-color:rgba(255,157,92,.5);outline:none}
+
+  /* --- node panel: the empty slot. Copy goes here later. Gradients tinted
+     deep indigo rather than pure black - flat black punched a hole in the
+     nebula backdrop instead of reading as part of the same scene. --- */
+  #panel{position:fixed;z-index:6;left:0;right:0;bottom:0;padding:26px 26px 34px;
+    background:linear-gradient(to top,rgba(0,0,0,.96),rgba(0,0,0,.82) 62%,transparent);
+    transform:translateY(105%);transition:transform .6s cubic-bezier(.22,1,.36,1);
+    pointer-events:none}
+  #panel.open{transform:translateY(0);pointer-events:auto}
+  /* Red at 10px on near-black measures 4.33:1 and fails AA — and it is the
+     small-red-on-black pairing the brand book bans anyway. White type, red
+     rule: the accent becomes a block instead of a colour on the letterforms. */
+  #panel .idx{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.24em;
+    text-transform:uppercase;color:#fff;margin-bottom:14px}
+  #panel .idx::before{content:"";display:block;width:26px;height:2px;
+    background:var(--red);margin-bottom:9px}
+  #panel h2{font-family:var(--display);font-size:clamp(24px,2.4vw,32px);font-weight:500;
+    line-height:1.1;letter-spacing:-.015em;margin-bottom:14px;color:#fff;text-wrap:balance}
+  #panel p{font-family:var(--body);font-size:13.5px;line-height:1.7;color:#a09b97;max-width:40ch}
+  #panel .meta{font-family:var(--body);margin-top:20px;padding-top:14px;
+    border-top:1px solid rgba(213,215,219,.16);
+    font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9a938d}
+  /* Every qualification node is a real destination, so the panel needs a
+     door. Leaf nodes route to the qualification that reaches them. */
+  .p-go{display:inline-flex;align-items:center;gap:10px;margin-top:24px;
+    min-height:48px;padding:14px 22px;background:var(--red);color:#fff;
+    font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.11em;
+    text-transform:uppercase;text-decoration:none;pointer-events:auto;
+    transition:background .25s ease,transform .25s cubic-bezier(.22,1,.36,1)}
+  .p-go:hover{background:#fff;color:#000;transform:translateY(-2px)}
+  .p-go i{font-style:normal}
+  #close{font-family:var(--body);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    background:transparent;color:#b9b3ae;border:1px solid rgba(213,215,219,.2);
+    padding:9px 14px;min-height:36px;cursor:pointer;transition:color .2s,border-color .2s}
+  #close:hover{color:#fff;border-color:var(--red)}
+
+  /* Two hero states. Selecting a node is a change of subject, so the headline
+     recedes and hands the right-hand column to the panel instead of the two
+     fighting for the same column. */
+  .htype{transition:opacity .45s ease, transform .45s cubic-bezier(.22,1,.36,1)}
+  /* No recede. The panel is a right-hand rail and the type sits bottom-left,
+     so they do not compete - and the headline, RTO and CRICOS are exactly what
+     must stay legible while someone is reading a course. */
+  body.ready.picking .htype{opacity:1}
+  #close{position:absolute;top:22px;right:24px;pointer-events:auto}
+  @media(min-width:820px){
+    #panel{left:auto;right:0;top:0;bottom:0;width:340px;padding:0 40px;
+      display:flex;flex-direction:column;justify-content:center;
+      background:linear-gradient(to left,rgba(0,0,0,.95),rgba(0,0,0,.72) 62%,transparent);
+      width:392px;padding:0 48px;transform:translateX(105%)}
+    #panel.open{transform:translateX(0)}
+  }
+  /* mobile previously just hid #br entirely, leaving touch users with no
+     hint that tap-then-drag (not long-press) is how you move a node - the
+     build log deliberately chose that resolution over long-press because
+     long-press is undiscoverable, but hiding the only text that explains it
+     defeats the point. Recentred to the bottom, above the closed panel's
+     translate zone, and set to fade out after the first touch instead of
+     lingering forever. */
+  @media(max-width:600px){
+    #br{left:0;right:0;bottom:68px;text-align:center;transition:opacity 1s ease}
+    #br.faded{opacity:0}
+    #tl,#bl{font-size:9px;letter-spacing:.16em}
+  }
+
+  #boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--void);z-index:10;
+    font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);transition:opacity .8s}
+  #boot.gone{opacity:0;pointer-events:none}
+
+  /* ---------------------------------------------------------------- TYPE */
+  @font-face{font-family:"Playfair Display";src:url("../assets/fonts/playfair-latin.woff2") format("woff2");
+    font-weight:400 900;font-style:normal;font-display:swap}
+  @font-face{font-family:"Montserrat";src:url("../assets/fonts/montserrat-latin.woff2") format("woff2");
+    font-weight:100 900;font-style:normal;font-display:swap}
+
+  /* Browser surfaces. These ship with defaults that belong to no design
+     system, and theming them is the cheapest signal a page was built. */
+  ::selection{background:var(--red);color:#fff}
+  html{scrollbar-color:#3a3634 #0a0908;scrollbar-width:thin}
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-track{background:#0a0908}
+  ::-webkit-scrollbar-thumb{background:#3a3634;border:3px solid #0a0908}
+  ::-webkit-scrollbar-thumb:hover{background:var(--red)}
+  :focus-visible{outline:2px solid var(--red);outline-offset:3px}
+
+  /* --------------------------------------------------- HERO COMPOSITION */
+  /* The field occupies the left. The type owns the right. The scrim is a
+     directional grade, not a panel: light falls off toward the reading side. */
+  #scrim{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:
+      linear-gradient(15deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.86) 16%,
+        rgba(0,0,0,.52) 34%, rgba(0,0,0,.14) 52%, rgba(0,0,0,0) 68%),
+      radial-gradient(110% 85% at 72% 42%, rgba(217,55,42,.11) 0%, rgba(0,0,0,0) 62%);}
+
+  /* The instruction line. Bottom-right, diagonally opposite the type and
+     directly under the field it describes. Fades once you have touched it. */
+  #br{position:fixed;z-index:4;right:clamp(20px,5vw,72px);bottom:clamp(22px,3.4vh,34px);
+    font-family:var(--body);font-size:10px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;color:#b9b3ae;text-align:right;pointer-events:none;
+    text-shadow:0 1px 14px rgba(0,0,0,.9), 0 0 3px rgba(0,0,0,.8);
+    transition:opacity .8s ease}
+  body.touched #br{opacity:.55}
+  @media(max-width:900px){
+    #br{left:20px;right:20px;text-align:left;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
+      font-size:9px;letter-spacing:.13em}
+  }
+  #hero{position:relative;z-index:3;min-height:100svh;display:grid;
+    align-items:end;justify-items:start;
+    padding:clamp(84px,12vh,140px) clamp(20px,5vw,72px) clamp(72px,10vh,110px);
+    pointer-events:none}
+  .htype{max-width:min(600px,52vw);text-align:left}
+  /* entrance lives on the inner layer so its 1.15s delay never leaks into the
+     select/deselect state change on the outer one */
+  .htype__in{opacity:0;transform:translateY(16px);
+    transition:opacity 1.2s ease 1.15s,transform 1.2s cubic-bezier(.22,1,.36,1) 1.15s}
+  body.ready .htype__in{opacity:1;transform:none}
+  .htype h1{font-family:var(--display);font-weight:500;color:#fff;
+    font-size:clamp(40px,5.6vw,78px);line-height:1.0;letter-spacing:-.025em;
+    text-wrap:balance}
+  .htype h1 em{font-style:normal;color:var(--red)}
+  .htype .deck{font-family:var(--body);font-size:clamp(13.5px,1.15vw,16px);
+    line-height:1.65;color:#a4a09d;margin-top:22px;max-width:40ch}
+  .htype .cta{pointer-events:auto;display:inline-flex;align-items:center;gap:12px;
+    margin-top:30px;min-height:52px;padding:15px 26px;background:var(--red);color:#fff;
+    font-family:var(--body);font-size:12.5px;font-weight:700;letter-spacing:.11em;
+    text-transform:uppercase;text-decoration:none;
+    transition:background .25s ease,transform .25s cubic-bezier(.22,1,.36,1)}
+  .htype .cta:hover{background:#fff;color:#000;transform:translateY(-2px)}
+  .htype .codes{font-family:var(--body);font-size:11.5px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;color:#cfc9c4;
+    margin-top:34px;padding-top:16px;
+    border-top:1px solid rgba(213,215,219,.28)}
+
+  @media(max-width:900px){
+    #hero{justify-items:start;align-items:end;min-height:100svh;
+      padding:0 20px clamp(84px,12vh,112px)}
+    .htype{max-width:none;text-align:left}
+  }
+
+  /* ----------------------------------------------- SCROLLING PAGE BELOW */
+  /* The document scrolls over the fixed field. The seam is a hard black
+     edge - the sky ends and the prospectus begins. */
+  #page{position:relative;z-index:3;background:#000;
+    box-shadow:0 -60px 90px 30px #000}
+  .band{padding:clamp(56px,9vw,120px) clamp(20px,5vw,72px);
+    max-width:1320px;margin:0 auto}
+  .band h2{font-family:var(--display);font-weight:500;color:#fff;
+    font-size:clamp(28px,4vw,50px);line-height:1.08;letter-spacing:-.018em;margin:0 0 18px}
+  .band p{font-family:var(--body);color:#8f8b88;max-width:62ch;
+    font-size:clamp(13.5px,1.05vw,15.5px);line-height:1.7;margin:0}
+
+  /* =====================================================================
+     22 AUGUST 2026 — THE MOBILE PASS
+
+     On a phone the field and the reading column are the same column, and
+     three things followed from that which were wrong on a real device:
+
+       · The panel is a bottom sheet whose background faded to TRANSPARENT
+         at the top, so the hero headline read straight through the panel's
+         own copy. Two paragraphs in the same pixels.
+       · #close was absolutely positioned against that transparent top, so
+         it floated in the middle of the deck text.
+       · `body.ready.picking .htype{opacity:1}` above deliberately keeps the
+         headline up while a node is selected. That is correct on desktop,
+         where the panel is a right-hand rail and the two never meet. On a
+         phone it is the cause of the collision.
+
+     None of this shows on a desktop browser narrowed to phone width with a
+     mouse, which is how it got missed.
+     ===================================================================== */
+
+  /* A local pad under the type. The field moves, so the headline cannot
+     rely on the global scrim alone — a node drifting behind a word is a
+     legibility problem no page-level gradient can predict. This one
+     follows the type block. */
+  body{overflow-x:clip}
+  .htype{position:relative}
+  /* The bleed is clamped in px as well as %, because on a phone .htype is
+     nearly the full viewport and a -16% bleed pushed the document 24px wider
+     than the screen. Percentages that are fine on a 600px column are not fine
+     on a 350px one. */
+  .htype::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+    left:calc(-1 * min(10%, 18px));right:calc(-1 * min(16%, 18px));
+    top:-12%;bottom:-26%;
+    background:radial-gradient(78% 82% at 30% 58%, rgba(0,0,0,.86) 0%, rgba(0,0,0,.62) 40%, rgba(0,0,0,0) 78%)}
+
+  @media (max-width:819px){
+    /* the headline gets out of the way — see the note above */
+    body.ready.picking .htype{opacity:0;transform:translateY(12px);
+      pointer-events:none}
+    body.picking #br{opacity:0}
+
+    /* the sheet is opaque, and it has an edge */
+    #panel{top:auto;display:flex;flex-direction:column;align-items:stretch;
+      padding:16px 22px calc(env(safe-area-inset-bottom,0px) + 26px);
+      background:#08070a;
+      border-top:3px solid var(--red);
+      box-shadow:0 -20px 44px rgba(0,0,0,.72);
+      max-height:min(78svh,640px);overflow-y:auto;
+      -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+
+    /* close moves into the sheet's own flow as its first row, so it can no
+       longer sit on top of anything */
+    #close{position:static;order:-1;align-self:flex-end;margin:0 0 10px;
+      background:rgba(255,255,255,.06);min-height:40px;padding:10px 16px}
+
+    #panel h2{font-size:clamp(23px,6.4vw,30px)}
+    #panel p{max-width:none;font-size:14.5px}
+    .p-go{align-self:flex-start;margin-top:22px}
+
+    /* a sheet the page can scroll away underneath is a sheet the reader
+       loses track of */
+    body.picking{overflow:hidden}
+  }
+
+  /* The deep field had no mobile scrim at all — the light theme got one and
+     the dark one never did — so on a phone the headline sat directly on the
+     starfield and, worse, on the red core of the hub, red type edge-to-edge
+     with red geometry. */
+  @media (max-width:900px){
+    #scrim{background:
+      linear-gradient(to top, rgba(0,0,0,.985) 0%, rgba(0,0,0,.95) 30%,
+      rgba(0,0,0,.74) 48%, rgba(0,0,0,.32) 64%, rgba(0,0,0,0) 82%),
+    radial-gradient(130% 62% at 50% 100%, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 72%)}
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="vignette"></div>
+
+
+
+<div class="hud" id="br">Drag to orbit &middot; Tap a light</div>
+
+
+<div id="scrim"></div>
+
+<section id="hero">
+  <div class="htype"><div class="htype__in">
+    <h1>Four qualifications.<br>One <em>Perth</em> campus.</h1>
+    <p class="deck">Nationally recognised training at one campus in Jandakot.
+      Drag the field. The four lights are the qualifications.</p>
+    <a class="cta" href="#cost">What it costs</a>
+    <p class="codes">RTO 46471 &nbsp;·&nbsp; CRICOS 04394M &nbsp;·&nbsp; Jandakot, Perth</p>
+  </div></div>
+</section>
+
+<div id="page">
+  <section class="band" id="cost">
+    <h2>What it costs, before you apply</h2>
+    <p>Section two is the estimator, full-bleed. Two questions, no email address,
+      and a figure that resolves on this page &mdash; with the written Letter of
+      Offer named as the number that actually counts.</p>
+  </section>
+  <section class="band">
+    <h2>An EC-Council Academia partner</h2>
+    <p>The strongest credential AGIT holds, currently buried in a news carousel
+      on the live site. EC-Council issues the CEH certification, which is the one
+      name a cyber security applicant already recognises.</p>
+  </section>
+</div>
+
+<div id="panel">
+  <button id="close">Close</button>
+  <div class="idx" id="p-idx">NODE —</div>
+  <h2 id="p-title">Untitled node</h2>
+  <p id="p-body">Placeholder. Replace with real copy or a link when the content exists.</p>
+  <div class="meta" id="p-meta"></div>
+  <a class="p-go" id="p-go" href="#">Course details <i aria-hidden="true">&rarr;</i></a>
+</div>
+
+<div id="boot">Assembling</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+<!-- Real post-processing: this is the actual gap between "nice" and "$1000 render".
+     Bloom lets light bleed past a node's edge instead of stopping at a hard alpha cutoff,
+     and filmic tone mapping is what gives footage/renders their contrast curve instead of
+     flat linear color. Both are budgeted below rather than skipped on mobile. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" crossorigin="anonymous"></script>
+<script>
+(function(){
+"use strict";
+
+/* ================= CONFIG ================= */
+const MOBILE  = matchMedia("(pointer:coarse)").matches || Math.min(innerWidth,innerHeight) < 700;
+const REDUCED = matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+const CFG = {
+  /* Deliberately small. This is a diagram of four qualifications and where
+     they lead, not a galaxy - every node has to be a real thing with a real
+     name, so the count is bounded by the content, not by how full it looks. */
+  /* DEEP FIELD: the qualifications are four distant lights, not a diagram.
+     Scale comes from emptiness, so almost everything is taken away. */
+  nodes:     MOBILE ? 13   : 18,
+  dust:      MOBILE ? 1800 : 4600,
+  clusters:  4,   /* one per qualification */
+  // hub COUNT kept close to the original absolute values (not scaled up with
+  // node count) - a first attempt raised both hub density and hub brightness
+  // together, and hubs within the same cluster sit close enough in space
+  // that they bloomed into one fused white mass rather than reading as
+  // distinct nodes (verified: it didn't fade or move, so it wasn't the wave -
+  // it was static bloom/point-sprite overlap from too many bright hubs too
+  // close together).
+  hubs:      4,   /* the four qualifications themselves */
+  neighbours:MOBILE ? 2    : 2,
+  bridges:   MOBILE ? 3    : 4,
+  hops:      MOBILE ? 1    : 2,     // drag propagation depth
+  fog:       MOBILE ? 0.0150 : 0.0125,
+  // --- nebula / starfield budget: same "budget, don't cut" philosophy as
+  // dust above. Ratios roughly track the existing dust 1200/3000 (~40%) cut. ---
+  domeOct:     MOBILE ? 3    : 5,
+  domeSegs:    MOBILE ? [36,22] : [48,32],
+  wisps:       MOBILE ? 1    : 2,
+  farStars:    MOBILE ? 1100 : 2600,
+  twinkleStars:MOBILE ? 340  : 900,
+  edgeSeg:     MOBILE ? 3    : 6,     // curved-edge polyline segments
+  dustAbsorb:  !MOBILE                // second absorption dome, desktop only
+};
+
+/* ================= SEED ================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const params=new URLSearchParams(location.search);
+let SEED=parseInt(params.get("seed"),10);
+if(!Number.isFinite(SEED)) SEED=(Math.random()*1e9)|0;
+// `rnd` is reassigned on regen (see regenerate() near the end) - `rand`/`gauss`
+// close over the identifier, not a snapshot, so a reassignment is picked up
+// on their very next call with no further wiring needed.
+let rnd=mulberry32(SEED);
+const rand=(a,b)=>a+(b-a)*rnd();
+const gauss=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+const _so=document.getElementById("seedout"); if(_so) _so.textContent=SEED;
+
+/* ================= SCENE ================= */
+const stage=document.getElementById("stage");
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x000000,CFG.fog);
+// far=900, not the previous 400: the dome (r=300) and twinkle stars (r up to
+// R*14=364) sat closer to camera.far than they looked - at the camera's
+// worst-case reach (maxDist plus a selected node's target offset, ~124-138
+// units from origin) the dome's far side landed at 424-438 and twinkle stars
+// at up to 502, both past a far=400 plane, and got hard-clipped by the sky.
+const camera=new THREE.PerspectiveCamera(MOBILE?68:46,innerWidth/innerHeight,0.5,900);
+const renderer=new THREE.WebGLRenderer({antialias:!MOBILE,powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.setClearColor(0x000000,1);
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=MOBILE?1.00:1.08;   // pulled back further to keep the backdrop from blowing out
+stage.appendChild(renderer.domElement);
+const world=new THREE.Group(); scene.add(world);
+
+/* plain THREE.PointsMaterial with no sprite renders GPU point primitives as
+   literal squares - drawing one soft circular alpha sprite on a canvas (no
+   network asset, stays a single self-contained file) and reusing it as `map`
+   on every plain-PointsMaterial layer below fixes that outright. */
+const dotTex=(()=>{
+  const cv=document.createElement("canvas"); cv.width=cv.height=32;
+  const g=cv.getContext("2d");
+  const grd=g.createRadialGradient(16,16,0,16,16,16);
+  grd.addColorStop(0,"rgba(255,255,255,1)");
+  grd.addColorStop(0.5,"rgba(255,255,255,.55)");
+  grd.addColorStop(1,"rgba(255,255,255,0)");
+  g.fillStyle=grd; g.fillRect(0,0,32,32);
+  const tex=new THREE.CanvasTexture(cv);
+  return tex;
+})();
+
+/* --- bloom: real light bleed instead of a hard-edged sprite halo.
+   Resolution and strength are budgeted down on mobile so it stays smooth,
+   not switched off — this is the render's whole "expensive" quality. */
+const bloomRes = MOBILE
+  ? new THREE.Vector2(innerWidth*0.55, innerHeight*0.55)
+  : new THREE.Vector2(innerWidth, innerHeight);
+const composer=new THREE.EffectComposer(renderer);
+composer.setPixelRatio(Math.min(devicePixelRatio||1, MOBILE?1.5:2));
+composer.addPass(new THREE.RenderPass(scene,camera));
+/* Threshold keeps the nebula backdrop (which stays under it, verified by
+   pixel-readback below) from blooming uniformly and washing out the
+   black-void contrast that makes wave/selection ignition read as meaningful.
+   Strength raised from the original pass so the (now brighter) idle network
+   actually blooms instead of only the selected node. Radius is the
+   parameter that controls how far a bright pixel bleeds into its
+   neighbours - raising it alongside strength caused dense hub clusters
+   (several bright nodes sitting close together on screen) to visually fuse
+   into one indistinct white mass instead of reading as separate glowing
+   nodes, which is a real defect (verified: the blob did not fade or change
+   shape over several seconds, meaning it wasn't a wave decaying, it was
+   static bloom fusion). Kept tight so glow stays local to each node. */
+// threshold raised (0.36/0.34 -> 0.42/0.40) so bloom is reserved for the
+// interactive layer (nodes/wave/selection) now that the darker backdrop no
+// longer needs it to read as luminous on its own - radius left untouched at
+// 0.24/0.30, which the build log identifies as the actual lever behind the
+// cluster-fusion regression, not something to touch again here.
+const bloomPass=new THREE.UnrealBloomPass(bloomRes, MOBILE?0.80:1.12, MOBILE?0.46:0.62, MOBILE?0.38:0.30);
+composer.addPass(bloomPass);
+
+/* --- cinematic grade: one combined pass (contrast + split-tone + radial
+   chromatic aberration + subtle grain), appended after bloom. A single custom
+   pass instead of grade + a stock RGBShiftShader pass, deliberately: the stock
+   shift is uniform screen-wide, which reads as a video glitch rather than a
+   lens artifact, and a second full-screen pass would cost mobile fill-rate for
+   no benefit. ShaderPass/CopyShader are already loaded above, so this needs no
+   new CDN script. Every uniform is declared explicitly - this file has a
+   documented history of a silent-crash bug from an undeclared uniform on a raw
+   ShaderMaterial, and every new shader in this reskin reopens that surface. */
+const GradeShader={
+  uniforms:{
+    tDiffuse:{value:null},
+    uAspect:{value:innerWidth/innerHeight},
+    uCA:{value:MOBILE?0.0006:0.0012},
+    uContrast:{value:1.14},
+    uLift:{value:new THREE.Color(0x150707)},
+    uGain:{value:new THREE.Color(0xffcbbc)},
+    uSat:{value:1.10},
+    uGrain:{value:0.018}
+  },
+  vertexShader:`
+    varying vec2 vUv;
+    void main(){
+      vUv=uv;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+    }`,
+  fragmentShader:`
+    uniform sampler2D tDiffuse;
+    uniform float uAspect,uCA,uContrast,uSat,uGrain;
+    uniform vec3 uLift,uGain;
+    varying vec2 vUv;
+    float rand(vec2 co){ return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453); }
+    void main(){
+      // radial CA: offset scales with r^2 so the frame centre stays clean and
+      // only the edges smear, like a lens - not a uniform screen-wide shift.
+      vec2 c=vUv-0.5; c.x*=uAspect;
+      float r2=dot(c,c);
+      vec2 dir=(r2>1e-8)?normalize(c):vec2(0.0);
+      vec2 off=dir*r2*uCA; off.x/=max(uAspect,0.0001);
+      float rC=texture2D(tDiffuse,vUv+off).r;
+      float gC=texture2D(tDiffuse,vUv).g;
+      float bC=texture2D(tDiffuse,vUv-off).b;
+      vec3 col=vec3(rC,gC,bC);
+
+      // S-curve contrast - kept modest so the black void never crushes flat.
+      col=(col-0.5)*uContrast+0.5;
+
+      // split-tone: cool lift in shadows, warm gain in highlights - same
+      // cool-base/warm-peak temperature language as the node palette, now
+      // applied globally.
+      float lum=dot(col,vec3(0.299,0.587,0.114));
+      col+=uLift*smoothstep(0.45,0.0,lum)*0.16;
+      col=mix(col,col*uGain*1.12,smoothstep(0.55,1.0,lum)*0.18);
+
+      float g=dot(col,vec3(0.299,0.587,0.114));
+      col=mix(vec3(g),col,uSat);
+
+      // vignette moved here (was CSS-only) so it composites with the grade
+      // instead of sitting as a flat DOM overlay on top of everything -
+      // reads as a lens falloff rather than a UI mask. r2 is already
+      // aspect-corrected from the CA step above.
+      float vig=smoothstep(0.12,0.58,r2);
+      col*=mix(1.0,0.52,vig);
+
+      float n=(rand(vUv*vec2(1000.0,1000.0)+uAspect)-0.5)*uGrain;
+      col+=n;
+
+      gl_FragColor=vec4(clamp(col,0.0,1.0),1.0);
+    }`
+};
+const gradePass=new THREE.ShaderPass(GradeShader);
+composer.addPass(gradePass);
+
+/* ================= GRAPH =================
+   Extracted into buildGraph() (was inline, one-shot) because regeneration
+   needs to run this exact sequence again with a fresh `rnd` - node/edge
+   buffers below are allocated ONCE at fixed capacity and refilled per call,
+   never reallocated, so a regen can't leak GPU buffers or desync attribute
+   sizes from geometry. */
+const R=19;   /* was 26, tuned for 195 nodes; at 30 the field read as thin scratch */
+function pairKey(a,b){ return a<b?a+":"+b:b+":"+a; }
+
+function buildGraph(){
+  const centres=[];
+  // per-cluster phase offset for the `breathe` ambient swell (see frame()) -
+  // makes the brightness swell travel across the network cluster to cluster
+  // instead of the whole graph dimming/brightening in perfect lockstep,
+  // which read as the page fading rather than something breathing.
+  const clusterPhase=[];
+  for(let c=0;c<CFG.clusters;c++){
+    const t=(c+.5)/CFG.clusters, phi=Math.acos(1-2*t), th=Math.PI*(1+Math.sqrt(5))*c;
+    const rr=R*rand(.42,.80);
+    centres.push(new THREE.Vector3(rr*Math.sin(phi)*Math.cos(th), rr*Math.cos(phi)*.88, rr*Math.sin(phi)*Math.sin(th)));
+    clusterPhase.push(rand(0,Math.PI*2));
+  }
+  const nodes=[];
+  for(let i=0;i<CFG.nodes;i++){
+    const ci=i%CFG.clusters, sp=3.6+(ci%2)*1.6;   /* tighter clusters at low node count */
+    const p=centres[ci].clone().add(new THREE.Vector3(gauss()*sp,gauss()*sp*.72,gauss()*sp));
+    nodes.push({
+      id:i,cluster:ci,home:p.clone(),pos:p.clone(),
+      off:new THREE.Vector3(),vel:new THREE.Vector3(),   // physics offset from home
+      scatter:p.clone().multiplyScalar(rand(2.4,4.2)).add(new THREE.Vector3(gauss()*14,gauss()*14,gauss()*14)),
+      deg:0,hub:false,adj:[],
+      phase:rnd()*Math.PI*2, bob:rand(.25,.6),
+      act:0,          // wave activation 0..1
+      fired:-99,      // last fire time
+      sel:0, hov:0,   // selection / hover blend
+      entryDelay:0    // set below - staggers ignition, hubs first
+    });
+  }
+  const edgeSet=new Set(), edges=[], edgeIndexByPair=new Map();
+  function addEdge(a,b){ if(a===b)return;
+    const k=pairKey(a,b); if(edgeSet.has(k))return;
+    edgeSet.add(k); edgeIndexByPair.set(k,edges.length); edges.push([a,b]);
+    nodes[a].deg++; nodes[b].deg++;
+    nodes[a].adj.push(b); nodes[b].adj.push(a);
+  }
+  for(const n of nodes){
+    const peers=nodes.filter(m=>m.cluster===n.cluster&&m.id!==n.id)
+      .map(m=>({id:m.id,d:m.home.distanceToSquared(n.home)})).sort((x,y)=>x.d-y.d);
+    for(let k=0;k<Math.min(CFG.neighbours,peers.length);k++) addEdge(n.id,peers[k].id);
+  }
+  const byDeg=[...nodes].sort((a,b)=>b.deg-a.deg); const per={}; let hc=0;
+  for(const n of byDeg){ if(hc>=CFG.hubs)break;
+    const c=per[n.cluster]||0; if(c>=Math.ceil(CFG.hubs/CFG.clusters))continue;
+    n.hub=true; per[n.cluster]=c+1; hc++; }
+  const hubs=nodes.filter(n=>n.hub);
+  for(let b=0;b<CFG.bridges;b++){
+    const a=hubs[(rnd()*hubs.length)|0];
+    const cand=hubs.filter(h=>h.cluster!==a.cluster); if(!cand.length)break;
+    addEdge(a.id,cand[(rnd()*cand.length)|0].id);
+  }
+  // rest lengths for the drag springs
+  const restLen=edges.map(e=>nodes[e[0]].home.distanceTo(nodes[e[1]].home));
+
+  const maxDeg=Math.max(...nodes.map(n=>n.deg),1);
+  for(const n of nodes){
+    const t=n.deg/maxDeg;
+    n.base = n.hub ? 9.5+t*7.0 : 3.0+t*3.4;   // point size in world-ish units
+    // Real geometric radius for the ball-and-stick pass. Point "size" is a
+    // screen-space quantity and cannot be used as a world radius.
+    n.rad  = n.hub ? 1.15+t*0.45 : 0.30+t*0.16;
+    // staggered ignition: hubs light up first, leaves follow roughly by
+    // degree with a little randomness so it reads as a network coming
+    // online, not everything popping in at once. Consumed in frame() as a
+    // per-node offset into the shared entry timeline, not a second timer.
+    n.entryDelay = n.hub ? rand(0,0.05) : (0.10+(1-t)*0.28+rand(0,0.06));
+  }
+  // curved-edge control-point offset, cached per edge from HOME positions
+  // (stable even while nodes bob/drag) - bows each edge slightly away from
+  // the network's centre so it reads as a designed curve, not a debug
+  // wireframe. Recomputing the *direction* every frame would be wasted
+  // work; frame() only needs to re-anchor this cached offset to the edge's
+  // current (possibly bobbing/dragged) midpoint.
+  // Bow factor pulled down from 0.16 to 0.05 - at 0.16 the curves read as
+  // "bent/wrong" rather than as an intentional design touch; this is meant
+  // to be barely-there polish, not a visible wobble.
+  const edgeBow=edges.map(([a,b])=>{
+    const A=nodes[a].home, B=nodes[b].home;
+    const mid=A.clone().add(B).multiplyScalar(0.5);
+    const len=A.distanceTo(B);
+    const dir=mid.lengthSq()>1e-6 ? mid.clone().normalize() : new THREE.Vector3(0,1,0);
+    return dir.multiplyScalar(len*0.05);
+  });
+  return {nodes,edges,hubs,restLen,edgeIndexByPair,edgeBow,clusterPhase};
+}
+
+let {nodes,edges,hubs,restLen,edgeIndexByPair,edgeBow,clusterPhase}=buildGraph();
+
+/* ================= WHAT THE NODES ACTUALLY ARE =================
+   Hubs are AGIT's four qualifications. Leaves are the study pathways and
+   fields each one opens.
+
+   Pathways are AGIT's own published claims (encyclopedia 3.2-3.5, "Pathways").
+   Fields are phrased as fields of work, never as job offers or outcomes - an
+   RTO that implies employment has a compliance problem, not a marketing one. */
+const CURRICULUM=[
+  { code:"ICT60220", title:"Advanced Diploma of Information Technology",
+    weeks:104, units:16, faculty:"Information Technology",
+    href:"/sites/agit/ict60220-advanced-diploma-of-information-technology-telecommunications-network-engineering/",
+    leads:[ ["Bachelor of Information Technology","study"],
+            ["Bachelor of Cyber Security","study"],
+            ["Bachelor of Computer Science","study"],
+            ["Cyber security","field"], ["Network engineering","field"],
+            ["Cloud & infrastructure","field"], ["Data management","field"] ] },
+  { code:"RII60520", title:"Advanced Diploma of Civil Construction Design",
+    weeks:104, units:12, faculty:"Engineering & Construction Design",
+    href:"/sites/agit/rii60520-advanced-diploma-of-civil-construction-design/",
+    leads:[ ["Bachelor of Civil Engineering","study"],
+            ["Civil design","field"], ["Estimation & quantities","field"],
+            ["Surveying","field"], ["Detailed drafting","field"],
+            ["Project engineering","field"] ] },
+  { code:"BSB50420", title:"Diploma of Leadership and Management",
+    weeks:52, units:12, faculty:"Leadership & Management",
+    href:"/sites/agit/bsb50420-diploma-of-leadership-and-management/",
+    leads:[ ["BSB60420 Advanced Diploma","study"],
+            ["Bachelor of Business","study"],
+            ["Team leadership","field"], ["Operations","field"],
+            ["Project coordination","field"] ] },
+  { code:"BSB80120", title:"Graduate Diploma of Management (Learning)",
+    weeks:52, units:8, faculty:"Leadership & Management",
+    href:"/sites/agit/bsb80120-graduate-diploma-of-management-learning/",
+    leads:[ ["Master of Business","study"], ["Master of Management","study"],
+            ["Learning & development","field"],
+            ["Organisational change","field"], ["Capability strategy","field"] ] }
+];
+
+function labelGraph(){
+  const seen={};
+  for(const n of nodes){
+    const q=CURRICULUM[n.cluster%CURRICULUM.length];
+    n.q=q;
+    if(n.hub){ n.label=q.title; n.kind="qual"; }
+    else{
+      const k=seen[n.cluster]||0; seen[n.cluster]=k+1;
+      const L=q.leads[k%q.leads.length];
+      n.label=L[0]; n.kind=L[1];
+    }
+  }
+}
+labelGraph();
+
+/* ================= NODE POINTS (round, GPU-sized) =================
+   Geometry meshes at 8px read as polygons — squares and octagons.
+   A point shader with a circular falloff is round at every size and cheaper.
+   N is pinned to CFG.nodes (constant across regens) rather than read from
+   `nodes.length` here, so it stays valid as a buffer-size reference even
+   though `nodes` itself gets reassigned to a new array on every regen. */
+const N=CFG.nodes;
+const nPos=new Float32Array(N*3), nSize=new Float32Array(N),
+      nCol=new Float32Array(N*3), nAlpha=new Float32Array(N), nCore=new Float32Array(N),
+      nBlur=new Float32Array(N);
+// snapshot of nAlpha taken the instant a regen dissolve starts, so the fade
+// can lerp from "whatever each node's alpha actually was" down to 0 instead
+// of compounding a multiply every frame (which would decay non-linearly).
+const dissolveAlpha0=new Float32Array(N);
+
+const nodeGeo=new THREE.BufferGeometry();
+nodeGeo.setAttribute("position",new THREE.BufferAttribute(nPos,3));
+nodeGeo.setAttribute("aSize",new THREE.BufferAttribute(nSize,1));
+nodeGeo.setAttribute("aColor",new THREE.BufferAttribute(nCol,3));
+nodeGeo.setAttribute("aAlpha",new THREE.BufferAttribute(nAlpha,1));
+nodeGeo.setAttribute("aCore",new THREE.BufferAttribute(nCore,1));
+nodeGeo.setAttribute("aBlur",new THREE.BufferAttribute(nBlur,1));
+
+const nodeMat=new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+  uniforms:{
+    uPix:{value:renderer.getPixelRatio()}, uH:{value:innerHeight},
+    uFogDensity:{value:CFG.fog}
+  },
+  vertexShader:`
+    attribute float aSize; attribute vec3 aColor; attribute float aAlpha; attribute float aCore; attribute float aBlur;
+    varying vec3 vC; varying float vA; varying float vCore; varying float vFog; varying float vBlur;
+    uniform float uPix; uniform float uH;
+    void main(){
+      vC=aColor; vA=aAlpha; vCore=aCore; vBlur=aBlur;
+      vec4 mv=modelViewMatrix*vec4(position,1.0);
+      vFog=-mv.z;
+      // bokeh: a defocused point spreads its light over more pixels rather
+      // than just dimming in place - grow the sprite with blur (capped so it
+      // never explodes at extreme rack-focus distances). Bright nodes get a
+      // little extra room too, so a solid-looking core has space to read as
+      // a small sphere rather than a pinprick.
+      float sizeMul = (1.0+aBlur*1.6) * (1.0+smoothstep(0.5,1.0,aCore)*0.45);
+      gl_PointSize = aSize * sizeMul * uPix * (uH*0.5) / max(-mv.z,0.001);
+      gl_Position = projectionMatrix*mv;
+    }`,
+  fragmentShader:`
+    varying vec3 vC; varying float vA; varying float vCore; varying float vFog; varying float vBlur;
+    uniform float uFogDensity;
+    void main(){
+      vec2 uv=gl_PointCoord-vec2(0.5);
+      float d=length(uv)*2.0;
+      if(d>1.0) discard;
+      // solid core + soft halo when in focus. A widened version of this
+      // (0.30->0.40 core cutoff, 0.20->0.34 halo weight, both below) was
+      // tried to make idle nodes read as more definite spheres, but a wider
+      // opaque-looking core is exactly what makes nearby points visually
+      // touch and fuse under additive blending - verified live: several hub
+      // clusters fused into static white blobs that did not fade over many
+      // seconds, meaning it wasn't the wave, it was point overlap. Reverted
+      // to the original tight 0.30 cutoff; node visibility instead comes
+      // from the JS-side baseline lift (nCore/nAlpha) and the halo *weight*
+      // bump kept below, which is much cheaper on fusion risk than widening
+      // the core itself. When defocused (vBlur rising) the core edge still
+      // moves outward and the halo flattens toward 1/(1-d), which is what
+      // an out-of-focus disc actually looks like.
+      float coreEdge = mix(0.30+0.09*(1.0-vCore), 0.85, vBlur);
+      float core = smoothstep(coreEdge,0.0,d);
+      float halo = pow(1.0-d, mix(2.2,1.1,vBlur));
+      // four-point diffraction glint, reserved for genuinely bright
+      // (hub/wave/selected) AND in-focus nodes - real diffraction spikes only
+      // read sharp when the light itself is in focus, and every idle node
+      // staying a plain soft dot is what keeps a dense field uncluttered.
+      // (An anamorphic streak was tried here and removed: its horizontal
+      // falloff wasn't tight enough, and combined with a large blurred point
+      // sprite it bloomed into an unbounded bar across the frame rather than
+      // a lens artifact - not worth re-tuning when the glint already sells
+      // "light source".)
+      float ang=atan(uv.y,uv.x);
+      float spike=pow(abs(cos(ang*2.0)),20.0);
+      float spikeA=spike*pow(1.0-d,1.6)*smoothstep(0.5,1.0,vCore)*(1.0-vBlur);
+      // halo weight kept slightly above the pre-this-pass original (0.20)
+      // but well short of the 0.34 that contributed to blob fusion - a
+      // modest, real lift, not a redo of the same mistake.
+      float a = (core*mix(1.1,0.6,vBlur) + halo*mix(0.24,0.5,vBlur) + spikeA*0.28) * vA;
+      float f = exp(-uFogDensity*uFogDensity*vFog*vFog);
+      // Very close to the original 0.55+0.80*vCore on purpose: two earlier
+      // attempts to raise this (up to 0.68+1.00) fused whole hub clusters
+      // into blown-out blobs under bloom, verified by the blob not fading
+      // over several seconds - it was static overlap, not the wave decaying.
+      // Node visibility now comes mainly from the wider core cutoff and
+      // stronger halo weight above (shape), not from raw intensity, which
+      // is the safer lever since intensity is exactly what bloom amplifies
+      // into fusion. 0.56 base, 0.82 at full vCore.
+      vec3 baseCol = vC*(0.54+0.70*vCore);
+      // white-hot center: real overexposed light sources photograph white at
+      // the core regardless of hue - only the tightest part of an already
+      // bright, in-focus point pulls toward white, so idle nodes keep their
+      // palette color at center instead of every node getting a flat white dot.
+      // gated harder than before (0.35 floor -> 0.5, 0.85 weight -> 0.5) -
+      // the white-hot mix was the direct cause of selected/hub nodes reading
+      // as blown-out white discs instead of coloured light sources.
+      float hot = pow(core,4.0)*smoothstep(0.5,1.0,vCore)*(1.0-vBlur*0.7);
+      vec3 col = mix(baseCol, vec3(1.0,0.98,0.94), hot*0.5);
+      gl_FragColor = vec4(col, a*f);
+    }`,
+  fog:false
+});
+const nodePoints=new THREE.Points(nodeGeo,nodeMat);
+nodePoints.frustumCulled=false;
+world.add(nodePoints);
+
+/* ================= EDGES =================
+   Curved polylines (SEG segments each, bowed via the cached edgeBow offset)
+   instead of straight LineSegments - straight lines read as a debug
+   wireframe, a short bow per edge reads as designed. Each edge also carries
+   a travelling pulse: when fire() propagates the wave from node A to a
+   neighbour B, it stamps this edge's [t0,t1] arrival window (see WAVE
+   section below), and frame() turns that into a moving bright band along
+   the curve rather than the whole edge just brightening uniformly.
+
+   Buffers are allocated ONCE at a seed-independent MAX capacity and reused
+   across regenerations - only `edges.length*SEG*2` vertices are ever
+   written or drawn (via setDrawRange), so a smaller-edge-count reseed never
+   shows stale geometry from a larger previous graph, and a regen never
+   reallocates GPU buffers. */
+const SEG=CFG.edgeSeg;
+const MAX_EDGES=CFG.nodes*CFG.neighbours+CFG.bridges+8;   // safe upper bound: dedup only ever reduces this
+const MAX_EDGE_VERTS=MAX_EDGES*SEG*2;
+const ePos=new Float32Array(MAX_EDGE_VERTS*3), eCol=new Float32Array(MAX_EDGE_VERTS*3),
+      eT=new Float32Array(MAX_EDGE_VERTS), ePulse=new Float32Array(MAX_EDGE_VERTS),
+      ePulseAmp=new Float32Array(MAX_EDGE_VERTS);
+const edgeGeo=new THREE.BufferGeometry();
+edgeGeo.setAttribute("position",new THREE.BufferAttribute(ePos,3));
+edgeGeo.setAttribute("aColor",new THREE.BufferAttribute(eCol,3));
+edgeGeo.setAttribute("aT",new THREE.BufferAttribute(eT,1));
+edgeGeo.setAttribute("aPulse",new THREE.BufferAttribute(ePulse,1));
+edgeGeo.setAttribute("aPulseAmp",new THREE.BufferAttribute(ePulseAmp,1));
+
+// per-edge pulse timing state, same fixed-MAX_EDGES sizing as the buffers
+// above so it survives a regen without reallocation (regenerate() refills it).
+let edgePulseT0=new Float32Array(MAX_EDGES).fill(-1e9);
+let edgePulseT1=new Float32Array(MAX_EDGES).fill(-1e9);
+let edgePulseDir=new Float32Array(MAX_EDGES).fill(1);
+// per-hop amplitude of the travelling pulse on this edge, stamped in fire()
+// from the FIRING node's own (already-decayed) power - lets the fragment
+// shader draw a later, weaker hop as a narrower, dimmer band instead of
+// every hop looking identical.
+let edgePulseAmp=new Float32Array(MAX_EDGES).fill(0);
+// how long a pulse keeps travelling (and fading) past its destination node
+// after arrival - short, because this is the "light disappears into the node"
+// tail, not a lingering afterglow.
+const PULSE_TAIL=420;
+
+// aT (the 0..1 position along each edge's curve) only depends on SEG and the
+// current edge count, not on node positions - computed once per graph
+// (init + every regen), not per frame.
+function layoutEdgeT(){
+  for(let i=0;i<edges.length;i++){
+    for(let s=0;s<SEG;s++){
+      const base=(i*SEG+s)*2;
+      eT[base]=s/SEG; eT[base+1]=(s+1)/SEG;
+    }
+  }
+  edgeGeo.attributes.aT.needsUpdate=true;
+}
+layoutEdgeT();
+
+const edgeMat=new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, fog:false,
+  uniforms:{ uOpacity:{value:0}, uFogDensity:{value:CFG.fog} },
+  vertexShader:`
+    attribute vec3 aColor; attribute float aT; attribute float aPulse; attribute float aPulseAmp;
+    varying vec3 vColor; varying float vT; varying float vPulse; varying float vPulseAmp; varying float vFog;
+    void main(){
+      vColor=aColor; vT=aT; vPulse=aPulse; vPulseAmp=aPulseAmp;
+      vec4 mv=modelViewMatrix*vec4(position,1.0);
+      vFog=-mv.z;
+      gl_Position=projectionMatrix*mv;
+    }`,
+  fragmentShader:`
+    varying vec3 vColor; varying float vT; varying float vPulse; varying float vPulseAmp; varying float vFog;
+    uniform float uOpacity, uFogDensity;
+    void main(){
+      vec3 col=vColor;
+      // vPulse<-5 is the "no active pulse on this edge" sentinel (set in
+      // frame() below) - only edges currently carrying wave energy pay the
+      // extra cost of the band calculation. vPulseAmp (the firing hop's own
+      // decayed power, 0..1) scales both band width and brightness, so a
+      // chain reaction visibly weakens hop by hop instead of every pulse
+      // looking identical regardless of how many hops it has travelled.
+      if(vPulse>-5.0){
+        float amp=clamp(vPulseAmp,0.0,1.0);
+        float band=smoothstep(0.14+0.20*amp,0.0,abs(vT-vPulse));
+        col+=band*vec3(1.0,0.95,0.85)*(1.0+amp*2.0);
+      }
+      float f=exp(-uFogDensity*uFogDensity*vFog*vFog);
+      gl_FragColor=vec4(col, uOpacity*f);
+    }`
+});
+const edgeMesh=new THREE.LineSegments(edgeGeo,edgeMat);
+edgeMesh.frustumCulled=false;   // MAX-capacity buffer's stale tail must never affect culling
+world.add(edgeMesh);
+
+/* ===========================================================================
+   BALL AND STICK
+   Point sprites are flat billboards: they can glow but they can never be
+   objects, and a 1px additive line disappears against any lit background.
+   Nodes become lit sphere geometry and edges become cylinders, so both read
+   as things in space rather than as marks on glass.
+
+   This layer recomputes NOTHING. The existing frame loop already writes node
+   positions, per-node colour, brightness and the travelling edge pulse into
+   typed arrays every frame; this reads those exact buffers and only builds
+   matrices. The wave, the drag physics and every selection state survive.
+
+   Lighting is a three-point rig solved entirely in VIEW space, so key, fill,
+   rim and specular share one coordinate system:
+     key   high and camera-left, does the modelling
+     fill  opposite, quarter strength, keeps the shadow side from going dead
+     rim   from behind, separates a dark sphere from a dark nebula
+     spec  one tight highlight, which is what actually reads as "sphere"
+   Emissive rides on top and is the only thing bloom is asked to pick up.
+   =========================================================================== */
+const KEY_W  = new THREE.Vector3(-0.55,  0.72,  0.42).normalize();
+const FILL_W = new THREE.Vector3( 0.68, -0.22,  0.30).normalize();
+const RIM_W  = new THREE.Vector3( 0.10,  0.30, -0.95).normalize();
+
+const litUniforms = {
+  uKeyV:  { value: new THREE.Vector3() },
+  uFillV: { value: new THREE.Vector3() },
+  uRimV:  { value: new THREE.Vector3() },
+  uFog:   { value: CFG.fog },
+  uSpec:  { value: 1.0 }
+};
+
+const LIT_VERT = [
+  'attribute vec3 iColor;',
+  'attribute float iEmis;',
+  'varying vec3 vN;',
+  'varying vec3 vC;',
+  'varying float vE;',
+  'varying float vDepth;',
+  'void main(){',
+  '  vC = iColor;',
+  '  vE = iEmis;',
+  '  vN = normalize(normalMatrix * (mat3(instanceMatrix) * normal));',
+  '  vec4 mv = modelViewMatrix * instanceMatrix * vec4(position, 1.0);',
+  '  vDepth = -mv.z;',
+  '  gl_Position = projectionMatrix * mv;',
+  '}'
+].join('\n');
+
+const LIT_FRAG = [
+  'precision highp float;',
+  'uniform vec3 uKeyV, uFillV, uRimV;',
+  'uniform float uFog, uSpec;',
+  'varying vec3 vN;',
+  'varying vec3 vC;',
+  'varying float vE;',
+  'varying float vDepth;',
+  'void main(){',
+  '  vec3 n = normalize(vN);',
+  '  float key  = max(dot(n, uKeyV), 0.0);',
+  '  float fill = max(dot(n, uFillV), 0.0);',
+  '  float rim  = pow(1.0 - clamp(abs(n.z), 0.0, 1.0), 2.6);',
+  '  float back = max(dot(n, uRimV), 0.0);',
+  '  vec3 h = normalize(uKeyV + vec3(0.0, 0.0, 1.0));',
+  '  float spec = pow(max(dot(n, h), 0.0), 46.0) * uSpec;',
+  '  vec3 col = vC * (0.170 + key * 0.95);',
+  '  col += vC * fill * 0.24;',
+  '  col += mix(vec3(1.0), vC, 0.35) * rim * back * 0.62;',
+  '  col += mix(vec3(1.0), vC, 0.45) * spec * 0.42;',
+  '  col += vC * vE * 0.92;',
+  '  float f = exp(-uFog * uFog * vDepth * vDepth);',
+  '  gl_FragColor = vec4(col * f, 1.0);',
+  '}'
+].join('\n');
+
+/* ---------------- spheres ---------------- */
+const sphGeo  = new THREE.IcosahedronGeometry(1, MOBILE ? 1 : 2);
+const sphCol  = new Float32Array(N * 3);
+const sphEmis = new Float32Array(N);
+sphGeo.setAttribute('iColor', new THREE.InstancedBufferAttribute(sphCol, 3));
+sphGeo.setAttribute('iEmis',  new THREE.InstancedBufferAttribute(sphEmis, 1));
+const sphMat = new THREE.ShaderMaterial({
+  uniforms: litUniforms, vertexShader: LIT_VERT, fragmentShader: LIT_FRAG, fog: false
+});
+const balls = new THREE.InstancedMesh(sphGeo, sphMat, N);
+balls.frustumCulled = false;
+balls.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+world.add(balls);
+
+/* ---------------- sticks ---------------- */
+const STICK_N   = edges.length * SEG;
+const stickGeo  = new THREE.CylinderGeometry(1, 1, 1, MOBILE ? 5 : 7, 1, true);
+const stkCol    = new Float32Array(STICK_N * 3);
+const stkEmis   = new Float32Array(STICK_N);
+stickGeo.setAttribute('iColor', new THREE.InstancedBufferAttribute(stkCol, 3));
+stickGeo.setAttribute('iEmis',  new THREE.InstancedBufferAttribute(stkEmis, 1));
+const stickMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uKeyV:  litUniforms.uKeyV,
+    uFillV: litUniforms.uFillV,
+    uRimV:  litUniforms.uRimV,
+    uFog:   litUniforms.uFog,
+    uSpec:  { value: 0.22 }
+  },
+  vertexShader: LIT_VERT, fragmentShader: LIT_FRAG, fog: false
+});
+const sticks = new THREE.InstancedMesh(stickGeo, stickMat, STICK_N);
+sticks.frustumCulled = false;
+sticks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+world.add(sticks);
+
+/* the sprite and line pair they replace */
+nodePoints.visible = false;
+edgeMesh.visible   = false;
+
+const STICK_R = MOBILE ? 0.050 : 0.042;
+const _m   = new THREE.Matrix4();
+const _q   = new THREE.Quaternion();
+const _p0  = new THREE.Vector3();
+const _p1  = new THREE.Vector3();
+const _mid = new THREE.Vector3();
+const _dir = new THREE.Vector3();
+const _scl = new THREE.Vector3();
+const _UP  = new THREE.Vector3(0, 1, 0);
+
+function updateBallStick(){
+  const vm = camera.matrixWorldInverse;
+  litUniforms.uKeyV.value.copy(KEY_W).transformDirection(vm);
+  litUniforms.uFillV.value.copy(FILL_W).transformDirection(vm);
+  litUniforms.uRimV.value.copy(RIM_W).transformDirection(vm);
+
+  for (let i = 0; i < N; i++){
+    const n = nodes[i];
+    const grow = 1 + n.act * 0.30 + n.hov * 0.18 + n.sel * 0.62;
+    const r = n.rad * grow;
+    _scl.set(r, r, r);
+    _mid.set(nPos[i*3], nPos[i*3+1], nPos[i*3+2]);
+    _m.compose(_mid, _q.identity(), _scl);
+    balls.setMatrixAt(i, _m);
+    sphCol[i*3]   = nCol[i*3];
+    sphCol[i*3+1] = nCol[i*3+1];
+    sphCol[i*3+2] = nCol[i*3+2];
+    // selection is added ON TOP of the clamped core, so a tap always
+    // outshines whatever the ambient wave is doing
+    sphEmis[i] = nCore[i] * (n.hub ? 0.70 : 0.66) + n.sel * 0.72;
+  }
+  balls.instanceMatrix.needsUpdate = true;
+  sphGeo.attributes.iColor.needsUpdate = true;
+  sphGeo.attributes.iEmis.needsUpdate  = true;
+
+  for (let k = 0; k < STICK_N; k++){
+    const vi = k * 2;
+    _p0.set(ePos[vi*3],   ePos[vi*3+1], ePos[vi*3+2]);
+    _p1.set(ePos[vi*3+3], ePos[vi*3+4], ePos[vi*3+5]);
+    _dir.subVectors(_p1, _p0);
+    const len = _dir.length() || 0.0001;
+    _mid.addVectors(_p0, _p1).multiplyScalar(0.5);
+    _q.setFromUnitVectors(_UP, _dir.divideScalar(len));
+    _scl.set(STICK_R, len * 1.02, STICK_R);
+    _m.compose(_mid, _q, _scl);
+    sticks.setMatrixAt(k, _m);
+    var cr = eCol[vi*3], cg = eCol[vi*3+1], cb = eCol[vi*3+2];
+
+    // the travelling band, re-attached. tMid is this segment's position along
+    // its edge; the pulse is a soft Gaussian around the wave head.
+    var segT = ((k % SEG) + 0.5) / SEG;
+    var pPos = ePulse[vi], pAmp = ePulseAmp[vi];
+    var band = 0;
+    if (pAmp > 0.001){
+      var d = segT - pPos;
+      band = pAmp * Math.exp(-(d * d) / (2 * 0.115 * 0.115));
+      // fade the band in as it leaves the source and out as it arrives, so it
+      // never pops into existence at full strength on a dark wire
+      var env = Math.min(1, pPos / 0.16) * Math.min(1, (1.30 - pPos) / 0.34);
+      band *= Math.max(0, env);
+    }
+    if (band > 0.001){
+      cr += (WAVE[0] - cr) * Math.min(1, band * 0.9);
+      cg += (WAVE[1] - cg) * Math.min(1, band * 0.9);
+      cb += (WAVE[2] - cb) * Math.min(1, band * 0.9);
+    }
+
+    stkCol[k*3]   = cr;
+    stkCol[k*3+1] = cg;
+    stkCol[k*3+2] = cb;
+    stkEmis[k] = Math.min(1, (cr + cg + cb) * 0.52 + band * 0.75);
+  }
+  sticks.instanceMatrix.needsUpdate = true;
+  stickGeo.attributes.iColor.needsUpdate = true;
+  stickGeo.attributes.iEmis.needsUpdate  = true;
+}
+
+// reusable temporaries for the per-frame bezier evaluation (frame() below) -
+// declared here, next to the geometry they serve, to avoid per-frame allocation.
+const edgeCtrl=new THREE.Vector3(), edgeP0=new THREE.Vector3(), edgeP1=new THREE.Vector3();
+function bezierInto(A,C,B,t,out){
+  const mt=1-t, a=mt*mt, b=2*mt*t, c=t*t;
+  out.x=a*A.x+b*C.x+c*B.x; out.y=a*A.y+b*C.y+c*B.y; out.z=a*A.z+b*C.z+c*B.z;
+}
+
+/* ================= DUST ================= */
+const dPos=new Float32Array(CFG.dust*3);
+for(let i=0;i<CFG.dust;i++){
+  const r=R*rand(1.15,3.6), th=rnd()*Math.PI*2, ph=Math.acos(rand(-1,1));
+  dPos.set([r*Math.sin(ph)*Math.cos(th), r*Math.cos(ph)*.55, r*Math.sin(ph)*Math.sin(th)],i*3);
+}
+const dustGeo=new THREE.BufferGeometry();
+dustGeo.setAttribute("position",new THREE.BufferAttribute(dPos,3));
+const dust=new THREE.Points(dustGeo,new THREE.PointsMaterial({
+  map:dotTex,color:0xb9b4b1,size:MOBILE?.40:.32,sizeAttenuation:true,transparent:true,
+  opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:true}));
+world.add(dust);
+
+/* ================= NEBULA DOME =================
+   One inward-facing sphere, well outside the node/dust/camera range (radius 300,
+   vs maxDist 74-88 and dust out to R*3.6=~93.6, inside camera.far=900 - see the
+   camera rig comment below for how that far-plane number was picked; the
+   dome/twinkle-star shells clipped against the previous camera.far=400 at
+   the camera's worst-case reach). Added to
+   `scene` directly, not `world` - world carries the node cluster's wobble
+   (world.rotation.x/y below) which must not drag the sky with it.
+   Noise is sampled in 3D direction space (normalized local position, since the
+   dome is centred at the origin) rather than 2D UV - this avoids the pole-pinch
+   an equirect-mapped sphere would show, which matters here because the camera's
+   minPol:0.42 does bring the near-pole region into frame.
+   fog:false is mandatory, not stylistic: FogExp2 at this density multiplies
+   anything past ~180 units to near-zero (verified: factor 0.006 at 182, ~0 at
+   260) - with fog left on, the entire dome would render as solid black. */
+const NOISE_GLSL=`
+  float hash(vec3 p){
+    p=fract(p*0.3183099+0.1); p*=17.0;
+    return fract(p.x*p.y*p.z*(p.x+p.y+p.z));
+  }
+  float noise(vec3 x){
+    vec3 i=floor(x), f=fract(x); f=f*f*(3.0-2.0*f);
+    return mix(
+      mix(mix(hash(i+vec3(0,0,0)),hash(i+vec3(1,0,0)),f.x),
+          mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
+      mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),
+          mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),
+      f.z);
+  }
+  float fbm(vec3 p){
+    float v=0.0, a=0.55;
+    for(int i=0;i<OCT;i++){ v+=a*noise(p); p*=2.15; a*=0.5; }
+    return v;
+  }
+`;
+// smooth FBM (above) can only ever produce soft blobs - ridged FBM folds the
+// noise so it spikes toward 1 near zero-crossings instead of averaging them
+// out, which is what gives sharp filaments/tendrils instead of one uniform
+// glow. This is the single biggest structural change in this pass: density
+// and hue below are driven by *this*, not the smooth field.
+const RIDGED_GLSL=`
+  float ridgedNoise(vec3 p){ return 1.0-abs(2.0*noise(p)-1.0); }
+  float ridgedFbm(vec3 p){
+    float v=0.0, a=0.5;
+    for(int i=0;i<OCT;i++){ v+=a*ridgedNoise(p); p*=2.15; a*=0.5; }
+    return v;
+  }
+`;
+/* Distinct environment "styles" - not just a noise-phase reshuffle. The
+   previous pass only changed uSeedOffset on regen, which moves the same
+   cloud shapes around without changing what the sky actually looks like -
+   from the user's screenshots, two different seeds read as near-identical
+   reddish-purple compositions. Each style here is a genuinely different
+   color family and density character; NEBULA_STYLES[SEED%length] is applied
+   at both initial load and every regenerate(), so "New seed" now visibly
+   changes the kind of nebula, not just its layout. */
+// densities cut ~35-45% from the original set, and a regional low-frequency
+// mask added in the shader below (see "regionMask") - the old values covered
+// nearly the whole measured 0.20-0.78 fbm range, so the sky read as a wall of
+// color rather than a nebula occupying part of a dark field. ionized/twilight
+// added for more range so "New seed" has real variety to draw from, and
+// pickStyle below now guarantees a different style than whatever is current.
+const NEBULA_STYLES=[
+  /* AGIT. Ember in a cold field: near-black warm outskirts, a deep oxide body,
+     a maroon shadow side, and one ember highlight that is the brand red seen
+     through dust. No blues, no violets - the sky is the palette too. */
+  { name:"agit-deepfield", zoneA:[0.095,0.062,0.058], zoneB:[0.480,0.108,0.074],
+    zoneC:[0.250,0.070,0.080], zoneD:[0.560,0.205,0.125],
+    density:0.68, contrast:1.20 }
+];
+// guaranteed-different selection: with the old `NEBULA_STYLES[seed%n]`, a
+// random reseed repeated the current style ~1-in-5 times, and the report was
+// specifically that "New seed" didn't visibly change the sky. Excluding the
+// current style from the pool fixes that outright; hueRotate (below) adds
+// further per-seed variation even within one style family.
+function pickStyle(seed,current){
+  const n=NEBULA_STYLES.length;
+  const curIdx=current?NEBULA_STYLES.indexOf(current):-1;
+  let idx=Math.abs(seed)%n;
+  if(idx===curIdx) idx=(idx+1)%n;
+  return NEBULA_STYLES[idx];
+}
+function hueShiftFor(seed){ return ((seed%1000)/1000)*0.16-0.08; }   // +-~29 degrees
+function hueRotate(arr,shift){
+  const c=new THREE.Color(arr[0],arr[1],arr[2]);
+  const hsl={h:0,s:0,l:0}; c.getHSL(hsl);
+  c.setHSL((hsl.h+shift+1)%1,hsl.s,hsl.l);
+  return c;
+}
+let nebulaStyle=pickStyle(SEED,null);
+let nebulaHue=hueShiftFor(SEED);
+const domeMat=new THREE.ShaderMaterial({
+  side:THREE.BackSide, transparent:true, depthWrite:false, depthTest:false,
+  blending:THREE.AdditiveBlending, fog:false,
+  uniforms:{
+    uTime:{value:0}, uOpacity:{value:0}, uDensity:{value:nebulaStyle.density}, uContrast:{value:nebulaStyle.contrast},
+    uSeedOffset:{value:new THREE.Vector3(0,0,0)},   // reseeded on regen - new seed, new sky
+    // four distinct region hues (not one hue blended with itself) - a very
+    // low-frequency noise field picks which one dominates where, so different
+    // patches of sky commit to different colors like a real Hubble-palette
+    // emission nebula, rather than one uniform tinted haze. Now used as the
+    // *mid-density* tier only - see hue-by-structure below. Initial values
+    // come from the seed's chosen NEBULA_STYLES entry, not hardcoded.
+    uZoneA:{value:hueRotate(nebulaStyle.zoneA,nebulaHue)},
+    uZoneB:{value:hueRotate(nebulaStyle.zoneB,nebulaHue)},
+    uZoneC:{value:hueRotate(nebulaStyle.zoneC,nebulaHue)},
+    uZoneD:{value:hueRotate(nebulaStyle.zoneD,nebulaHue)}
+  },
+  vertexShader:`
+    varying vec3 vDir;
+    void main(){
+      vDir=normalize(position);
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+    }`,
+  fragmentShader:`#define OCT `+CFG.domeOct+`
+    varying vec3 vDir;
+    uniform float uTime,uOpacity,uDensity,uContrast;
+    uniform vec3 uZoneA,uZoneB,uZoneC,uZoneD,uSeedOffset;
+    `+NOISE_GLSL+RIDGED_GLSL+`
+    void main(){
+      vec3 pw=vDir*1.7+uSeedOffset*0.02+vec3(0.0,0.0,uTime*0.005);
+      // domain warp: offset the sample point by noise of itself so the cloud
+      // reads as swirled gas, not the smooth radial "orb" a plain fbm blend
+      // produces once bloom softens its edges.
+      vec3 warp=vec3(fbm(pw*0.8+3.0),fbm(pw*0.8+7.0),fbm(pw*0.8+13.0));
+      vec3 p=pw+ (warp-0.5)*1.6;
+      float n1=fbm(p);
+      float filament=ridgedFbm(p*1.6+5.0);
+      // envelope: where cloud material exists at all. Band tightened from
+      // 0.30-0.66 to 0.42-0.72 against this fbm's measured range
+      // (min~0.20, median~0.50, max~0.78) - the old band put nearly the
+      // entire sky above threshold, which is why the frame read as a wall
+      // of color rather than a nebula sitting in dark space.
+      float envelope=smoothstep(0.42,0.72,n1);
+      // regionMask: a very-low-frequency field, independent of the fine
+      // warped structure above, that decides whether cloud exists AT ALL
+      // in this direction. Without this, tightening the envelope band alone
+      // still leaves material everywhere just at lower density - a real
+      // photographed nebula occupies a *region* of the sky, with genuinely
+      // empty dark space around it, not a uniform haze over the whole dome.
+      float regionMask=smoothstep(0.36,0.64,fbm(vDir*0.55+uSeedOffset*0.01+71.0));
+      float density=envelope*regionMask*mix(0.35,1.0,filament)*uDensity;
+
+      // dust lanes: pure additive blending can only ever add light, so
+      // without this step the whole render has no absorption anywhere - a
+      // real part of why earlier passes read as glowing fog rather than
+      // photographed gas. A coarser ridged mask multiplies both color and
+      // density down in patches, cutting dark occluding lanes through the
+      // bright material the way real dust lanes thread through emission
+      // nebulae (see also the separate absorption dome below, which uses
+      // the same idea to dim background stars, not just this layer's own color).
+      float dustMask=smoothstep(0.46,0.74,ridgedFbm(p*0.85+91.0));
+      density*=(1.0-dustMask*0.30);
+
+      float zoneX=fbm(vDir*2.4+31.0), zoneY=fbm(vDir*2.4+57.0);
+      vec3 zoneCol=mix(mix(uZoneA,uZoneB,smoothstep(0.35,0.65,zoneX)),
+                        mix(uZoneC,uZoneD,smoothstep(0.35,0.65,zoneX)),
+                        smoothstep(0.35,0.65,zoneY));
+
+      // hue driven by structure, not an unrelated field: cold/dark outskirts
+      // where material barely exists, the zone's regional hue through the
+      // mid-density body, and only the densest ridged cores flash toward a
+      // hot near-white. Correlating color with density is what makes this
+      // read as photographed rather than painted-on. hotCol pulled down from
+      // a near-white blowout and its mix weight cut - the cores were
+      // reading as flat white patches rather than bright gas.
+      vec3 outerCol=vec3(0.03,0.06,0.20);
+      vec3 hotCol=vec3(0.62,0.48,0.66);
+      vec3 col=mix(outerCol,zoneCol,smoothstep(0.12,0.55,envelope));
+      col=mix(col,hotCol,smoothstep(0.55,0.90,envelope*filament)*0.55);
+      col*=(1.0-dustMask*0.55);
+
+      col=pow(col,vec3(1.0/max(uContrast,0.001)));
+      // luminance cap: normalizes any channel that would exceed this back
+      // down, so no combination of style/density/hot-core stacking can push
+      // a patch of sky bright enough to bloom on its own - bloom should stay
+      // reserved for the interactive network layer, not the backdrop.
+      float domeLum=max(col.r,max(col.g,col.b));
+      col*=min(1.0,0.85/max(domeLum,0.0001));
+      gl_FragColor=vec4(col*density, density*uOpacity);
+    }`
+});
+const dome=new THREE.Mesh(new THREE.SphereGeometry(300,CFG.domeSegs[0],CFG.domeSegs[1]),domeMat);
+dome.renderOrder=-10;
+scene.add(dome);
+
+/* --- optional second absorption dome, desktop only (CFG.dustAbsorb) ---
+   Everything above is additive (can only add light); this pass is the one
+   place in the whole scene that can genuinely occlude something already
+   drawn - a near-black, NormalBlending sphere whose alpha is a dust mask,
+   rendered with renderOrder AFTER the (default renderOrder 0) far/twinkle
+   star layers below so it dims stars behind dust rather than the emissive
+   dome/wisps (renderOrder -10/-9, drawn earlier, deliberately unaffected).
+   First thing to cut if mobile/low-end profiling ever demands it - flagged
+   in CFG rather than hard-coded for exactly that reason. */
+let absorbDome=null;
+if(CFG.dustAbsorb){
+  const absorbMat=new THREE.ShaderMaterial({
+    side:THREE.BackSide, transparent:true, depthWrite:false, depthTest:false,
+    blending:THREE.NormalBlending, fog:false,
+    uniforms:{ uTime:{value:0}, uOpacity:{value:0}, uSeedOffset:{value:new THREE.Vector3(0,0,0)} },
+    vertexShader:`varying vec3 vDir; void main(){ vDir=normalize(position);
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader:`#define OCT 3
+      varying vec3 vDir;
+      uniform float uTime,uOpacity; uniform vec3 uSeedOffset;
+      `+NOISE_GLSL+RIDGED_GLSL+`
+      void main(){
+        vec3 p=vDir*1.3+uSeedOffset*0.017+vec3(0.0,0.0,uTime*0.003);
+        float mask=smoothstep(0.44,0.78,ridgedFbm(p*0.95+91.0));
+        gl_FragColor=vec4(0.01,0.01,0.02, mask*0.5*uOpacity);
+      }`
+  });
+  absorbDome=new THREE.Mesh(new THREE.SphereGeometry(298,32,20),absorbMat);
+  absorbDome.renderOrder=1;
+  scene.add(absorbDome);
+}
+
+/* ================= NEBULA WISPS =================
+   Foreground gas: true camera-facing billboards (quaternion copied each frame,
+   see frame()) at a nearer radius than the dome - because they sit at a
+   different depth from the dome, orbiting the camera makes them visibly slide
+   against it, which is what actually reads as parallax. (A first draft tried to
+   get parallax from *fixed-angle* planes instead of true billboards - those go
+   edge-on and vanish as the camera orbits past them, since cam.az free-orbits
+   and idle auto-orbit runs continuously. Billboards avoid that failure mode.) */
+// each wisp instance draws from a different region of the palette (teal,
+// magenta, warm gold/amber) instead of every wisp sharing one violet pair -
+// that's what let the whole foreground read as a single color before.
+const WISP_PALETTE=[
+  [new THREE.Color(0.05,0.24,0.34), new THREE.Color(0.10,0.42,0.44)],
+  [new THREE.Color(0.40,0.10,0.36), new THREE.Color(0.55,0.22,0.42)],
+  // gold/amber toned down - warm hues sum brighter in both R and G channels,
+  // so this pair was the most likely of the four to blow out under bloom.
+  [new THREE.Color(0.32,0.15,0.05), new THREE.Color(0.42,0.25,0.10)],
+  [new THREE.Color(0.14,0.10,0.38), new THREE.Color(0.30,0.18,0.48)]
+];
+const wisps=[];
+// rotate the starting palette entry by the chosen nebula style's index so
+// wisp color stays coherent with whichever dome style got picked, instead
+// of always starting from the same entry regardless of style.
+const wispPaletteOffset=NEBULA_STYLES.indexOf(nebulaStyle);
+for(let i=0;i<CFG.wisps;i++){
+  const pal=WISP_PALETTE[(i+wispPaletteOffset)%WISP_PALETTE.length];
+  const wMat=new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false, depthTest:false, side:THREE.DoubleSide,
+    blending:THREE.AdditiveBlending, fog:false,
+    uniforms:{
+      uTime:{value:0}, uOpacity:{value:0}, uSeed:{value:rnd()*100.0},
+      uColorA:{value:pal[0]}, uColorB:{value:pal[1]}
+    },
+    vertexShader:`varying vec2 vUv; void main(){ vUv=uv;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader:`
+      varying vec2 vUv;
+      uniform float uTime,uOpacity,uSeed;
+      uniform vec3 uColorA,uColorB;
+      float hash(vec2 p){ return fract(sin(dot(p,vec2(41.3,289.1)))*43758.5453+uSeed); }
+      float noise(vec2 x){
+        vec2 i=floor(x), f=fract(x); f=f*f*(3.0-2.0*f);
+        return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),
+                   mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
+      }
+      float fbm(vec2 p){
+        float v=0.0,a=0.5;
+        for(int i=0;i<3;i++){ v+=a*noise(p); p*=2.1; a*=0.5; }
+        return v;
+      }
+      // ridged variant (same fold as the dome's) for sharper foreground
+      // filament detail instead of a uniformly soft cloud - with the wisp
+      // count now cut to 1-2, each one needs to contribute real texture.
+      float ridgedFbm(vec2 p){
+        float v=0.0,a=0.5;
+        for(int i=0;i<3;i++){ v+=a*(1.0-abs(2.0*noise(p)-1.0)); p*=2.1; a*=0.5; }
+        return v;
+      }
+      void main(){
+        vec2 c=vUv-0.5;
+        // soft, wide falloff (was a tight 0.22-0.5 band, which bloom then blew
+        // into a uniform-brightness disc) plus a coarse noise mask so the
+        // silhouette is ragged/wispy instead of a perfect circle.
+        float edge=1.0-smoothstep(0.10,0.5,length(c));
+        float ragged=smoothstep(0.25,0.85,noise(vUv*2.2+uSeed*3.1));
+        vec2 p=vUv*3.4+vec2(uTime*0.010,uTime*0.006);
+        float n=fbm(p);
+        float filament=ridgedFbm(p*1.7+uSeed);
+        vec3 col=mix(uColorA,uColorB,smoothstep(0.28,0.56,n));
+        // kept well under the bloom threshold - this layer should read as
+        // textured foreground gas, not itself become another bloom source.
+        // band calibrated to this fbm's real measured range (~0.22-0.71,
+        // median 0.43) - a flat 0-1 assumption here left alpha under 0.11
+        // almost everywhere and the wisp was nearly invisible. Filament
+        // multiplies the reachable alpha down further so the shape reads as
+        // threaded strands, not a uniform patch.
+        float a=smoothstep(0.24,0.58,n)*mix(0.4,1.0,filament)*edge*ragged*uOpacity*0.15;
+        gl_FragColor=vec4(col,a);
+      }`
+  });
+  // radius kept well clear of the camera's worst-case reach (maxDist + up to
+  // ~50 units of selected-node target offset, ~170 at most) - this used to be
+  // 120-160, which the camera could fly into or past when zoomed out with an
+  // edge node selected, producing a giant close-up wisp artifact (see camera
+  // rig comment above). Plane enlarged to compensate for sitting further out.
+  const w=new THREE.Mesh(new THREE.PlaneGeometry(210,150),wMat);
+  const az=(i/CFG.wisps)*Math.PI*2+rnd()*0.8, pol=rand(0.9,2.1), rr=rand(210,250);
+  w.position.set(rr*Math.sin(pol)*Math.cos(az), rr*Math.cos(pol)*0.7, rr*Math.sin(pol)*Math.sin(az));
+  w.renderOrder=-9;
+  scene.add(w);
+  wisps.push(w);
+}
+
+/* ================= STARFIELD (far + twinkle layers) =================
+   Layered depth in place of one dust layer: near dust (above, unchanged,
+   fog:true - its fade IS the depth cue) + far stars + twinkle stars, both of
+   the latter genuinely distant so fog:false on both, same reasoning as the
+   dome. Both live in `scene`, not `world`, for the same wobble-isolation
+   reason as the dome/wisps. */
+// radius (like the wisps above) kept well clear of the camera's worst-case
+// reach - a point sprite's screen size grows as 1/distance, so flying close
+// to one would blow it up into a giant flat circle, same failure mode as the
+// wisp planes just for a different object type.
+const farGeo=new THREE.BufferGeometry();
+const fPos=new Float32Array(CFG.farStars*3);
+for(let i=0;i<CFG.farStars;i++){
+  const r=R*rand(8.0,11.0), th=rnd()*Math.PI*2, ph=Math.acos(rand(-1,1));
+  fPos.set([r*Math.sin(ph)*Math.cos(th), r*Math.cos(ph)*.6, r*Math.sin(ph)*Math.sin(th)],i*3);
+}
+farGeo.setAttribute("position",new THREE.BufferAttribute(fPos,3));
+const farStarsMat=new THREE.PointsMaterial({
+  map:dotTex,color:0xcfcac6,size:MOBILE?.46:.38,sizeAttenuation:true,transparent:true,
+  opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+const farStars=new THREE.Points(farGeo,farStarsMat);
+scene.add(farStars);
+
+const twGeo=new THREE.BufferGeometry();
+const twN=CFG.twinkleStars;
+const twPos=new Float32Array(twN*3), twSize=new Float32Array(twN),
+      twPhase=new Float32Array(twN), twSpeed=new Float32Array(twN);
+for(let i=0;i<twN;i++){
+  const r=R*rand(11.0,14.0), th=rnd()*Math.PI*2, ph=Math.acos(rand(-1,1));
+  twPos.set([r*Math.sin(ph)*Math.cos(th), r*Math.cos(ph)*.6, r*Math.sin(ph)*Math.sin(th)],i*3);
+  twSize[i]=rand(1.6,3.2); twPhase[i]=rnd()*Math.PI*2; twSpeed[i]=rand(0.8,2.2);
+}
+twGeo.setAttribute("position",new THREE.BufferAttribute(twPos,3));
+twGeo.setAttribute("aSize",new THREE.BufferAttribute(twSize,1));
+twGeo.setAttribute("aPhase",new THREE.BufferAttribute(twPhase,1));
+twGeo.setAttribute("aSpeed",new THREE.BufferAttribute(twSpeed,1));
+const twinkleMat=new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, depthTest:false, blending:THREE.AdditiveBlending, fog:false,
+  uniforms:{ uPix:{value:renderer.getPixelRatio()}, uH:{value:innerHeight},
+             uTime:{value:0}, uOpacity:{value:0} },
+  vertexShader:`
+    attribute float aSize; attribute float aPhase; attribute float aSpeed;
+    varying float vA;
+    uniform float uPix,uH,uTime;
+    void main(){
+      vA=0.35+0.65*(0.5+0.5*sin(uTime*aSpeed+aPhase));
+      vec4 mv=modelViewMatrix*vec4(position,1.0);
+      gl_PointSize=aSize*uPix*(uH*0.5)/max(-mv.z,0.001);
+      gl_Position=projectionMatrix*mv;
+    }`,
+  fragmentShader:`
+    varying float vA;
+    uniform float uOpacity;
+    void main(){
+      float d=length(gl_PointCoord-vec2(0.5))*2.0;
+      if(d>1.0) discard;
+      float core=smoothstep(1.0,0.0,d);
+      gl_FragColor=vec4(vec3(0.85,0.90,1.0), core*vA*uOpacity*0.9);
+    }`
+});
+const twinklePoints=new THREE.Points(twGeo,twinkleMat);
+scene.add(twinklePoints);
+
+/* ================= CAMERA RIG =================
+   CAM_START is a wide establishing distance for the slow cinematic push-in
+   (see ENTRY_CAM below) - separate from the node-entry scatter distance.
+   maxDist is capped well below the wisp/star shell radii below (verified by
+   simulating node generation: worst-case selected-node target offset from
+   origin is ~50 units across 200 random seeds) - zooming out used to let the
+   camera fly up to and through a wisp plane, which at point-blank range
+   showed as a giant faceted black shape (a low-res value-noise grid cell
+   blown up to fill the screen). Capping the zoom is the direct fix; pushing
+   the shells out further below is what makes it robust even with a node
+   selected near a cluster's edge, not just at dead idle. */
+const CAM_START=MOBILE?115:100;
+const cam={az:rand(0,Math.PI*2),pol:1.10,dist:CAM_START,
+  tAz:0,tPol:1.06,tDist:MOBILE?64:60, minDist:26,maxDist:MOBILE?88:74,minPol:.42,maxPol:2.32};
+cam.tAz=cam.az;
+const target=new THREE.Vector3(), tTarget=new THREE.Vector3();
+let userActive=false, idleAt=performance.now();
+const hintEl=document.getElementById("br");
+function touched(){
+  if(!userActive){
+    if(MOBILE) hintEl.classList.add("faded");
+    // the instruction has done its job the moment you follow it
+    document.body.classList.add("touched");
+  }
+  userActive=true; idleAt=performance.now();
+}
+
+/* ================= WAVE ================= *
+ * Breathing: a hub fires, the pulse walks the graph hop by hop, decaying.
+ * Nodes brighten and grow with activation; edges carry the travelling light.
+ * Travel time and firing frequency were both too fast in the previous pass
+ * (150-260ms per hop, a new wave every 2.2-4.2s) - it read as an occasional
+ * spark, not something breathing. Slower hops plus a shorter gap between
+ * firings makes the propagation genuinely visible, and `breathe` below (a
+ * slow whole-network brightness swell, independent of any discrete firing)
+ * is what keeps the network feeling alive in between waves too. */
+const wave=[];                 // scheduled firings {id, at, power}
+let nextWave=1200;
+function seedWave(now){
+  const h=hubs[(rnd()*hubs.length)|0];
+  wave.push({id:h.id,at:now,power:1.0});
+  // NOTE: nextWave is intentionally kept in the SAME time base as the
+  // `now-START>nextWave` check in frame() below - i.e. elapsed time since
+  // START, not an absolute performance.now() timestamp. An earlier version
+  // set this to `now+rand(...)` (absolute), which meant every firing's real
+  // gap was inflated by however long the page had already been open at
+  // that point (START itself), compounding a few seconds of drift into
+  // multi-second, then multi-minute, silence - the actual reason the
+  // network read as barely breathing rather than a pacing problem with the
+  // rand() bounds themselves.
+  nextWave = (now-START) + rand(3400,5200);
+}
+function fire(n,power,now,force){
+  // `force` bypasses the refire cooldown for an explicit user selection only:
+  // without it, clicking a node the ambient wave happened to light within the
+  // last 1.4s did nothing visible, so selection felt intermittently
+  // unresponsive through no fault of the click handling.
+  if(!force && now - n.fired < 1400) return;
+  n.fired=now;
+  n.actT=Math.max(n.actT||0,power);   /* target, not the value: the value eases toward it */
+  if(power<0.22) return;
+  for(const a of n.adj){
+    // travel is computed once and reused for both the wave-arrival schedule
+    // and this edge's pulse window, so the visible travelling band and the
+    // brightness handoff it's animating toward land at the same moment.
+    const travel=rand(850,1300);
+    const childPower=power*rand(0.52,0.68);
+    wave.push({id:a,at:now+travel,power:childPower});
+    const ei=edgeIndexByPair.get(pairKey(n.id,a));
+    if(ei!==undefined){
+      edgePulseT0[ei]=now; edgePulseT1[ei]=now+travel;
+      edgePulseDir[ei]=edges[ei][0]===n.id?1:-1;   // which end of the stored [a,b] pair n is
+      // amplitude of THIS hop's travelling band, from the firing node's own
+      // power (not the child's decayed power) - each successive hop off a
+      // chain is visibly dimmer/narrower than the last, not a flat 2.4x
+      // multiply regardless of depth.
+      edgePulseAmp[ei]=power;
+    }
+  }
+}
+
+/* ================= PHYSICS (drag) ================= */
+let physicsAwake=false, dragNode=null, dragSet=new Set();
+const K_HOME=0.055, K_EDGE=0.030, DAMP=0.86, SETTLE=0.0016;
+function hopSet(id,hops){
+  const s=new Set([id]); let f=[id];
+  for(let h=0;h<hops;h++){ const nf=[];
+    for(const i of f) for(const a of nodes[i].adj) if(!s.has(a)){s.add(a);nf.push(a);}
+    f=nf; }
+  return s;
+}
+function stepPhysics(){
+  if(!physicsAwake) return;
+  for(let i=0;i<edges.length;i++){
+    const [a,b]=edges[i];
+    if(!dragSet.has(a)&&!dragSet.has(b)) continue;
+    const A=nodes[a],B=nodes[b];
+    const dx=(B.home.x+B.off.x)-(A.home.x+A.off.x),
+          dy=(B.home.y+B.off.y)-(A.home.y+A.off.y),
+          dz=(B.home.z+B.off.z)-(A.home.z+A.off.z);
+    const d=Math.hypot(dx,dy,dz)||1e-4;
+    const f=(d-restLen[i])*K_EDGE/d;
+    if(A!==dragNode){A.vel.x+=dx*f;A.vel.y+=dy*f;A.vel.z+=dz*f;}
+    if(B!==dragNode){B.vel.x-=dx*f;B.vel.y-=dy*f;B.vel.z-=dz*f;}
+  }
+  let max=0;
+  for(const id of dragSet){
+    const n=nodes[id];
+    if(n===dragNode){n.vel.set(0,0,0);continue;}
+    n.vel.addScaledVector(n.off,-K_HOME);
+    n.vel.multiplyScalar(DAMP);
+    n.off.add(n.vel);
+    max=Math.max(max,n.vel.lengthSq()+n.off.lengthSq()*0.02);
+  }
+  if(!dragNode && max<SETTLE){                 // hard settle — no infinite jitter
+    for(const id of dragSet){nodes[id].off.set(0,0,0);nodes[id].vel.set(0,0,0);}
+    physicsAwake=false; dragSet.clear();
+  }
+}
+
+/* ================= INTERACTION ================= */
+const el=renderer.domElement;
+const screen=new THREE.Vector3();
+let hoverId=-1, selId=-1;
+let mode=null, px=0, py=0, downAt=0, moved=0, pinch=0;
+// desktop-only mouse parallax target (normalized -1..1), eased toward in
+// frame() - see camera rig comment there for why this is applied after
+// lookAt() rather than folded into cam.tAz/tPol.
+let mouseNX=0, mouseNY=0;
+
+function project(n){
+  screen.copy(n.pos).applyMatrix4(world.matrixWorld).project(camera);
+  return { x:(screen.x*.5+.5)*innerWidth, y:(-screen.y*.5+.5)*innerHeight, z:screen.z };
+}
+function pick(cx,cy){
+  let best=-1,bd=1e9;
+  const rad = MOBILE?38:26;
+  for(const n of nodes){
+    const s=project(n); if(s.z>1) continue;
+    const d=Math.hypot(s.x-cx,s.y-cy);
+    const r=rad*(n.hub?1.35:1);
+    if(d<r && d<bd){bd=d;best=n.id;}
+  }
+  return best;
+}
+
+el.addEventListener("pointerdown",e=>{
+  px=e.clientX; py=e.clientY; downAt=performance.now(); moved=0;
+  try{ el.setPointerCapture(e.pointerId); }catch(_){}   /* capture is a nicety, not a requirement */
+  touched();
+  // Touch conflict resolution: you can only drag a node that is already selected.
+  // Long-press is too slow and nobody discovers it.
+  const hit=pick(e.clientX,e.clientY);
+  if(hit>=0 && hit===selId){
+    mode="node"; dragNode=nodes[hit];
+    dragSet=hopSet(hit,CFG.hops); physicsAwake=true;
+  } else mode="orbit";
+});
+el.addEventListener("pointermove",e=>{
+  if(!MOBILE){
+    mouseNX=(e.clientX/innerWidth)*2-1;
+    mouseNY=(e.clientY/innerHeight)*2-1;
+  }
+  if(!MOBILE && !mode){ hoverId=pick(e.clientX,e.clientY);
+    el.style.cursor = hoverId>=0 ? "pointer" : "grab"; }
+  if(!mode) return;
+  const dx=e.clientX-px, dy=e.clientY-py;
+  moved+=Math.abs(dx)+Math.abs(dy);
+  if(mode==="orbit"){
+    cam.tAz+=dx*0.0052; cam.tPol-=dy*0.0044;
+    cam.tPol=Math.max(cam.minPol,Math.min(cam.maxPol,cam.tPol));
+  }else if(mode==="node"&&dragNode){
+    // move in the camera plane, scaled by distance so it tracks the finger
+    const right=new THREE.Vector3(), up=new THREE.Vector3();
+    camera.matrixWorld.extractBasis(right,up,new THREE.Vector3());
+    const k=cam.dist*0.0016;
+    dragNode.off.addScaledVector(right, dx*k).addScaledVector(up,-dy*k);
+    if(dragNode.off.length()>9) dragNode.off.setLength(9);
+  }
+  px=e.clientX; py=e.clientY; touched();
+});
+function release(e){
+  if(mode==="orbit" && moved<8 && performance.now()-downAt<450){
+    const hit=pick(px,py);
+    if(hit>=0) select(hit); else select(-1);
+  }
+  mode=null; dragNode=null;
+}
+addEventListener("pointerup",release);
+addEventListener("pointercancel",()=>{mode=null;dragNode=null;});
+// without this, moving the cursor off the canvas mid-hover (to a browser
+// chrome element, another window, etc.) left hoverId pointing at whatever
+// node was last under the cursor indefinitely - it only ever cleared when
+// the pointer happened to pass over empty space again.
+el.addEventListener("pointerleave",()=>{ if(!mode) hoverId=-1; });
+/* No wheel zoom. The wheel belongs to the document: this is a hero on a
+   page, not a standalone toy, and hijacking scroll to zoom strands the
+   visitor in the first viewport. Orbit is drag-only. */
+el.addEventListener("touchmove",e=>{
+  return;   /* pinch-zoom removed with wheel-zoom, for the same reason */
+  if(e.touches.length!==2)return;
+  const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                     e.touches[0].clientY-e.touches[1].clientY);
+  if(pinch) cam.tDist=Math.max(cam.minDist,Math.min(cam.maxDist,cam.tDist+(pinch-d)*0.14));
+  pinch=d; mode=null; touched();
+},{passive:true});
+addEventListener("touchend",()=>pinch=0);
+
+/* --- selection: camera eases in, focal plane racks to the node --- */
+const panel=document.getElementById("panel");
+function select(id){
+  selId=id;
+  document.body.classList.toggle("picking", id>=0);
+  if(id<0){
+    panel.classList.remove("open");
+    tTarget.set(0,0,0); cam.tDist=MOBILE?50:46;   /* matches the tuned rest distance */
+    return;
+  }
+  const n=nodes[id];
+  tTarget.copy(n.home);
+  // on mobile the panel covers roughly the bottom third of the viewport
+  // (see the <820px CSS) - without this, the camera frames the selected
+  // node dead-centre and the panel slides up right over it. Lowering the
+  // look-at target's world Y (while the node itself stays put) shifts the
+  // node higher in the frame so it clears the panel instead of hiding
+  // behind it.
+  if(MOBILE) tTarget.y-=6.5;
+  cam.tDist=Math.max(cam.minDist, MOBILE?42:34);
+  document.getElementById("p-idx").textContent =
+    n.hub ? n.q.code : (n.kind==="study" ? "Further study" : "Field of work");
+  document.getElementById("p-title").textContent = n.label;
+  document.getElementById("p-body").textContent = n.hub
+    ? n.weeksLine || (n.q.weeks+" weeks. "+n.q.units+" units. Delivered face to face at Jandakot, "
+        +"with the fee schedule published before you apply.")
+    : (n.kind==="study"
+        ? "A published pathway from "+n.q.code+". Entry requirements are set by the receiving provider."
+        : "A field this qualification prepares you for. AGIT does not guarantee employment outcomes.");
+  document.getElementById("p-meta").textContent = n.hub
+    ? n.q.faculty
+    : "Reachable from "+n.q.code;
+  var go=document.getElementById("p-go");
+  go.setAttribute("href", n.q.href);
+  go.firstChild.nodeValue = (n.hub ? "Course details " : "About "+n.q.code+" ");
+  panel.classList.add("open");
+  fire(n,1.0,performance.now(),true);
+}
+document.getElementById("close").addEventListener("click",()=>select(-1));
+addEventListener("keydown",e=>{ if(e.key==="Escape") select(-1); });
+
+/* ================= ENTRY =================
+   Two independent timelines, not one rewired: ENTRY (fast, ~2.4s) still drives
+   node scatter-to-home, edge reveal, markReady() and the wave-start gate exactly
+   as before - HUD/controls and the wave must not feel delayed by the new,
+   slower camera reveal. ENTRY_CAM (~4.2s) is new and drives only camera
+   distance (CAM_START -> idle tDist) and the nebula/starfield opacity fade-in,
+   for a deliberate "backdrop fades up, then the camera settles" push instead of
+   an instant snap. */
+let START=performance.now();
+const ENTRY=REDUCED?1:2400, ENTRY_CAM=REDUCED?1:4200, BG_FADE=REDUCED?1:1600;
+const easeOut=t=>1-Math.pow(1-t,3);
+const easeInOut=t=>t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+edgeGeo.setDrawRange(0,0);
+let ready=false;
+function markReady(){ if(ready)return; ready=true;
+  document.body.classList.add("ready");
+  document.getElementById("boot").classList.add("gone"); }
+
+/* ================= REGEN (dissolve + rebuild) =================
+   "New seed" doesn't reload the page - reload-via-URL cannot work here at
+   all (see the resize/controls section below for why: this viewer loads
+   files outside the project folder as inlined data: URLs, so
+   location.search can't navigate). Rebuilding in place also reads better:
+   a ~450ms dissolve out, a fresh graph, the same entry animation replayed. */
+let phase="live", dissolveStart=0;
+const DISSOLVE_MS=REDUCED?1:450;
+function regenerate(){
+  SEED=(Math.random()*1e9)|0;
+  rnd=mulberry32(SEED);
+  const _so2=document.getElementById("seedout"); if(_so2) _so2.textContent=SEED;
+  const g=buildGraph();
+  nodes=g.nodes; edges=g.edges; hubs=g.hubs; restLen=g.restLen;
+  edgeIndexByPair=g.edgeIndexByPair; edgeBow=g.edgeBow; clusterPhase=g.clusterPhase;
+  edgePulseT0.fill(-1e9); edgePulseT1.fill(-1e9); edgePulseDir.fill(1); edgePulseAmp.fill(0);
+  layoutEdgeT();
+  selId=-1; hoverId=-1; dragNode=null; dragSet.clear(); physicsAwake=false;
+  edgeGeo.setDrawRange(0,0);
+  wave.length=0; nextWave=1200;   // elapsed-since-new-START, see seedWave() note above
+  // reseed the sky too, so "new seed" doesn't just reshuffle the graph
+  // inside an unchanged backdrop.
+  const sp=(SEED%1000)/1000*Math.PI*2;
+  const seedVec=new THREE.Vector3(Math.cos(sp)*37,Math.sin(sp)*41,(SEED%777)/777*53);
+  domeMat.uniforms.uSeedOffset.value.copy(seedVec);
+  if(absorbDome) absorbDome.material.uniforms.uSeedOffset.value.copy(seedVec);
+  // new seed -> new nebula STYLE (color family + density), not just a
+  // reshuffled noise phase - this is what makes "New seed" visibly change
+  // the environment instead of producing near-identical compositions.
+  nebulaStyle=pickStyle(SEED,nebulaStyle);   // guaranteed different from current
+  nebulaHue=hueShiftFor(SEED);
+  domeMat.uniforms.uZoneA.value.copy(hueRotate(nebulaStyle.zoneA,nebulaHue));
+  domeMat.uniforms.uZoneB.value.copy(hueRotate(nebulaStyle.zoneB,nebulaHue));
+  domeMat.uniforms.uZoneC.value.copy(hueRotate(nebulaStyle.zoneC,nebulaHue));
+  domeMat.uniforms.uZoneD.value.copy(hueRotate(nebulaStyle.zoneD,nebulaHue));
+  domeMat.uniforms.uDensity.value=nebulaStyle.density;
+  domeMat.uniforms.uContrast.value=nebulaStyle.contrast;
+  const newWispOffset=NEBULA_STYLES.indexOf(nebulaStyle);
+  wisps.forEach((w,i)=>{
+    const pal=WISP_PALETTE[(i+newWispOffset)%WISP_PALETTE.length];
+    w.material.uniforms.uColorA.value.copy(pal[0]);
+    w.material.uniforms.uColorB.value.copy(pal[1]);
+    w.material.uniforms.uSeed.value=(SEED%9973)/37.0;
+  });
+  try{ history.replaceState(null,"","?seed="+SEED); }catch(_){}
+}
+
+/* ================= LOOP ================= */
+let visible=true;
+let lastFrameAt=0;
+new IntersectionObserver(en=>visible=en[0].isIntersecting,{threshold:.01}).observe(el);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)idleAt=performance.now();});
+
+/* --- nebula palette: five states blended by weight instead of one silver->gold
+   scalar. SELECT is the only warm hue anywhere in the whole scene (nodes, edges,
+   nebula, stars) - that's what keeps "selected" legible once the backdrop is no
+   longer black. IDLE_HUB is a desaturated periwinkle, not magenta, so a resting
+   hub never reads as mid-wave (WAVE is magenta) or mid-select (SELECT is warm). */
+const IDLE_LEAF=[0.80,0.80,0.83], IDLE_HUB=[1.00,0.115,0.065],
+      HOVER=[1.00,0.97,0.94], WAVE=[1.00,0.22,0.13], SELECT=[1.00,0.285,0.150];
+// edges no longer inherit the dark node hue directly at rest - a line drawn
+// in IDLE_LEAF's deep indigo at a sane opacity is close to invisible over a
+// lit nebula, which is the direct cause of "the lines aren't visible, it
+// doesn't read as a network". A pale, desaturated blue-white idle tint reads
+// as structure/wiring even at rest; only an active edge (hover/wave/select)
+// pulls toward that state's real hue.
+const EDGE_IDLE=[0.44,0.445,0.48];   /* geometry now, so it can carry more */
+const edgeTmp=[0,0,0];
+function mixColor(n,out,idx){
+  const base=n.hub?IDLE_HUB:IDLE_LEAF;
+  const hw=n.hov, aw=Math.min(1,n.act), sw=n.sel;
+  out[idx  ]=base[0]+hw*(HOVER[0]-base[0])+aw*(WAVE[0]-base[0])+sw*(SELECT[0]-base[0]);
+  out[idx+1]=base[1]+hw*(HOVER[1]-base[1])+aw*(WAVE[1]-base[1])+sw*(SELECT[1]-base[1]);
+  out[idx+2]=base[2]+hw*(HOVER[2]-base[2])+aw*(WAVE[2]-base[2])+sw*(SELECT[2]-base[2]);
+}
+function mixEdgeColor(n,out,idx){
+  const hw=n.hov, aw=Math.min(1,n.act), sw=n.sel;
+  out[idx  ]=EDGE_IDLE[0]+hw*(HOVER[0]-EDGE_IDLE[0])+aw*(WAVE[0]-EDGE_IDLE[0])+sw*(SELECT[0]-EDGE_IDLE[0]);
+  out[idx+1]=EDGE_IDLE[1]+hw*(HOVER[1]-EDGE_IDLE[1])+aw*(WAVE[1]-EDGE_IDLE[1])+sw*(SELECT[1]-EDGE_IDLE[1]);
+  out[idx+2]=EDGE_IDLE[2]+hw*(HOVER[2]-EDGE_IDLE[2])+aw*(WAVE[2]-EDGE_IDLE[2])+sw*(SELECT[2]-EDGE_IDLE[2]);
+}
+const camPos=new THREE.Vector3(), tmp=new THREE.Vector3();
+// handheld/parallax temporaries, reused every frame to avoid allocation
+const parRight=new THREE.Vector3(), parUp=new THREE.Vector3(), parFwd=new THREE.Vector3();
+let pmx=0, pmy=0;   // eased mouse-parallax position
+
+function frame(now){
+  requestAnimationFrame(frame);
+  if(!visible||document.hidden) return;
+
+  /* --- frame-delta normalization ---
+     Every easing and decay constant in this loop was tuned at 60fps but
+     applied once per FRAME, not per unit time. On a 120/144Hz display that
+     meant the wave activation decayed roughly twice as fast, the camera
+     snapped to its target twice as hard, and hover/selection blends resolved
+     twice as quickly as intended - the whole piece read as subtly more
+     nervous on a high-refresh monitor than on a 60Hz one, with no single
+     symptom obvious enough to point at. dtN is 1.0 at 60fps; lerpK() converts
+     a per-frame lerp factor to a frame-rate independent one and pow(k,dtN)
+     does the same for a per-frame decay. Clamped so a long stall (tab
+     backgrounded, GC pause) can't produce one enormous catch-up step.
+     stepPhysics() is deliberately NOT converted - retuning a damped verlet
+     integrator for variable dt risks instability, and it only runs while a
+     node is actively being dragged. */
+  const dtRaw = lastFrameAt ? now-lastFrameAt : 16.667;
+  lastFrameAt = now;
+  const dtN = Math.min(3, Math.max(0.1, dtRaw/16.667));
+  const lerpK = k => 1-Math.pow(1-k, dtN);
+
+  /* --- regen dissolve: nodes fly back out along their scatter vectors and
+     edges fade, then the graph (and sky) swap and the entry animation
+     replays. The backdrop now cross-fades out across this same window
+     (previously it stayed at full opacity through the whole dissolve, then
+     hard-cut to 0 the instant the new sky's uOpacity/bgFade reset on the
+     very first live frame - a jarring flash rather than the "New seed"
+     button reading as a deliberate transition into a different sky). */
+  if(phase==="dissolving"){
+    const dt=Math.min(1,(now-dissolveStart)/DISSOLVE_MS), de=easeOut(dt);
+    for(const n of nodes){
+      n.pos.lerpVectors(n.home,n.scatter,de);
+      nPos.set([n.pos.x,n.pos.y,n.pos.z],n.id*3);
+      nAlpha[n.id]=dissolveAlpha0[n.id]*(1-de);
+    }
+    nodeGeo.attributes.position.needsUpdate=true;
+    nodeGeo.attributes.aAlpha.needsUpdate=true;
+    edgeMat.uniforms.uOpacity.value=(1-de)*1.0;
+    const bgOut=1-de;
+    domeMat.uniforms.uOpacity.value=bgOut;
+    for(const w of wisps) w.material.uniforms.uOpacity.value=bgOut;
+    farStarsMat.opacity=0.55*bgOut;
+    twinkleMat.uniforms.uOpacity.value=bgOut;
+    if(absorbDome) absorbDome.material.uniforms.uOpacity.value=bgOut;
+    if(dt>=1){ regenerate(); phase="live"; START=now; }
+    composer.render();
+    return;
+  }
+
+  const t=(now-START)/1000;
+  const en=Math.min(1,(now-START)/ENTRY), e=easeOut(en);
+  if(en>=0.35) markReady();
+
+  // slow whole-network brightness swell, independent of the discrete wave
+  // firings above - a ~19s period, small enough (0.85-1.0) to read as "alive"
+  // rather than a visible flicker. This is what keeps the network breathing
+  // in the gaps between wave events, not just during them.
+  // spatial breathe: was one global scalar applied to every node/edge in
+  // perfect lockstep, which reads as the whole page dimming and brightening
+  // together, not as something alive. Phase now comes from each node's
+  // cluster (clusterPhase, from buildGraph) so the swell visibly travels
+  // across the network cluster to cluster; edges use the AVERAGE of their
+  // two endpoints' phases and a narrower range so the lattice itself stays
+  // structurally readable while the lights swell. Period lengthened
+  // (~19s -> ~26s) to read as a slow breath, not a flicker.
+  function breatheAt(phase,lo,hi){
+    return REDUCED?1:lo+(hi-lo)*(0.5+0.5*Math.sin(t*0.2417+phase));
+  }
+
+  /* --- wave scheduling --- */
+  if(!REDUCED && en>0.9){
+    if(now-START>nextWave) seedWave(now);
+    for(let i=wave.length-1;i>=0;i--){
+      if(wave[i].at<=now){ fire(nodes[wave[i].id],wave[i].power,now); wave.splice(i,1); }
+    }
+  }
+
+  /* --- idle auto-orbit --- */
+  const idleFor=(now-idleAt)/1000;
+  if(!mode && (!userActive||idleFor>6) && !REDUCED){
+    const ramp=userActive?Math.min(1,(idleFor-6)/3):1;
+    cam.tAz+=0.00042*ramp*dtN;
+    cam.tPol+=Math.sin(t*.11)*0.00013*ramp*dtN;
+    cam.tPol=Math.max(cam.minPol,Math.min(cam.maxPol,cam.tPol));
+  }
+
+  cam.az+=(cam.tAz-cam.az)*lerpK(.075);
+  cam.pol+=(cam.tPol-cam.pol)*lerpK(.075);
+  const enCam=Math.min(1,(now-START)/ENTRY_CAM), eCam=easeInOut(enCam);
+  cam.dist+=((enCam<1?CAM_START+(cam.tDist-CAM_START)*eCam:cam.tDist)-cam.dist)*lerpK(.06);
+  target.lerp(tTarget,lerpK(0.06));
+
+  // handheld float: tiny multi-frequency drift on the orbit angles
+  // themselves, applied only to this frame's position (never accumulated
+  // into cam.az/cam.pol) so it can't drift the "true" orbit the user is
+  // actually controlling. Amplitude is deliberately small - this should
+  // read as a barely-there human hand, not a shaky-cam effect.
+  const hs=REDUCED?0:1;
+  const shakeAz=hs*(Math.sin(t*0.61)*0.0010+Math.sin(t*1.7+2.1)*0.00045);
+  const shakePol=hs*(Math.sin(t*0.53+1.3)*0.00075+Math.sin(t*1.9+0.4)*0.00035);
+
+  camera.position.set(
+    target.x+cam.dist*Math.sin(cam.pol+shakePol)*Math.cos(cam.az+shakeAz),
+    target.y+cam.dist*Math.cos(cam.pol+shakePol),
+    target.z+cam.dist*Math.sin(cam.pol+shakePol)*Math.sin(cam.az+shakeAz));
+  camera.lookAt(target);
+  /* Composition. The field is pushed left of centre and the type occupies the
+     right, so neither is fighting the other for the same pixels. Applied after
+     lookAt so it trucks the camera sideways rather than re-aiming it - a dolly,
+     not a pan, which keeps the parallax between nebula, field and dust honest. */
+  if(!MOBILE){
+    camera.translateX(-cam.dist*0.085);
+    camera.translateY( cam.dist*0.030);
+  }
+  else        camera.translateY(-cam.dist*0.140);   /* field to the top half, type to the bottom */
+  camera.rotation.z+=hs*Math.sin(t*0.47)*0.006;   // subtle roll, after lookAt resets orientation
+
+  // mouse parallax dolly (desktop only, and only while not actively
+  // orbiting/dragging - fighting the user's own drag would feel broken).
+  // Applied as a small position nudge along the camera's own right/up axes
+  // after lookAt, which is what real parallax rigs do: shift position while
+  // keeping the general framing, not re-aim at a new point.
+  if(!MOBILE){
+    pmx+=(mouseNX-pmx)*lerpK(0.035); pmy+=(mouseNY-pmy)*lerpK(0.035);
+    if(!mode){
+      camera.matrixWorld.extractBasis(parRight,parUp,parFwd);
+      const pk=cam.dist*0.018;
+      camera.position.addScaledVector(parRight,pmx*pk).addScaledVector(parUp,-pmy*pk);
+    }
+  }
+
+  world.rotation.y=REDUCED?0:Math.sin(t*.055)*.05;
+  world.rotation.x=REDUCED?0:Math.cos(t*.041)*.028;
+  dust.rotation.y=REDUCED?0:-t*.006;
+  world.updateMatrixWorld();
+
+  /* --- cosmic backdrop: fade in over BG_FADE, then just drift/twinkle.
+     All kept out of `world` (no wobble) and out of the rack-focus dimming
+     loop below - background must never go soft/sharp with node selection,
+     or the shallow-DOF illusion on the interactive layer breaks. --- */
+  const bgFade=Math.min(1,(now-START)/BG_FADE);
+  dome.rotation.y=REDUCED?0:t*0.0025;
+  domeMat.uniforms.uTime.value=t;
+  domeMat.uniforms.uOpacity.value=bgFade;
+  for(const w of wisps){
+    w.quaternion.copy(camera.quaternion);
+    w.material.uniforms.uTime.value=t;
+    w.material.uniforms.uOpacity.value=bgFade;
+  }
+  farStars.rotation.y=REDUCED?0:-t*0.0018;
+  farStarsMat.opacity=0.55*bgFade;
+  twinklePoints.rotation.y=REDUCED?0:-t*0.0011;
+  twinkleMat.uniforms.uTime.value=REDUCED?0:t;
+  twinkleMat.uniforms.uOpacity.value=bgFade;
+  if(absorbDome){
+    absorbDome.material.uniforms.uTime.value=t;
+    absorbDome.material.uniforms.uOpacity.value=bgFade;
+  }
+
+  stepPhysics();
+
+  /* --- rack focus: distance from the focal plane dims and softens --- */
+  camPos.copy(camera.position);
+  const focusD = selId>=0 ? camPos.distanceTo(nodes[selId].pos) : cam.dist;
+  const depth  = selId>=0 ? 26 : 92;   // shallow when focused, wide when idle
+
+  for(const n of nodes){
+    // the target decays; the visible value chases it. Attack ~0.3s,
+    // release several seconds - a swell, never a switch.
+    n.actT=(n.actT||0)*(REDUCED?0:Math.pow(0.988,dtN));
+    n.act+=((n.actT||0)-n.act)*lerpK(0.062);
+    n.hov+=(((!MOBILE&&hoverId===n.id)?1:0)-n.hov)*lerpK(0.18);
+    n.sel+=(((selId===n.id)?1:0)-n.sel)*lerpK(0.10);
+
+    // staggered ignition: each node's own entry window is offset by
+    // n.entryDelay (hubs first) within the shared `en` timeline, rather than
+    // every node using the same global progress - reads as the network
+    // coming online in sequence. Position uses the per-node `le` directly
+    // (not a global en<1 gate) so a late node still finishes its own lerp
+    // smoothly even after the global timeline has technically reached 1.
+    const localT=Math.min(1,Math.max(0,(en-n.entryDelay)/Math.max(0.0001,1-n.entryDelay)));
+    const le=easeOut(localT);
+    if(le<1) n.pos.lerpVectors(n.scatter,n.home,le);
+    else{
+      tmp.copy(n.home).add(n.off);
+      if(!REDUCED){
+        tmp.y+=Math.sin(t*n.bob+n.phase)*0.34;
+        tmp.x+=Math.cos(t*n.bob*.8+n.phase)*0.22;
+      }
+      n.pos.copy(tmp);
+    }
+    nPos.set([n.pos.x,n.pos.y,n.pos.z],n.id*3);
+
+    // brightness: wave < hover < selected. Only the selected node is fully lit.
+    const lit=Math.min(1, n.act*0.72 + n.hov*0.55 + n.sel*1.0);
+    // Barely-there flicker on the SELECTED node only. A perfectly steady
+    // light is the tell that something is CG - real bright sources shimmer a
+    // little. Three incommensurate frequencies (not one sine) so it never
+    // settles into an audible-looking repeating beat, total deviation under
+    // ~4%, and the whole term is scaled by n.sel so nothing else in the scene
+    // flickers and an unselected node is bit-identical to before.
+    const flick = REDUCED ? 1 : 1 + n.sel*(
+        Math.sin(t*7.3 + n.phase)*0.020
+      + Math.sin(t*17.1 + n.phase*2.3)*0.012
+      + Math.sin(t*31.7 + n.phase*0.7)*0.007);
+    const grow=1 + n.act*0.55 + n.hov*0.35 + n.sel*0.5;   // selection no longer nearly doubles sprite size on top of every other brightness lever
+    nSize[n.id]=n.base*grow*(0.35+0.65*le);
+
+    mixColor(n,nCol,n.id*3);
+
+    const dz=Math.abs(camPos.distanceTo(n.pos)-focusD);
+    const blur=Math.min(1,dz/depth);
+    // very close to the original 0.42/0.26 and 0.30+0.70*(0.6/0.34+lit) on
+    // purpose - two earlier, larger lifts here fused whole hub clusters into
+    // blown-out blobs under bloom (verified: didn't fade over several
+    // seconds, so it was static overlap, not the wave). Node presence now
+    // comes mainly from the node shader's wider core cutoff/halo weight
+    // (shape), not from pushing these intensity values up further.
+    // `breathe` (below) is the slow whole-network pulsation the wave rides
+    // on top of - see WAVE/frame().
+    nCore[n.id]=Math.min(0.84,(n.hub?0.62:0.30)+lit*0.85)*(1-blur*0.55)*flick;
+    nAlpha[n.id]=le*(0.32+0.68*Math.min(1,(n.hub?0.60:0.35)+lit))*(1-blur*0.62)*breatheAt(clusterPhase[n.cluster],0.78,1.0)*flick;
+    nBlur[n.id]=blur;
+  }
+  nodeGeo.attributes.position.needsUpdate=true;
+  nodeGeo.attributes.aSize.needsUpdate=true;
+  nodeGeo.attributes.aColor.needsUpdate=true;
+  nodeGeo.attributes.aAlpha.needsUpdate=true;
+  nodeGeo.attributes.aCore.needsUpdate=true;
+  nodeGeo.attributes.aBlur.needsUpdate=true;
+
+  /* --- edges carry the travelling light, along a curved polyline ---
+     Base brightness raised from 0.34/0.20 (bridge/intra-cluster) - like the
+     nodes, edges were too dim at rest to read as a network. `breathe`
+     applies here too so the whole graph swells together, not just nodes. */
+  for(let i=0;i<edges.length;i++){
+    const A=nodes[edges[i][0]], B=nodes[edges[i][1]];
+    const bridge=A.cluster!==B.cluster;
+    const near = selId>=0 ? ((A.id===selId||B.id===selId)?1:0) : 0;
+    // idle bases lifted (0.30/0.44 -> 0.52/0.72) and given a dedicated pale
+    // idle tint (mixEdgeColor, not mixColor) - the previous dark node-hue
+    // edges at these opacities were near-invisible over a lit backdrop,
+    // which was the direct cause of "the network doesn't read as a network".
+    const eBreathe=breatheAt((clusterPhase[A.cluster]+clusterPhase[B.cluster])*0.5,0.90,1.0);
+    const bA=((bridge?0.72:0.52)+A.act*0.85+near*0.6)*eBreathe;
+    const bB=((bridge?0.72:0.52)+B.act*0.85+near*0.6)*eBreathe;
+    mixEdgeColor(A,edgeTmp,0); const cAr=edgeTmp[0],cAg=edgeTmp[1],cAb=edgeTmp[2];
+    mixEdgeColor(B,edgeTmp,0); const cBr=edgeTmp[0],cBg=edgeTmp[1],cBb=edgeTmp[2];
+
+    // depth fade, matching the node rack-focus above so edges recede with
+    // the same focal plane instead of forming a flat cage regardless of
+    // what's in focus. Softened from 0.55 - edges vanishing too eagerly
+    // out of focus was part of why the network read as sparse.
+    const midDist=(camPos.distanceTo(A.pos)+camPos.distanceTo(B.pos))*0.5;
+    const eBlur=Math.min(1,Math.abs(midDist-focusD)/depth);
+    const fadeMul=1-eBlur*0.28;
+
+    // bezier control point: cached bow direction (from buildGraph, stable)
+    // re-anchored to the edge's LIVE midpoint every frame, so the curve
+    // tracks bobbing/dragged nodes without recomputing its shape. Bow
+    // amount itself was pulled way down (see buildGraph) after the previous
+    // pass's curves read as "bent" rather than "designed".
+    edgeCtrl.copy(A.pos).add(B.pos).multiplyScalar(0.5).add(edgeBow[i]);
+
+    let pulsePos=-10, pulseAmp=0;
+    // Arrival behaviour: `raw` used to be CLAMPED to 1, which parked the
+    // travelling band motionless on top of the destination node for the whole
+    // fade window and then cut it dead - reading as "the light stops on the
+    // node, sits there, then vanishes" rather than as energy arriving. It now
+    // keeps going past the end of the curve during PULSE_TAIL while its
+    // amplitude falls off quadratically, so the band slides the rest of the
+    // way into the node and is gone by the time it would have popped. The
+    // node's own activation is already scheduled to land at exactly t1 (same
+    // `travel` value drives both, see fire()), so the hand-off from "light on
+    // the wire" to "node lit" happens on one frame with no gap or overlap.
+    if(edgePulseT1[i]>edgePulseT0[i] && now<edgePulseT1[i]+PULSE_TAIL){
+      const dur=Math.max(1,edgePulseT1[i]-edgePulseT0[i]);
+      const raw=Math.max(0,(now-edgePulseT0[i])/dur);
+      let along, amp=edgePulseAmp[i];
+      if(raw<=1){
+        along=raw;
+      }else{
+        const ft=Math.min(1,(now-edgePulseT1[i])/PULSE_TAIL);
+        along = 1 + ft*0.5;        // continues past the node, not parked on it
+        amp  *= (1-ft)*(1-ft);     // and is fully out before it would cut
+      }
+      pulsePos = edgePulseDir[i]>0 ? along : 1-along;
+      pulseAmp = amp;
+    }
+
+    for(let s=0;s<SEG;s++){
+      const t0=s/SEG, t1=(s+1)/SEG;
+      bezierInto(A.pos,edgeCtrl,B.pos,t0,edgeP0);
+      bezierInto(A.pos,edgeCtrl,B.pos,t1,edgeP1);
+      const vi=(i*SEG+s)*2;
+      ePos.set([edgeP0.x,edgeP0.y,edgeP0.z, edgeP1.x,edgeP1.y,edgeP1.z],vi*3);
+      const b0=bA+(bB-bA)*t0, b1=bA+(bB-bA)*t1;
+      eCol.set([
+        (cAr+(cBr-cAr)*t0)*b0*fadeMul,(cAg+(cBg-cAg)*t0)*b0*fadeMul,(cAb+(cBb-cAb)*t0)*b0*fadeMul,
+        (cAr+(cBr-cAr)*t1)*b1*fadeMul,(cAg+(cBg-cAg)*t1)*b1*fadeMul,(cAb+(cBb-cAb)*t1)*b1*fadeMul
+      ],vi*3);
+      ePulse[vi]=pulsePos; ePulse[vi+1]=pulsePos;
+      ePulseAmp[vi]=pulseAmp; ePulseAmp[vi+1]=pulseAmp;
+    }
+  }
+  edgeGeo.attributes.position.needsUpdate=true;
+  edgeGeo.attributes.aColor.needsUpdate=true;
+  edgeGeo.attributes.aPulse.needsUpdate=true;
+  edgeGeo.attributes.aPulseAmp.needsUpdate=true;
+  updateBallStick();
+  // frustumCulled=false on edgeMesh (set at creation) makes computeBoundingSphere
+  // unnecessary here - it would otherwise run against the MAX-capacity buffer's
+  // stale tail after a regen shrinks the edge count.
+  edgeGeo.setDrawRange(0,Math.floor(edges.length*SEG*2*Math.min(1,Math.max(0,(en-.28)/.72))));
+  edgeMat.uniforms.uOpacity.value=1.0*e;
+
+  composer.render();
+}
+requestAnimationFrame(frame);
+
+/* ================= RESIZE / CONTROLS ================= */
+let rt;
+addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  // re-read devicePixelRatio: dragging the window to a display with a
+  // different DPR changes it, and without this the renderer keeps rendering
+  // at the ratio captured at load while uPix below reports the new one.
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+  renderer.setSize(innerWidth,innerHeight);
+  composer.setSize(innerWidth,innerHeight);
+  const bw=MOBILE?innerWidth*0.55:innerWidth, bh=MOBILE?innerHeight*0.55:innerHeight;
+  bloomPass.resolution.set(bw,bh);
+  nodeMat.uniforms.uH.value=innerHeight;
+  nodeMat.uniforms.uPix.value=renderer.getPixelRatio();   // was never updated here - node sprites kept a stale DPR after moving to a different-DPR display
+  twinkleMat.uniforms.uH.value=innerHeight;
+  twinkleMat.uniforms.uPix.value=renderer.getPixelRatio();
+  gradePass.uniforms.uAspect.value=innerWidth/innerHeight;
+},120);});
+// Rebuilds in place rather than reloading via location.search - this file is
+// frequently opened as a local file:// path or previewed by tools that inline
+// it as a data: URL (confirmed live: location.protocol was literally "data:"
+// with an empty location.search in that viewer), where a query-string reload
+// is a silent no-op. regenerate()+the dissolve above work identically on
+// data:/file:/http:.
+const _regenBtn=document.getElementById("regen");
+if(_regenBtn) _regenBtn.addEventListener("click",()=>{
+  if(phase==="dissolving") return;
+  select(-1);
+  for(let i=0;i<N;i++) dissolveAlpha0[i]=nAlpha[i];
+  phase="dissolving"; dissolveStart=performance.now();
+});
+})();
+</script>
+</body>
+</html>
