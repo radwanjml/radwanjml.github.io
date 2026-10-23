@@ -5,50 +5,82 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="canonical" href="https://radwanjml.github.io/sites/planckplay-proof/">
 <title>Shadow Hunt: PlanckPlay proof</title>
-<meta name="description" content="A play-first proof of concept: turn a four-dimensional shape until its shadow matches the target. Static, no libraries, works offline.">
+<meta name="description" content="A play-first proof of concept: turn a four-dimensional shape until its shadow fits the dashed outline. Static, no libraries, works offline.">
+<meta name="theme-color" content="#f2ede3">
 <style>
-:root{--bg:#0e1118;--panel:#151a25;--ink:#e8ecf4;--dim:#8a93a8;--ghost:#ffc857;--win:#5be3a1}
+@font-face{font-family:"Fredoka";src:url(fonts/Fredoka-SemiBold.woff2) format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Geist";src:url(fonts/Geist-normal-300-600-latin.woff2) format("woff2");font-weight:300 600;font-display:swap}
+:root{
+  --paper:#f2ede3;--paper-2:#e8e1d2;--paper-3:#fbf8f1;
+  --ink:#1d1b33;--ink-2:#58546e;--rule:#cfc7b5;
+  --coral:#e4572e;--ochre:#d99a00;--teal:#0f9d8a;--violet:#5b4bdb;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font:400 16px/1.45 "Geist",system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+::selection{background:var(--violet);color:#fff}
 #c{position:fixed;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
 #c:active{cursor:grabbing}
-#prompt{position:fixed;left:0;right:0;top:0;padding:max(14px,env(safe-area-inset-top)) 16px 10px;text-align:center;pointer-events:none;font-size:clamp(15px,2.4vw,20px);letter-spacing:.01em}
-#prompt small{display:block;color:var(--dim);font-size:.78em;margin-top:2px}
-#reveal{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translate(-50%,24px);width:min(560px,calc(100% - 32px));background:#10151fee;border:1px solid #2a3347;border-radius:14px;padding:16px 18px;opacity:0;pointer-events:none;transition:opacity .5s,transform .5s}
-#reveal.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-#reveal h2{margin:0 0 6px;font-size:1.05em;color:var(--win)}
-#reveal p{margin:0 0 10px;color:var(--ink);font-size:.93em}
-#reveal p.dim{color:var(--dim)}
-button{font:inherit;color:var(--bg);background:var(--ink);border:0;border-radius:10px;padding:11px 18px;min-height:44px;cursor:pointer}
-button:focus-visible{outline:3px solid var(--ghost);outline-offset:2px}
-#skip{position:fixed;right:14px;bottom:max(14px,env(safe-area-inset-bottom));background:transparent;color:var(--dim);border:1px solid #2a3347;padding:8px 14px;min-height:44px}
-@media (prefers-reduced-motion:reduce){#reveal{transition:none}}
+#hud{position:fixed;left:0;right:0;top:0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:max(14px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left));pointer-events:none}
+#hud h1{margin:0;font:600 clamp(24px,4vw,34px)/1.05 "Fredoka",system-ui,sans-serif;letter-spacing:-.01em}
+#hud p{margin:4px 0 0;color:var(--ink-2);font-size:clamp(14px,1.9vw,16px);max-width:34ch;text-wrap:balance;transition:opacity .6s var(--ease)}
+#hud p.quiet{opacity:.0}
+button{font:500 15px/1 "Geist",system-ui,sans-serif;border:0;border-radius:12px;min-height:44px;padding:0 18px;cursor:pointer;transition:transform .2s var(--ease),background .2s}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+#skip{pointer-events:auto;background:transparent;color:var(--ink);border:1.5px solid var(--ink);margin-top:2px}
+#skip:hover{background:var(--ink);color:var(--paper)}
+#reveal{position:fixed;left:0;right:0;bottom:0;display:flex;gap:clamp(16px,4vw,40px);align-items:center;flex-wrap:wrap;justify-content:center;padding:18px max(20px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));background:var(--paper-3);border-top:1.5px solid var(--ink);box-shadow:0 -14px 30px -12px rgba(29,27,51,.22);transform:translateY(105%);transition:transform .7s var(--ease)}
+#reveal.on{transform:none}
+#reveal .words{flex:1 1 300px;max-width:46ch}
+#reveal h2{margin:0 0 4px;font:600 clamp(22px,3.4vw,28px)/1.1 "Fredoka",system-ui,sans-serif;letter-spacing:-.01em;text-wrap:balance}
+#reveal p{margin:0 0 6px;font-size:.95rem}
+#reveal p.dim{color:var(--ink-2);font-size:.9rem}
+#reveal .strip{display:flex;flex-wrap:wrap;gap:10px;flex:0 0 auto;align-items:flex-end;max-width:340px}
+#reveal .strip::after{content:"The same shape, four other shadows";flex:0 0 100%;color:var(--ink-2);font-size:.78rem}
+#reveal figure{margin:0;text-align:center;color:var(--ink-2);font-size:.75rem}
+#reveal canvas{display:block;width:76px;height:76px;border-radius:10px;background:var(--paper-2)}
+#again{background:var(--ink);color:var(--paper);flex:0 0 auto}
+#again:hover{background:var(--violet)}
+@media (prefers-reduced-motion:reduce){#reveal,#hud p,button{transition:none}}
 </style>
 </head>
 <body>
-<canvas id="c" aria-label="Interactive 4D shape and its shadow. Drag to rotate. Arrow keys also work."></canvas>
-<div id="prompt">Turn the shape until its shadow fits the dotted outline.<small>Drag anywhere. Arrow keys work too.</small></div>
-<div id="reveal" role="status" aria-live="polite">
-  <h2>That shadow fits.</h2>
-  <p>The shape never changed. Only the way you turned it did, and the shadow changed with it.</p>
-  <p class="dim">What you were turning: a 16-cell, a four-dimensional shape with 8 corners and 24 edges. Each corner has one opposite partner, drawn in the same colour.</p>
-  <button id="again">Hunt another shadow</button>
-</div>
-<button id="skip" type="button">New target</button>
+<canvas id="c" role="img" aria-label="Interactive: a four-dimensional shape on the left, its shadow on a wall on the right or below. Drag to turn the shape. Arrow keys also work."></canvas>
+<header id="hud">
+  <div>
+    <h1>Shadow Hunt</h1>
+    <p id="hint">Turn the shape until its shadow fits the dashed outline.</p>
+  </div>
+  <button id="skip" type="button">New target</button>
+</header>
+<section id="reveal" role="status" aria-live="polite" aria-label="Result">
+  <div class="words">
+    <h2>That shadow fits.</h2>
+    <p>The shape never changed. Only the way you turned it did, and the shadow changed with it.</p>
+    <p class="dim">What you were turning is a 16-cell: a four-dimensional shape with 8 corners and 24 edges. Each corner has one opposite partner, drawn in the same colour.</p>
+  </div>
+  <div class="strip" id="strip" aria-label="The same shape seen as four other shadows"></div>
+  <button id="again" type="button">Hunt another shadow</button>
+</section>
 
 <script>
 (function(){
 "use strict";
 const cv=document.getElementById('c'),g=cv.getContext('2d');
-const reveal=document.getElementById('reveal');
-const COL=['#ff6b5e','#ffc857','#4fd1c5','#8f9bff'];
-const GHOST='#ffc857',WIN='#5be3a1';
-const D=3,THRESH=0.07;
+const reveal=document.getElementById('reveal'),hint=document.getElementById('hint'),strip=document.getElementById('strip');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const INK='#1d1b33',PAPER='#f2ede3',PAPER2='#e8e1d2',PAPER3='#fbf8f1';
+const COL=['#e4572e','#d99a00','#0f9d8a','#5b4bdb'];
+const CORAL='#e4572e',TEAL='#0f9d8a',VIOLET='#5b4bdb';
+const D=3,THRESH=0.07,TAU=Math.PI*2;
 let W=0,H=0,DPR=1;
 
-/* 16-cell: 8 corners at plus/minus each axis; an edge joins every pair except opposites */
+/* 16-cell: 8 corners at plus/minus each axis. An edge joins every pair except opposites.
+   Its 32 triangular faces take one corner from each of three different axes. */
 const V=[];for(let i=0;i<8;i++){const v=[0,0,0,0];v[i>>1]=(i&1)?-1:1;V.push(v);}
 const E=[];for(let i=0;i<8;i++)for(let j=i+1;j<8;j++)if((i>>1)!==(j>>1))E.push([i,j]);
+const F=[];[[0,1,2],[0,1,3],[0,2,3],[1,2,3]].forEach(t=>{for(let s=0;s<8;s++)F.push([2*t[0]+(s&1),2*t[1]+((s>>1)&1),2*t[2]+((s>>2)&1)]);});
 
 function rot(v,a,b){
   let x=v[0],y=v[1],z=v[2],w=v[3],c=Math.cos(a),s=Math.sin(a),t;
@@ -60,120 +92,161 @@ function rot(v,a,b){
 function to3(p){const k=D/(D-p[3]);return[p[0]*k,p[1]*k,p[2]*k];}
 function pts(a,b){return V.map(v=>to3(rot(v,a,b)));}
 function shadow(a,b){return pts(a,b).map(p=>[p[0],p[1]]);}
-
-/* how far apart two point sets are, ignoring which corner is which */
+function hull(P){
+  const s=P.map(p=>[p[0],p[1]]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo=[],up=[];
+  for(const p of s){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(let i=s.length-1;i>=0;i--){const p=s[i];while(up.length>=2&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}
+  lo.pop();up.pop();return lo.concat(up);
+}
+/* distance between two point sets, ignoring which corner is which */
 function gap(A,B){
   const near=(p,S)=>{let m=1e9;for(const q of S){const d=Math.hypot(p[0]-q[0],p[1]-q[1]);if(d<m)m=d;}return m;};
   let s=0;for(const p of A)s+=near(p,B);for(const q of B)s+=near(q,A);
   return s/(A.length+B.length);
 }
 
-let A=0,B=0,TA=0,TB=0,won=false,touched=false,tPrev=0,yaw=0.5;
-const pi2=Math.PI*2;
+let A=0,B=0,TA=0,TB=0,won=false,touched=false,winT=0,botNow=0,closeNow=0;
 function newTarget(){
   won=false;reveal.classList.remove('on');
   let tries=0;
-  do{
-    TA=Math.random()*pi2;TB=Math.random()*pi2;
-    A=Math.random()*pi2;B=Math.random()*pi2;
-    tries++;
-  }while(gap(shadow(A,B),shadow(TA,TB))<0.22&&tries<500);
+  do{TA=Math.random()*TAU;TB=Math.random()*TAU;A=Math.random()*TAU;B=Math.random()*TAU;tries++;}
+  while(gap(shadow(A,B),shadow(TA,TB))<0.22&&tries<500);
 }
+
+/* paper grain, made once */
+const grain=document.createElement('canvas');grain.width=grain.height=160;
+(function(){const x=grain.getContext('2d'),d=x.createImageData(160,160);
+  for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=16;}
+  x.putImageData(d,0,0);})();
+let grainPat=null;
 
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   W=innerWidth;H=innerHeight;
   cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
   g.setTransform(DPR,0,0,DPR,0,0);
+  grainPat=g.createPattern(grain,'repeat');
 }
 addEventListener('resize',resize);resize();
 
 function layout(){
-  const top=64,bot=won?200:0,ah=H-top-bot;
+  const top=Math.max(92,document.getElementById('hud').offsetHeight+10),ah=H-top-botNow;
   if(W>H*1.1){const w=W/2;return[{x:0,y:top,w:w,h:ah},{x:w,y:top,w:w,h:ah}];}
   const h=ah/2;return[{x:0,y:top,w:W,h:h},{x:0,y:top+h,w:W,h:h}];
 }
 
-function label(txt,r){
-  g.fillStyle='#8a93a8';g.font='600 12px system-ui,sans-serif';g.textAlign='left';
-  g.fillText(txt.toUpperCase(),r.x+16,r.y+18);
-}
-function dot(x,y,r,c,a){g.globalAlpha=a;g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,pi2);g.fill();g.globalAlpha=1;}
+function poly(P,cx,cy,sc){g.beginPath();P.forEach((p,i)=>{const x=cx+p[0]*sc,y=cy-p[1]*sc;i?g.lineTo(x,y):g.moveTo(x,y);});g.closePath();}
+function label(txt,r){g.fillStyle='#58546e';g.font='500 13px Geist,system-ui,sans-serif';g.textAlign='left';g.fillText(txt,r.x+20,r.y+r.h-14);}
 
+/* left or upper panel: the shape itself, lit from above */
 function drawObject(r,t){
   g.save();g.beginPath();g.rect(r.x,r.y,r.w,r.h);g.clip();
-  label('The shape',r);
-  const P=pts(A,B),sc=Math.min(r.w,r.h)*0.26,cx=r.x+r.w/2,cy=r.y+r.h/2+8;
-  const cy1=Math.cos(yaw+t*0.00025),sy=Math.sin(yaw+t*0.00025),cp=Math.cos(0.4),sp=Math.sin(0.4);
-  const S=P.map(p=>{
-    let x=p[0]*cy1+p[2]*sy,z=-p[0]*sy+p[2]*cy1,y=p[1]*cp-z*sp;z=p[1]*sp+z*cp;
-    return{x:cx+x*sc,y:cy-y*sc,z:z};
-  });
-  g.lineCap='round';
-  for(const[i,j]of E){
-    const a=S[i],b=S[j],d=(a.z+b.z)/2,al=0.35+0.4*(d+1.5)/3;
-    g.globalAlpha=Math.max(.2,Math.min(.85,al));g.strokeStyle='#cfd6e6';g.lineWidth=1.6;
-    g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();
+  const lg=g.createRadialGradient(r.x+r.w*.35,r.y,0,r.x+r.w*.35,r.y,Math.max(r.w,r.h)*1.1);
+  lg.addColorStop(0,PAPER3);lg.addColorStop(1,PAPER);g.fillStyle=lg;g.fillRect(r.x,r.y,r.w,r.h);
+  const P=pts(A,B),sc=Math.min(r.w,r.h)*0.27,cx=r.x+r.w/2,cy=r.y+r.h/2-14;
+  const yw=0.5+t*0.00022,cyw=Math.cos(yw),syw=Math.sin(yw),cp=Math.cos(0.42),sp=Math.sin(0.42);
+  const S=P.map(p=>{let x=p[0]*cyw+p[2]*syw,z=-p[0]*syw+p[2]*cyw,y=p[1]*cp-z*sp;z=p[1]*sp+z*cp;return{x:cx+x*sc,y:cy-y*sc,z:z};});
+  /* soft contact shadow on the floor */
+  g.save();g.filter='blur(10px)';g.fillStyle='rgba(29,27,51,.16)';g.beginPath();g.ellipse(cx,cy+sc*1.5,sc*1.05,sc*.18,0,0,TAU);g.fill();g.restore();
+  /* faces, back to front */
+  const fs=F.map(f=>({f,z:(S[f[0]].z+S[f[1]].z+S[f[2]].z)/3})).sort((a,b)=>a.z-b.z);
+  for(const{f,z}of fs){
+    g.beginPath();g.moveTo(S[f[0]].x,S[f[0]].y);g.lineTo(S[f[1]].x,S[f[1]].y);g.lineTo(S[f[2]].x,S[f[2]].y);g.closePath();
+    g.fillStyle='rgba(91,75,219,'+(0.035+0.085*(z+1.6)/3.2).toFixed(3)+')';g.fill();
   }
+  g.lineCap='round';g.lineJoin='round';
+  for(const[i,j]of E){const a=S[i],b=S[j],d=(a.z+b.z)/2;g.globalAlpha=Math.max(.28,Math.min(.95,.5+.3*d));g.strokeStyle=INK;g.lineWidth=1.5;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();}
   g.globalAlpha=1;
-  if(won){g.setLineDash([3,5]);g.strokeStyle='#ffffff55';g.lineWidth=1;
-    for(let k=0;k<4;k++){g.beginPath();g.moveTo(S[2*k].x,S[2*k].y);g.lineTo(S[2*k+1].x,S[2*k+1].y);g.stroke();}
-    g.setLineDash([]);}
-  S.forEach((s,i)=>dot(s.x,s.y,6+s.z*1.2,COL[i>>1],Math.max(.55,Math.min(1,.8+s.z*.15))));
+  if(won){g.setLineDash([2,6]);g.strokeStyle='rgba(29,27,51,.45)';g.lineWidth=1.2;for(let k=0;k<4;k++){g.beginPath();g.moveTo(S[2*k].x,S[2*k].y);g.lineTo(S[2*k+1].x,S[2*k+1].y);g.stroke();}g.setLineDash([]);}
+  S.slice().map((s,i)=>({s,i})).sort((a,b)=>a.s.z-b.s.z).forEach(({s,i})=>{
+    const rad=7+s.z*1.4;
+    g.save();g.shadowColor='rgba(29,27,51,.35)';g.shadowBlur=6;g.shadowOffsetY=2;g.fillStyle=COL[i>>1];g.beginPath();g.arc(s.x,s.y,rad,0,TAU);g.fill();g.restore();
+    g.strokeStyle=PAPER3;g.lineWidth=2;g.beginPath();g.arc(s.x,s.y,rad,0,TAU);g.stroke();
+  });
+  /* invitation to drag, until the first touch */
+  if(!touched&&!won){
+    const k=reduce?1:.5+.5*Math.sin(t*0.004),y=r.y+r.h-46;g.globalAlpha=.35+.5*k;g.strokeStyle=INK;g.lineWidth=2.2;
+    for(const d of[-1,1]){g.beginPath();g.moveTo(cx+d*(26+k*6),y-8);g.lineTo(cx+d*(38+k*6),y);g.lineTo(cx+d*(26+k*6),y+8);g.stroke();}
+    g.globalAlpha=1;
+  }
+  label('The shape',r);
   g.restore();
 }
 
-function drawShadow(r,m){
+/* right or lower panel: the wall, and the shadow thrown on it */
+function drawWall(r,m,t){
   g.save();g.beginPath();g.rect(r.x,r.y,r.w,r.h);g.clip();
-  label('Its shadow on the wall',r);
-  const sc=Math.min(r.w,r.h)*0.26,cx=r.x+r.w/2,cy=r.y+r.h/2+8;
-  const wall=Math.min(r.w,r.h)*0.8;
-  g.fillStyle='#151a25';g.strokeStyle='#232b3d';g.lineWidth=1;
-  g.beginPath();g.roundRect?g.roundRect(cx-wall/2,cy-wall/2,wall,wall,16):g.rect(cx-wall/2,cy-wall/2,wall,wall);g.fill();g.stroke();
-  const tg=shadow(TA,TB),sh=shadow(A,B);
-  const col=won?WIN:GHOST;
-  g.setLineDash(won?[]:[2,7]);g.lineWidth=won?2.4:2.2;g.strokeStyle=col;g.globalAlpha=won?.95:.9;g.lineCap='round';
-  for(const[i,j]of E){g.beginPath();g.moveTo(cx+tg[i][0]*sc,cy-tg[i][1]*sc);g.lineTo(cx+tg[j][0]*sc,cy-tg[j][1]*sc);g.stroke();}
-  g.setLineDash([]);g.globalAlpha=1;
-  g.strokeStyle='#ffffffcc';g.lineWidth=1.8;
+  const wg=g.createLinearGradient(0,r.y,0,r.y+r.h);wg.addColorStop(0,'#efe8da');wg.addColorStop(1,PAPER2);g.fillStyle=wg;g.fillRect(r.x,r.y,r.w,r.h);
+  const sc=Math.min(r.w,r.h)*0.27,cx=r.x+r.w/2,cy=r.y+r.h/2-14;
+  const tg=shadow(TA,TB),sh=shadow(A,B),th=hull(tg),sth=hull(sh);
+  const f=Math.max(0,Math.min(1,1-m/0.3));closeNow+=(f-closeNow)*(reduce?1:.18);
+  const col=won?TEAL:CORAL;
+  /* target outline: the dashes close up as you get nearer */
+  const dash=won?[]:[7,Math.max(1,3+16*(1-closeNow))];
+  g.lineJoin='round';g.lineCap='round';
+  poly(th,cx,cy,sc);
+  if(won){g.fillStyle='rgba(15,157,138,.14)';g.fill();}
+  g.setLineDash(dash);g.strokeStyle=col;g.lineWidth=won?3:2.4;g.stroke();
+  g.setLineDash([]);
+  /* the shadow itself, with a soft edge */
+  g.save();g.shadowColor='rgba(29,27,51,.55)';g.shadowBlur=22;g.fillStyle='rgba(29,27,51,.9)';poly(sth,cx,cy,sc);g.fill();g.restore();
+  g.strokeStyle='rgba(242,237,227,.42)';g.lineWidth=1.2;
   for(const[i,j]of E){g.beginPath();g.moveTo(cx+sh[i][0]*sc,cy-sh[i][1]*sc);g.lineTo(cx+sh[j][0]*sc,cy-sh[j][1]*sc);g.stroke();}
-  sh.forEach((p,i)=>dot(cx+p[0]*sc,cy-p[1]*sc,5,COL[i>>1],1));
-  /* closeness bar */
-  const bw=wall*0.8,bx=cx-bw/2,by=cy+wall/2+16,f=Math.max(0,Math.min(1,1-m/0.3));
-  g.fillStyle='#232b3d';g.fillRect(bx,by,bw,4);
-  g.fillStyle=won?WIN:'#ffc857';g.fillRect(bx,by,bw*f,4);
+  sh.forEach((p,i)=>{g.fillStyle=COL[i>>1];g.beginPath();g.arc(cx+p[0]*sc,cy-p[1]*sc,4.5,0,TAU);g.fill();g.strokeStyle=PAPER3;g.lineWidth=1.5;g.stroke();});
+  if(won){const k=Math.min(1,(t-winT)/900),a=reduce?0:(1-k)*.5;if(a>0){g.globalAlpha=a;g.strokeStyle=TEAL;g.lineWidth=3+k*18;poly(th,cx,cy,sc);g.stroke();g.globalAlpha=1;}}
+  label('Its shadow on the wall',r);
   g.restore();
 }
 
 function frame(t){
-  g.clearRect(0,0,W,H);
   const[ra,rb]=layout();
-  g.fillStyle='#0e1118';g.fillRect(0,0,W,H);
-  g.fillStyle='#10151f';g.fillRect(ra.x,ra.y,ra.w,ra.h);
-  g.strokeStyle='#1b2232';g.beginPath();
-  if(W>H*1.1){g.moveTo(rb.x,rb.y);g.lineTo(rb.x,H);}else{g.moveTo(0,rb.y);g.lineTo(W,rb.y);}g.stroke();
   const m=gap(shadow(A,B),shadow(TA,TB));
-  if(!won&&m<THRESH){won=true;reveal.classList.add('on');}
-  drawObject(ra,t);drawShadow(rb,m);
+  if(!won&&m<THRESH){won=true;winT=t;drawStrip();reveal.classList.add('on');}
+  const tgt=won?reveal.offsetHeight+16:0;botNow+=(tgt-botNow)*(reduce?1:.12);
+  g.fillStyle=PAPER;g.fillRect(0,0,W,H);
+  drawObject(ra,t);drawWall(rb,m,t);
+  /* seam between the two panels */
+  g.strokeStyle='#cfc7b5';g.lineWidth=1;g.beginPath();
+  if(W>H*1.1){g.moveTo(rb.x+.5,rb.y);g.lineTo(rb.x+.5,rb.y+rb.h);}else{g.moveTo(0,rb.y+.5);g.lineTo(W,rb.y+.5);}g.stroke();
+  g.fillStyle=grainPat;g.fillRect(0,0,W,H);
   requestAnimationFrame(frame);
+}
+
+/* four other shadows of the same shape, shown once you have won */
+const STRIP=[[0.9,0.4],[2.3,1.4],[3.7,2.7],[5.2,0.9]];
+const stripCv=STRIP.map(()=>{const f=document.createElement('figure'),c=document.createElement('canvas');c.width=c.height=152;f.appendChild(c);strip.appendChild(f);return c;});
+function drawStrip(){
+  STRIP.forEach(([a,b],n)=>{
+    const c=stripCv[n].getContext('2d'),P=shadow(a,b),h=hull(P);
+    c.clearRect(0,0,152,152);c.setTransform(1,0,0,1,0,0);
+    c.fillStyle=PAPER2;c.fillRect(0,0,152,152);
+    const sc=44,cx=76,cy=76;
+    c.shadowColor='rgba(29,27,51,.5)';c.shadowBlur=10;c.fillStyle='rgba(29,27,51,.9)';
+    c.beginPath();h.forEach((p,i)=>{const x=cx+p[0]*sc,y=cy-p[1]*sc;i?c.lineTo(x,y):c.moveTo(x,y);});c.closePath();c.fill();
+    c.shadowColor='transparent';
+    P.forEach((p,i)=>{c.fillStyle=COL[i>>1];c.beginPath();c.arc(cx+p[0]*sc,cy-p[1]*sc,4,0,TAU);c.fill();});
+  });
 }
 
 /* input: horizontal drag turns the shape in one 4D plane, vertical in another */
 let drag=null;
-cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId);touched=true;});
+function quiet(){if(!touched){touched=true;hint.classList.add('quiet');}}
+cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId);quiet();});
 cv.addEventListener('pointermove',e=>{
   if(!drag||e.pointerId!==drag.id)return;
-  A+=(e.clientX-drag.x)*0.011;B+=(e.clientY-drag.y)*0.011;
-  drag.x=e.clientX;drag.y=e.clientY;
+  A+=(e.clientX-drag.x)*0.011;B+=(e.clientY-drag.y)*0.011;drag.x=e.clientX;drag.y=e.clientY;
 });
 const end=e=>{if(drag&&e.pointerId===drag.id)drag=null;};
 cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
 addEventListener('keydown',e=>{
   const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
-  if(!k)return;e.preventDefault();A+=k[0]*0.06;B+=k[1]*0.06;
+  if(!k)return;e.preventDefault();quiet();A+=k[0]*0.06;B+=k[1]*0.06;
 });
-document.getElementById('again').addEventListener('click',newTarget);
-document.getElementById('skip').addEventListener('click',newTarget);
+function again(){hint.classList.remove('quiet');touched=false;closeNow=0;newTarget();}
+document.getElementById('again').addEventListener('click',again);
+document.getElementById('skip').addEventListener('click',again);
 
 newTarget();requestAnimationFrame(frame);
 })();
