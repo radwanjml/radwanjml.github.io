@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://radwanjml.github.io/partners/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base href="../">
+<title>3D partner for agencies · Radwan Jameel</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:url" content="https://radwanjml.github.io/partners/">
+<meta property="og:title" content="3D partner for agencies · Radwan Jameel">
+<meta property="og:description" content="Product renders, product animation and fast interactive 3D, built under your agency's name. Fixed scope, fixed price, start with a paid test.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="White-label 3D for design and web agencies: product renders, product animation and interactive 3D heroes that load fast on phones. Fixed scope, start with a paid test.">
+<script>
+(function () {
+  var m = null; try { m = localStorage.getItem('island-mode'); } catch (e) {}
+  if (m !== 'light' && m !== 'dark' && m !== 'night') m = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.dataset.mode = m; document.documentElement.dataset.glass = 'clear';
+})();
+</script>
+<link rel="preload" href="assets/fonts/Geist-normal-300-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/InstrumentSerif-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="drafts/ds.css">
+<style>
+/* ---------- Partners (3 Nov): the agency pitch. About's survey-card language; static, no per-frame work beyond the topo canvas. */
+.topo-bg { position: fixed; inset: 0; z-index: -1; opacity: calc(var(--topo-base) * 1.25); pointer-events: none; }
+.topo-bg canvas { width: 100%; height: 100%; display: block; }
+:root { --topo-base: .22; } :root[data-mode="night"] { --topo-base: .26; } :root[data-mode="light"] { --topo-base: .26; }
+.nav a[aria-current] { color: var(--text-3); pointer-events: none; }
+.lite .glass { -webkit-backdrop-filter: none; backdrop-filter: none; --g-tint: rgba(var(--scrim), .82); }
+
+main.pt { padding: 132px 0 80px; }
+.pt .wrap { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); align-items: start; }
+.hi { grid-column: 1 / span 8; }
+.hi h1 { font: 400 clamp(50px, 8vw, 124px)/.92 var(--serif); letter-spacing: -.02em; margin: 14px 0 24px; }
+h1 em, h2 em { color: var(--accent-text); }
+.hi .lead { max-width: 44ch; margin-bottom: 26px; }
+.hi .acts { display: flex; gap: 10px; flex-wrap: wrap; }
+.card { grid-column: 9 / span 4; margin-top: 46px; border-radius: 26px; padding: 22px; }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 12px 16px; }
+.card dt { font: 500 11px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+.card dd { margin: 0; font-size: 15px; line-height: 1.45; }
+
+section.blk { grid-column: 1 / -1; margin-top: 72px; }
+.blk h2 { font: 400 clamp(32px, 3.6vw, 52px)/1 var(--serif); margin: 6px 0 22px; max-width: 22ch; }
+
+.proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.proof a { display: block; border-radius: 22px; overflow: hidden; text-decoration: none; color: var(--text); }
+.proof img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.proof div { padding: 14px 18px 16px; }
+.proof b { display: block; font: 400 24px/1.1 var(--serif); }
+.proof span { font-size: 14px; color: var(--text-2); }
+
+.menu-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.menu-list li { border-radius: 22px; padding: 20px 22px; display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: baseline; }
+.menu-list b { font: 400 26px/1.1 var(--serif); }
+.menu-list .p { font: 500 14px/1 var(--mono); color: var(--accent-text); white-space: nowrap; }
+.menu-list p { grid-column: 1 / -1; font-size: 15px; color: var(--text-2); line-height: 1.5; }
+.note { margin-top: 14px; font-size: 14px; color: var(--text-3); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; counter-reset: s; }
+.steps li { border-top: 1px dashed var(--line); padding-top: 14px; font-size: 15px; color: var(--text-2); line-height: 1.5; counter-increment: s; }
+.steps li::before { content: '0' counter(s); display: block; font: 500 12px/1 var(--mono); letter-spacing: .1em; color: var(--accent-text); margin-bottom: 8px; }
+.steps b { display: block; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+
+.faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.faq details { border-radius: 20px; padding: 0; }
+.faq summary { cursor: pointer; list-style: none; padding: 18px 22px; font: 400 23px/1.2 var(--serif); display: flex; justify-content: space-between; gap: 14px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; font: 400 22px/1 var(--sans); color: var(--text-3); }
+.faq details[open] summary::after { content: '–'; }
+.faq p { padding: 0 22px 18px; font-size: 15px; color: var(--text-2); line-height: 1.6; }
+
+.end { grid-column: 1 / -1; margin-top: 72px; border-radius: 28px; padding: clamp(24px, 4vw, 48px); display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: center; }
+.end h2 { font: 400 clamp(34px, 4vw, 60px)/1 var(--serif); }
+.end .go { display: flex; flex-direction: column; gap: 10px; }
+.end .btn { width: 100%; }
+footer { padding: 30px 0 40px; }
+@media (max-width: 860px) {
+  main.pt { padding-top: 104px; }
+  .hi, .card { grid-column: 1 / -1; }
+  .card { margin-top: 8px; }
+  .proof, .menu-list, .faq { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .end { grid-template-columns: 1fr; }
+  section.blk, .end { margin-top: 52px; }
+}
+</style>
+</head>
+<body>
+<div class="topo-bg" aria-hidden="true"><canvas id="topo"></canvas></div>
+<nav class="nav" aria-label="Site"><div class="wrap glass">
+  <a class="mark" href="./"><svg class="rj" viewBox="0 0 64 40" aria-hidden="true"><defs>
+<mask id="rjm1" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="5.4">RJ.</text></mask>
+<mask id="rjm2" maskUnits="userSpaceOnUse" x="-10" y="-10" width="84" height="60"><rect x="-10" y="-10" width="84" height="60" fill="#fff"/><text x="4" y="31" class="rjt" stroke="#000" stroke-width="10.4">RJ.</text></mask>
+</defs>
+<text x="4" y="31" class="rjt r1" stroke-width="6.6" mask="url(#rjm1)">RJ.</text>
+<text x="4" y="31" class="rjt r2" stroke-width="11.6" mask="url(#rjm2)">RJ.</text>
+<text x="4" y="31" class="rjt core">RJ.</text></svg><span>Radwan <em>Jameel</em></span></a>
+  <ul><li><a href="./">Home</a></li><li><a href="./#work">Work</a></li><li><a aria-current="page">Agencies</a></li><li><a href="about/">About</a></li><li><a class="nav-cta" href="about/#contact">Contact</a></li></ul>
+  <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+  <div class="menu glass" id="menu" hidden><a href="./">Home</a><a href="./#work">Work</a><a aria-current="page">Agencies</a><a href="about/">About</a><a href="about/#contact">Contact</a></div>
+</nav>
+
+<main class="pt"><div class="wrap">
+  <div class="hi">
+    <p class="label">For design &amp; web agencies</p>
+    <h1>The 3D your clients ask for, <em>under your name</em>.</h1>
+    <p class="lead">When a client wants their product to turn, assemble or come alive on the page, I build that piece. You keep the client, the brand and the invoice.</p>
+    <div class="acts">
+      <a class="btn btn-solid" href="mailto:jameelradwan4@gmail.com?subject=3D%20for%20a%20client%20project">Send a brief</a>
+      <a class="btn" href="roi/">The numbers for your client ↗</a>
+    </div>
+  </div>
+  <aside class="card glass" aria-label="Quick facts">
+    <dl>
+      <dt>Who</dt><dd>Radwan Jameel, 3D artist and real-time web, Hyderabad</dd>
+      <dt>Tools</dt><dd>Blender, Three.js, WebGL, GSAP</dd>
+      <dt>Hours</dt><dd>IST. Overlaps the European afternoon and the Gulf working day</dd>
+      <dt>Terms</dt><dd>NDA welcome. Fixed scope, fixed price, 50% to start</dd>
+      <dt>Next</dt><dd>Moving to Germany, March 2027</dd>
+    </dl>
+  </aside>
+
+  <section class="blk" aria-labelledby="p-h">
+    <p class="label">Work you can open</p>
+    <h2 id="p-h">Judge the work, <em>not the years</em>.</h2>
+    <div class="proof">
+      <a class="glass" href="work/herrand/"><img src="assets/img/herrand/exploded.webp" alt="Herrand delivery robot, exploded view" loading="lazy" width="800" height="600"><div><b>Herrand</b><span>Product page and 15 s hero film for a robot that was never built</span></div></a>
+      <a class="glass" href="sites/serai/"><img src="assets/img/serai.webp" alt="SERAI tower site" loading="lazy" width="800" height="600"><div><b>SERAI</b><span>A 22-storey tower assembling as you scroll, about 251 KB</span></div></a>
+      <a class="glass" href="models/"><img src="assets/img/perfume.webp" alt="Perfume bottle render" loading="lazy" width="800" height="600"><div><b>Product renders</b><span>Perfume, jewellery, headphones, cosmetics. Open them in 3D</span></div></a>
+    </div>
+  </section>
+
+  <section class="blk" aria-labelledby="m-h">
+    <p class="label">What I build for you</p>
+    <h2 id="m-h">Starting prices, <em>in writing</em>.</h2>
+    <ul class="menu-list">
+      <li class="glass"><b>Paid test</b><span class="p">from $60</span><p>One still or one 5-second shot of your client's product. The low-risk way to see how I work.</p></li>
+      <li class="glass"><b>Product render pack</b><span class="p">from $200</span><p>Three studio stills from one model, 4K, two revision rounds.</p></li>
+      <li class="glass"><b>Product animation</b><span class="p">from $400</span><p>10 to 15 seconds: a turn, a reveal or an exploded view, for a launch, an ad or a Kickstarter.</p></li>
+      <li class="glass"><b>Interactive 3D hero</b><span class="p">from $800</span><p>A real-time model in the first screen of the page, with a still image on slow phones so it never drags the load time.</p></li>
+    </ul>
+    <p class="note">Prices in INR, EUR or AED on request. One model can be reused across stills, film and web, which makes the second piece cheaper.</p>
+  </section>
+
+  <section class="blk" aria-labelledby="s-h">
+    <p class="label">How a job runs</p>
+    <h2 id="s-h">Five steps, <em>no surprises</em>.</h2>
+    <ol class="steps">
+      <li><b>Brief</b>You send the product, references and the deadline.</li>
+      <li><b>Quote</b>A fixed price and a date within a day, under your NDA.</li>
+      <li><b>Start</b>50% upfront. A clay preview within two to three days.</li>
+      <li><b>Refine</b>Two revision rounds on materials, light and motion.</li>
+      <li><b>Hand over</b>Files, the .blend, and the code if it's for the web.</li>
+    </ol>
+  </section>
+
+  <section class="blk" aria-labelledby="f-h">
+    <p class="label">Straight answers</p>
+    <h2 id="f-h">What agencies <em>ask first</em>.</h2>
+    <div class="faq">
+      <details class="glass"><summary>Why you, when others have more experience?</summary><p>Don't hire me on trust. Order the paid test. You see the quality on your own client's product for the price of a lunch, and decide from that. You also get a lower rate than a senior studio, a reply within hours, and one person who does both the 3D and the web build, so nothing gets lost between a render studio and a developer.</p></details>
+      <details class="glass"><summary>Do you write the code yourself?</summary><p>I model, light and animate by hand in Blender. The browser code is written with AI coding tools: I design how it works, direct the AI, review every change and test on real phones. Each page is held to a size budget, which is why SERAI is about 251 KB.</p></details>
+      <details class="glass"><summary>Will 3D slow the site down?</summary><p>It can, which is why I build it light: real HTML content first, the 3D loaded after, and a still image on slow phones. Faster pages sell more. Vodafone measured 8% more sales from a 31% faster load, so speed is part of the job, not an extra.</p></details>
+      <details class="glass"><summary>Can our client know about you?</summary><p>Only if you want them to. I work under your name and sign your NDA. I show the work publicly only with your written permission, after launch.</p></details>
+      <details class="glass"><summary>What about time zones?</summary><p>I'm on India time. That covers your afternoon in Europe, most of the working day in the Gulf, and early mornings on the US east coast. You get a written update at the end of every working day.</p></details>
+      <details class="glass"><summary>What if it isn't right?</summary><p>Two revision rounds are included, and the clay preview comes early so problems surface before the expensive part. If the paid test doesn't convince you, we stop there and you owe nothing more.</p></details>
+    </div>
+  </section>
+
+  <section class="end glass" aria-labelledby="e-h">
+    <h2 id="e-h">Got a client who wants <em>"something like Apple's site"</em>?</h2>
+    <div class="go">
+      <a class="btn btn-solid" href="mailto:jameelradwan4@gmail.com?subject=3D%20for%20a%20client%20project">Email a brief</a>
+      <a class="btn" href="https://www.linkedin.com/in/radwanjml/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a class="btn" href="./#work">All work</a>
+    </div>
+  </section>
+</div></main>
+<footer><div class="wrap label">Radwan Jameel · built with Three.js, rendered in Blender Cycles · <a href="https://github.com/radwanjml/radwanjml.github.io" target="_blank" rel="noopener">Source on GitHub ↗</a></div></footer>
+<script type="module">
+import { initTopo } from './drafts/topo.js';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
+const root = document.documentElement;
+if (coarse) root.classList.add('lite');
+initTopo(document.getElementById('topo'), { mode: root.dataset.mode, reducedMotion: reduced || coarse, scale: 360, seed: 71, variety: 1 });
+const mb = document.querySelector('.menu-btn'), menu = document.getElementById('menu');
+mb.addEventListener('click', () => { const o = menu.hidden; mb.setAttribute('aria-expanded', String(o)); menu.hidden = !o; });
+</script>
+</body>
+</html>
