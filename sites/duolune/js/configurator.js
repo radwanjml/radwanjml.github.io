@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=38';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=39';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -88,21 +88,24 @@ void duoluneFields(){
   float ph = fract((u + jit + dv * 1.2) / 0.004);
   // thread: sampled from a mipmapped stitch texture (x along the thread, one dash per 4 mm; y across, 1.8 mm), so the
   // GPU filters it at every distance and angle instead of the shader aliasing it.
-  vec4 sRing = texture2D(tStitch, vec2(ph, (v - 0.0165) / 0.0018 + 0.5));
+  // window each thread row analytically: at small mips the clamped stitch texture's edge rows hold averaged thread, which
+  // used to print a faint 4 mm dash grid over every roller (Red's phone, 14 Nov). Outside +-0.6 mm of a row it is now exactly 0.
+  #define DUO_WIN(d) (1.0 - smoothstep(0.0006, 0.0006 + fwidth(d) * 1.5 + 1e-5, (d)))
+  vec4 sRing = texture2D(tStitch, vec2(ph, (v - 0.0165) / 0.0018 + 0.5)) * DUO_WIN(dv);
   float ring = sRing.r;
   float groove = 1.0 - smoothstep(0.0004, 0.0019, dv);
   // underside seam (u = 0 faces the floor) with two stitch rows
   float su = abs(u);
   float sgroove = 1.0 - smoothstep(0.0, 0.0017, su);
   float sph = fract((v + jit) / 0.004);
-  vec4 sRow = texture2D(tStitch, vec2(sph, (su - 0.0036) / 0.0018 + 0.5));
+  vec4 sRow = texture2D(tStitch, vec2(sph, (su - 0.0036) / 0.0018 + 0.5)) * DUO_WIN(abs(su - 0.0036));
   float srow = sRow.r * step(0.0165, v);
   // stripe seams + double top-stitch
   float sd = 9.0;
   if (uStripe.z > 0.5) { sd = abs(ay - uStripe.y); if (uStripe.z > 1.5) sd = min(sd, abs(ay - uStripe.x)); }
   float stgroove = 1.0 - smoothstep(0.0, 0.0015, sd);
   float stph = fract((u + jit) / 0.004);
-  vec4 sSt = texture2D(tStitch, vec2(stph, (sd - 0.0036) / 0.0018 + 0.5));
+  vec4 sSt = texture2D(tStitch, vec2(stph, (sd - 0.0036) / 0.0018 + 0.5)) * DUO_WIN(abs(sd - 0.0036));
   float strow = sSt.r;
   // puckering where the cover pulls round the end
   float pm = smoothstep(0.003, 0.0066, v) * (1.0 - smoothstep(0.0066, 0.025, v));
@@ -219,7 +222,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.18 }));   // r11: 0.32 read as a black slab against Cycles
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  tl.load('assets/model/contact_shadow_a.jpg?v=38', (shadowTex) => {   // not awaited: the chair must not wait on its shadow
+  tl.load('assets/model/contact_shadow_a.jpg?v=39', (shadowTex) => {   // not awaited: the chair must not wait on its shadow
     shadowTex.colorSpace = THREE.NoColorSpace;   // greyscale alpha (was the PNG alpha channel)
     const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: shadowTex, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false }));
     sp.rotation.x = -Math.PI / 2; sp.position.set(0.1, 0.001, 0); sp.renderOrder = -1; scene.add(sp); dirty = true;
@@ -241,7 +244,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
   const gl = new GLTFLoader().setDRACOLoader(draco);
   const pre = glb ? await glb : null;   // app.js started this download alongside the module import
-  const gltf = pre ? await gl.parseAsync(pre, '') : await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=38' : 'duolune.glb?v=38'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
+  const gltf = pre ? await gl.parseAsync(pre, '') : await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=39' : 'duolune.glb?v=39'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
   tick('model');
   await Promise.all(texJobs);
   tex.leather = tex.leather_n; tex.leatherR = tex.leather_r;
@@ -276,12 +279,12 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   // Loaded after first paint; each part has its own lightmap UV (rollers: 3rd UV set, others: the only one).
   const GI = 0.7;   // decoded x2 then x0.35: bounce adds shape and colour bleed without lifting blacks (1.6 washed the frame grey)
   for (const [k, m] of Object.entries(mats)) {
-    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=38`, (t) => {
+    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=39`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.aoMap = t; m.aoMapIntensity = k === 'rollers' ? 0.9 : 1.0; m.needsUpdate = true; dirty = true;
     });
     // baked Cycles bounce light (indirect diffuse, studio lights + floor), stored x0.5; three adds it to the live direct light
-    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=38`, (t) => {
+    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=39`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.lightMap = t; m.lightMapIntensity = GI; m.needsUpdate = true; dirty = true;
     });

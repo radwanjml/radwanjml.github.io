@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=38';
-import { initPlanner } from './planner.js?v=38';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=39';
+import { initPlanner } from './planner.js?v=39';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -135,8 +135,8 @@ async function boot() {
   try {
     let glbBuf = null;   // start the model download now, in parallel with three.js and its addons (same LITE rule as configurator.js)
     { const q = new URLSearchParams(location.search); const L = q.has('lite') ? q.get('lite') === '1' : innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
-      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=38' : 'assets/model/duolune.glb?v=38').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
-    const { createConfigurator } = await import('./configurator.js?v=38');
+      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=39' : 'assets/model/duolune.glb?v=39').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
+    const { createConfigurator } = await import('./configurator.js?v=39');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -185,7 +185,7 @@ $('#ar-btn').addEventListener('click', async () => {
   // Android Chrome: our own WebXR mode (double-tap to place, on-floor controls, locked 1:1 scale). iPhone: Apple Quick Look via model-viewer.
   try {
     if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const { startAR } = await import('./ar.js?v=38');
+      const { startAR } = await import('./ar.js?v=39');
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
@@ -194,7 +194,7 @@ $('#ar-btn').addEventListener('click', async () => {
   let mv = dlg.querySelector('model-viewer');
   if (!mv) {
     mv = document.createElement('model-viewer');
-    Object.entries({ src: 'assets/model/duolune.glb?v=38', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
+    Object.entries({ src: 'assets/model/duolune.glb?v=39', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
       .forEach(([k, v]) => mv.setAttribute(k, v));
     $('#ar-stage').appendChild(mv);
     mv.addEventListener('load', () => paintAR(mv));
