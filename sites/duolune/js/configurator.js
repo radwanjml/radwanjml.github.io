@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=25';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=26';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -214,7 +214,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.32 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=25', res, undefined, () => res(null)));
+  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=26', res, undefined, () => res(null)));
   if (shadowTex) {
     shadowTex.colorSpace = THREE.SRGBColorSpace;
     const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
@@ -233,7 +233,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
 
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
   const gl = new GLTFLoader().setDRACOLoader(draco);
-  const gltf = await new Promise((res, rej) => gl.load(LITE ? 'assets/model/duolune_lite.glb' : 'assets/model/duolune.glb', res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
+  const gltf = await new Promise((res, rej) => gl.load(LITE ? 'assets/model/duolune_lite.glb?v=26' : 'assets/model/duolune.glb?v=26', res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
   tick('model');
   await Promise.all(texJobs);
   tex.leather = tex.leather_n; tex.leatherR = tex.leather_r;
@@ -250,6 +250,14 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     feet: new THREE.MeshStandardMaterial({ color: 0x080808, roughness: 0.85 }),
   };
   for (const [k, m] of Object.entries(mats)) if (parts[k]) parts[k].material = m;
+  // baked Cycles ambient occlusion (greyscale, colour-independent): contact shadows between rollers, under the seat, round the bolts.
+  // Loaded after first paint; each part has its own lightmap UV (rollers: 3rd UV set, others: the only one).
+  for (const [k, m] of Object.entries(mats)) {
+    tl.load(`assets/model/${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=26`, (t) => {
+      t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
+      m.aoMap = t; m.aoMapIntensity = k === 'rollers' ? 0.9 : 1.0; m.needsUpdate = true; dirty = true;
+    });
+  }
   window.__duo = { scene, parts, mats, camera, controls, renderer };
 
   // ---------------- apply a configuration
