@@ -47,7 +47,7 @@ export const WOODS = [
 ];
 
 export const BASE_PRICE = 164000;
-export const PRICE = { customColour: 7500, stripe: { none: 0, single: 8000, twin: 11500 }, stripeCustom: 4000 };
+export const PRICE = { customColour: 7500, stripe: { none: 0, single: 8000, twin: 11500 }, stripeCustom: 4000, frameCustom: 9000 };
 
 // Signature builds: the twelve rendered in Blender. Each maps to a full configuration.
 const up = (kind, id) => ({ kind, colour: id, custom: null });

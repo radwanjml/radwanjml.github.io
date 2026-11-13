@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=18';
-import { initPlanner } from './planner.js?v=18';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=25';
+import { initPlanner } from './planner.js?v=25';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -35,7 +35,7 @@ let viewer = null;
 // ---------------------------------------------------------------- names + price
 const upName = (s) => s.up.custom ? `Custom ${KINDS[s.up.kind].label.toLowerCase()}` : `${COLOURS[s.up.kind].find((c) => c.id === s.up.colour)?.name} ${KINDS[s.up.kind].label.toLowerCase()}`;
 const stName = (s) => s.stripe.mode === 'none' ? '' : `${s.stripe.mode === 'twin' ? 'twin' : 'single'} ${s.stripe.custom ? 'custom' : COLOURS[s.stripe.kind].find((c) => c.id === s.stripe.colour)?.name.toLowerCase()} stripe`;
-const frName = (s) => s.frame.type === 'wood' ? `${WOODS.find((w) => w.id === s.frame.id).name.toLowerCase()} frame` : `${METALS.find((m) => m.id === s.frame.id).name.toLowerCase()} frame`;
+const frName = (s) => s.frame.type !== 'wood' && s.frame.custom ? 'custom powder-coat frame' : s.frame.type === 'wood' ? `${WOODS.find((w) => w.id === s.frame.id).name.toLowerCase()} frame` : `${METALS.find((m) => m.id === s.frame.id).name.toLowerCase()} frame`;
 function describe(s) { return [upName(s), stName(s), frName(s)].filter(Boolean).join(', ').replace(/^./, (c) => c.toUpperCase()); }
 function price(s) {
   const lines = [['Duolune, cognac leather, satin black', BASE_PRICE]];
@@ -43,7 +43,8 @@ function price(s) {
   if (s.up.custom) lines.push(['Custom colour, dyed to order', PRICE.customColour]);
   if (s.stripe.mode !== 'none') { lines.push([`${s.stripe.mode === 'twin' ? 'Twin' : 'Single'} stripe`, PRICE.stripe[s.stripe.mode]]); if (s.stripe.custom) lines.push(['Custom stripe colour', PRICE.stripeCustom]); }
   const f = s.frame.type === 'wood' ? WOODS.find((w) => w.id === s.frame.id) : METALS.find((m) => m.id === s.frame.id);
-  if (f.price) lines.push([`${f.name} frame`, f.price]);
+  if (s.frame.type !== 'wood' && s.frame.custom) lines.push(['Custom powder coat, any RAL colour (+2 weeks)', PRICE.frameCustom]);
+  else if (f.price) lines.push([`${f.name} frame`, f.price]);
   return { total: lines.reduce((a, l) => a + l[1], 0), lines };
 }
 
@@ -72,20 +73,21 @@ function render() {
     radio($('#st-col'), COLOURS[s.stripe.kind].map((c) => ({ id: c.id, name: c.name, style: { '--c': hex(c.a) } })), s.stripe.custom ? null : s.stripe.colour, (id) => { s.stripe.colour = id; s.stripe.custom = null; changed(); }, 'sw');
     $('#st-custom').closest('.picker').classList.toggle('is-on', !!s.stripe.custom);
   }
-  radio($('#fr-type'), [{ id: 'metal', label: 'Steel' }, { id: 'wood', label: 'Bent wood' }], s.frame.type, (id) => { s.frame.type = id; s.frame.id = id === 'wood' ? WOODS[0].id : METALS[0].id; changed(); });
+  radio($('#fr-type'), [{ id: 'metal', label: 'Steel' }, { id: 'wood', label: 'Bent wood' }], s.frame.type, (id) => { s.frame.type = id; s.frame.id = id === 'wood' ? WOODS[0].id : METALS[0].id; s.frame.custom = null; changed(); });
   if (s.frame.type === 'wood') {
     radio($('#fr-col'), WOODS.map((w) => ({ id: w.id, name: w.name, style: { '--c': hex(w.light), '--c2': hex(w.dark) } })), s.frame.id, (id) => { s.frame.id = id; changed(); }, 'sw sw-wood');
     $('#fr-note').textContent = `${WOODS.find((w) => w.id === s.frame.id).name}, laminated and bent. Side rails stay satin black steel.`;
   } else {
-    radio($('#fr-col'), METALS.map((m) => ({ id: m.id, name: m.name, style: { '--c': hex(m.c) } })), s.frame.id, (id) => { s.frame.id = id; changed(); }, 'sw');
-    $('#fr-note').textContent = `${METALS.find((m) => m.id === s.frame.id).name}. Steel comes in these six finishes only: they're what a powder-coat line runs well.`;
+    radio($('#fr-col'), METALS.map((m) => ({ id: m.id, name: m.name, style: { '--c': hex(m.c) } })), s.frame.custom ? null : s.frame.id, (id) => { s.frame.id = id; s.frame.custom = null; changed(); }, 'sw');
+    $('#fr-note').textContent = s.frame.custom ? 'Custom powder coat: any RAL colour, matched to your sample. Satin finish, adds about two weeks.' : `${METALS.find((m) => m.id === s.frame.id).name}. Six stocked finishes, or any powder-coat colour to order.`;
   }
+  $('#fr-picker').hidden = s.frame.type === 'wood'; $('#fr-picker').classList.toggle('is-on', !!s.frame.custom);
   // signature row state
   document.querySelectorAll('#sig-row button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === activeSig)));
   // summary
   const p = price(s);
   $('#sum-name').textContent = describe(s);
-  $('#price').textContent = inr(p.total);
+  $('#price').textContent = inr(p.total); $('#deck-price').textContent = inr(p.total);
   $('#dock-price').textContent = inr(p.total); $('#dock-name').textContent = describe(s);
   $('#sum-lines').innerHTML = p.lines.map(([n, v], i) => `<li><span>${n}</span><span>${i ? '+ ' : ''}${inr(v)}</span></li>`).join('');
   const msg = `Hi, I'd like to ask about this Duolune build: ${describe(s)} (${inr(p.total)}). ${shareUrl()}`;
@@ -97,6 +99,7 @@ function render() {
 function shareUrl() { return `${location.origin}${location.pathname}#cfg=${encodeURIComponent(btoa(JSON.stringify(state)))}`; }
 function changed(fromSig = false) { if (!fromSig) activeSig = null; render(); viewer?.apply(state); }
 
+$('#fr-custom').addEventListener('input', (e) => { state.frame.custom = e.target.value; if (state.frame.type === 'wood') { state.frame.type = 'metal'; state.frame.id = METALS[0].id; } changed(); });
 $('#up-custom').addEventListener('input', (e) => { state.up.custom = e.target.value; changed(); });
 $('#st-custom').addEventListener('input', (e) => { state.stripe.custom = e.target.value; if (!state.stripe.kind) state.stripe.kind = 'leather'; changed(); });
 
@@ -128,7 +131,7 @@ async function boot() {
   loader.classList.add('is-loading');
   let mi = 0; const mt = setInterval(() => { $('#ld-msg').textContent = MSGS[++mi % MSGS.length]; }, 1100);
   try {
-    const { createConfigurator } = await import('./configurator.js?v=18');
+    const { createConfigurator } = await import('./configurator.js?v=25');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -174,6 +177,13 @@ $('#share-btn').addEventListener('click', async () => {
 // ---------------------------------------------------------------- AR (model-viewer, loaded only when asked)
 const dlg = $('#ar-dlg');
 $('#ar-btn').addEventListener('click', async () => {
+  // Android Chrome: our own WebXR mode (double-tap to place, on-floor controls, locked 1:1 scale). iPhone: Apple Quick Look via model-viewer.
+  try {
+    if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
+      const { startAR } = await import('./ar.js?v=25');
+      return startAR({ paint: arPaint(state), name: describe(state) });
+    }
+  } catch (e) { console.warn('webxr', e); }
   dlg.showModal();
   if (!customElements.get('model-viewer')) await import('https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js');
   let mv = dlg.querySelector('model-viewer');
@@ -187,17 +197,21 @@ $('#ar-btn').addEventListener('click', async () => {
   mv.addEventListener('ar-status', (e) => { if (e.detail.status === 'failed') $('#ar-hint').textContent = 'AR is not available on this device. Open this page on a phone with AR support.'; });
   if (!/Android|iPhone|iPad/i.test(navigator.userAgent)) $('#ar-hint').textContent = 'AR works on phones. Open this page on Android (Chrome) or iPhone (Safari) and tap this button again. You can turn the chair here meanwhile.';
 });
-function paintAR(mv) {
-  const lin = (a) => [...a, 1];
-  const s = state; const set = (name, rgba, rough, metal) => {
-    const m = mv.model?.materials.find((x) => x.name === name); if (!m) return;
-    m.pbrMetallicRoughness.setBaseColorFactor(rgba); if (rough != null) m.pbrMetallicRoughness.setRoughnessFactor(rough); if (metal != null) m.pbrMetallicRoughness.setMetallicFactor(metal);
-  };
+// colours for AR, as {material: [r, g, b, rough, metal]} in linear RGB (shared by model-viewer and our WebXR mode)
+function arPaint(s) {
   const fromHexLin = (h) => [1, 3, 5].map((i) => { const c = parseInt(h.slice(i, i + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
   const up = s.up.custom ? fromHexLin(s.up.custom) : COLOURS[s.up.kind].find((c) => c.id === s.up.colour).a;
-  set('rollers', lin(up), KINDS[s.up.kind].rough); set('trim', lin(up.map((v) => v * 0.75)), KINDS[s.up.kind].rough);
-  if (s.frame.type === 'wood') { const w = WOODS.find((x) => x.id === s.frame.id); set('frame', lin(w.light.map((v, i) => (v + w.dark[i]) / 2)), 0.45, 0); set('rail', lin(METALS[0].c), 0.36, 0); }
-  else { const m = METALS.find((x) => x.id === s.frame.id); set('frame', lin(m.c), m.rough, m.metal); set('rail', lin(m.c), m.rough, m.metal); }
+  const r = KINDS[s.up.kind].rough; const o = { rollers: [...up, r, 0], trim: [...up.map((v) => v * 0.75), r, 0] };
+  if (s.frame.type === 'wood') { const w = WOODS.find((x) => x.id === s.frame.id); o.frame = [...w.light.map((v, i) => (v + w.dark[i]) / 2), 0.45, 0]; o.rail = [...METALS[0].c, 0.36, 0]; }
+  else if (s.frame.custom) { const c = fromHexLin(s.frame.custom); o.frame = [...c, 0.4, 0]; o.rail = [...c, 0.4, 0]; }
+  else { const m = METALS.find((x) => x.id === s.frame.id); o.frame = [...m.c, m.rough, m.metal]; o.rail = [...m.c, m.rough, m.metal]; }
+  return o;
+}
+function paintAR(mv) {
+  for (const [name, v] of Object.entries(arPaint(state))) {
+    const m = mv.model?.materials.find((x) => x.name === name); if (!m) continue;
+    m.pbrMetallicRoughness.setBaseColorFactor([v[0], v[1], v[2], 1]); m.pbrMetallicRoughness.setRoughnessFactor(v[3]); m.pbrMetallicRoughness.setMetallicFactor(v[4]);
+  }
 }
 $('#ar-x').addEventListener('click', () => dlg.close());
 dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
@@ -249,13 +263,15 @@ addEventListener('load', () => {
   g.utils.toArray('.reveal').forEach((el) => g.to(el, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 86%' } }));
   // parallax: the film (background) drifts slower than the title and controls (foreground) as the hero leaves
   const hero = document.querySelector('.hero');
-  g.to('.hero-film', { yPercent: 18, scale: 1.06, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
-  g.to('.hero-title', { yPercent: -35, opacity: 0.15, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+  g.to('.hero-film', { yPercent: 32, scale: 1.08, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+  g.to('.hero-title', { yPercent: -70, opacity: 0, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
   // prints inside their frames move against the page (frames are overflow: hidden)
   g.utils.toArray('.piece-fig img').forEach((img) => { img.classList.add('px');
-    g.fromTo(img, { yPercent: -5 }, { yPercent: 5, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } }); });
+    g.fromTo(img, { yPercent: -11 }, { yPercent: 11, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } }); });
   // the paper's dot grid sits on a layer behind the content
-  g.utils.toArray('.paper').forEach((sec) => g.fromTo(sec, { backgroundPositionY: '0px' }, { backgroundPositionY: '-120px', ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: true } }));
+  // background layers drift WITH the scroll (so they read as further away); headings move against it (nearer)
+  g.utils.toArray('.paper, .studio').forEach((sec) => g.fromTo(sec, { '--bgy': '-160px' }, { '--bgy': '160px', ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: 0.4 } }));
+  g.utils.toArray('main h2:not(.hero-title)').forEach((h) => g.fromTo(h, { yPercent: 30 }, { yPercent: -30, ease: 'none', scrollTrigger: { trigger: h, start: 'top bottom', end: 'bottom top', scrub: 0.4 } }));
   const arc = document.querySelector('.arc-draw path');
   if (arc) { g.set(arc, { strokeDasharray: '0.006 0.004', clipPath: 'inset(0 100% 0 0)' }); g.fromTo('.arc-draw', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'none', scrollTrigger: { trigger: '.arc-fig', start: 'top 75%', end: 'bottom 45%', scrub: 0.6 } }); }
 });
@@ -271,6 +287,20 @@ $('#lb-x').addEventListener('click', closeLb); lb.addEventListener('click', (e) 
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lb.hidden) closeLb(); });
 
 initPlanner();
+
+// ---------------------------------------------------------------- control deck: one tab open, chair always in view
+const tabs = [...document.querySelectorAll('.tabs [role=tab]')];
+function openTab(id, focus) {
+  tabs.forEach((b) => { const on = b.dataset.go === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+  document.querySelectorAll('#panel [data-tab]').forEach((el) => { el.hidden = el.dataset.tab !== id; });
+  $('#panel').scrollTop = 0;
+}
+tabs.forEach((b, i) => {
+  b.addEventListener('click', () => openTab(b.dataset.go));
+  b.addEventListener('keydown', (e) => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (d) { e.preventDefault(); openTab(tabs[(i + d + tabs.length) % tabs.length].dataset.go, true); } });
+});
+openTab('looks');
+// a signature pick jumps nowhere: the chair changes in view; 'Order' tab holds price + actions
 
 // phone price dock: shown while the stage is on screen and the summary isn't
 const dock = $('#dock'); let stageOn = false, sumOn = false;

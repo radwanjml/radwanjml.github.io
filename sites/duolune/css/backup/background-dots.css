@@ -1,0 +1,1 @@
+114:.paper { background-color: var(--paper); background-image: radial-gradient(circle at 1px 1px, var(--dot) 1.1px, transparent 1.4px); background-size: 24px 24px; color: var(--ink); }

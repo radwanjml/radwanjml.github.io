@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=18';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=25';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -56,6 +56,7 @@ function upholsteryMaterial(tex) {
     uSheen: { value: new THREE.Vector4(0.08, 0.08, 0.4, 0.4) }, // weightA, weightB, roughA, roughB
     uCoat: { value: new THREE.Vector2(0.15, 0.15) },
     uLeather: { value: new THREE.Vector2(1, 1) },
+    uVelvet: { value: new THREE.Vector2(0, 0) },
   };
   m.userData.u = u;
   m.onBeforeCompile = (sh) => {
@@ -67,7 +68,7 @@ function upholsteryMaterial(tex) {
       .replace('#include <common>', `#include <common>
 varying vec2 vUv0; varying float vTone; varying vec3 vObj;
 uniform vec3 uColA, uColA2, uColB, uColB2, uThread; uniform vec3 uStripe;
-uniform sampler2D tNormB, tGrain; uniform vec2 uTile, uNScale, uRough, uCoat, uLeather; uniform vec4 uSheen;
+uniform sampler2D tNormB, tGrain; uniform vec2 uTile, uNScale, uRough, uCoat, uLeather, uVelvet; uniform vec4 uSheen;
 ${NOISE}
 float gMask; float gStitch; float gH; float gBurn;
 void duoluneFields(){
@@ -85,23 +86,28 @@ void duoluneFields(){
   // top-stitch ring 16.5 mm from each end
   float dv = abs(v - 0.0165);
   float ph = fract((u + jit + dv * 1.2) / 0.004);
-  float ring = (1.0 - smoothstep(0.00035, 0.0006, dv)) * step(ph, 0.62);
+  float pw = max(fwidth(ph), 0.06);
+  float dash = smoothstep(0.0, pw, ph) * (1.0 - smoothstep(0.62 - pw, 0.62, ph));          // a thread with rounded ends
+  float lw = max(fwidth(v), 0.0001);
+  float ring = (1.0 - smoothstep(0.00045 - lw, 0.00045 + lw, dv)) * dash;
   float groove = 1.0 - smoothstep(0.0004, 0.0019, dv);
   // underside seam (u = 0 faces the floor) with two stitch rows
   float su = abs(u);
   float sgroove = 1.0 - smoothstep(0.0, 0.0017, su);
   float sph = fract((v + jit) / 0.004);
-  float srow = (1.0 - smoothstep(0.0004, 0.0007, abs(su - 0.0036))) * step(sph, 0.62) * step(0.0165, v);
+  float spw = max(fwidth(sph), 0.06);
+  float srow = (1.0 - smoothstep(0.0004, 0.0007 + fwidth(u), abs(su - 0.0036))) * smoothstep(0.0, spw, sph) * (1.0 - smoothstep(0.62 - spw, 0.62, sph)) * step(0.0165, v);
   // stripe seams + double top-stitch
   float sd = 9.0;
   if (uStripe.z > 0.5) { sd = abs(ay - uStripe.y); if (uStripe.z > 1.5) sd = min(sd, abs(ay - uStripe.x)); }
   float stgroove = 1.0 - smoothstep(0.0, 0.0015, sd);
   float stph = fract((u + jit) / 0.004);
-  float strow = (1.0 - smoothstep(0.0003, 0.0006, abs(sd - 0.0036))) * step(stph, 0.62);
+  float stw = max(fwidth(stph), 0.06);
+  float strow = (1.0 - smoothstep(0.0003, 0.0006 + fwidth(ay), abs(sd - 0.0036))) * smoothstep(0.0, stw, stph) * (1.0 - smoothstep(0.62 - stw, 0.62, stph));
   // puckering where the cover pulls round the end
   float pm = smoothstep(0.003, 0.0066, v) * (1.0 - smoothstep(0.0066, 0.025, v));
   float nA = texture2D(tGrain, vUv0 * 0.9).r; float nB = texture2D(tGrain, vUv0 * 0.45 + 0.37).r;
-  float pk = sin(u * 6.2831 / 0.0115 + (nA - 0.5) * 10.0) * pm * smoothstep(0.35, 0.65, nB);
+  float pk = sin(u * 6.2831 / 0.0115 + (nA - 0.5) * 10.0) * pm * smoothstep(0.35, 0.65, nB) * (1.0 - smoothstep(0.0015, 0.004, fwidth(u)));
   gStitch = max(max(ring, srow), strow) * aa;
   gH = (ring * 0.9 + srow * 0.6 + strow * 0.6) * aa - groove * 0.35 - sgroove * 0.9 - stgroove * 0.9 + pk * 0.25;
   gBurn = max(1.0 - smoothstep(0.0, 0.0165, v), max(sgroove, stgroove) * 0.6);
@@ -127,6 +133,15 @@ roughnessFactor = mix(uRough.x, uRough.y, gMask) + gStitch * 0.2 + (grainT - 0.5
       .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
 material.sheenColor = vec3(mix(uSheen.x, uSheen.y, gMask)) * mix(vec3(1.0), diffuseColor.rgb * 2.0 + 0.3, 0.5);
 material.sheenRoughness = clamp(mix(uSheen.z, uSheen.w, gMask), 0.07, 1.0);
+{ float vel = mix(uVelvet.x, uVelvet.y, gMask);
+  if (vel > 0.0) {
+    float nv = clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0);
+    material.diffuseColor *= mix(1.0, mix(1.25, 0.62, nv), vel);                 // pile: lighter at the silhouette, deep where it faces you
+    material.sheenColor = mix(material.sheenColor, diffuseColor.rgb * 1.8 + 0.05, vel);
+    material.sheenRoughness = mix(material.sheenRoughness, 0.28, vel);
+    material.specularF90 = mix(material.specularF90, 0.15, vel);
+    material.specularColor *= mix(1.0, 0.25, vel);
+  } }
 `);
     // the tbn variable only exists with tangent-space normal maps (USE_NORMALMAP_TANGENTSPACE) in r160 normal_fragment_begin
   };
@@ -151,15 +166,17 @@ float gLines; float gGlue; float gPore;`)
 if (uWood > 0.5) {
   // bent laminated wood: plies concentric with the arc (centre = origin, axis = Z); long grain follows the bend
   float r = length(vObj.xy); float th = atan(vObj.y, vObj.x); float lat = vObj.z;
-  vec3 q = vec3(r * 160.0, lat * 160.0, th * 0.9);
+  vec3 q = vec3(r * 110.0, lat * 110.0, th * 0.9);
   float g = snoise(q) * 0.5 + 0.5;
-  float fig = fract(g * 14.0);
-  gLines = smoothstep(0.35, 1.0, fig);
+  float fq = length(fwidth(q));                                   // grain cycles per pixel
+  float fig = fract(g * 9.0);
+  float lineFade = 1.0 - smoothstep(0.04, 0.16, fq * 9.0);        // figure lines fade to their average before they alias
+  gLines = mix(0.32, smoothstep(0.35, 1.0, fig), lineFade);
   float big = snoise(q * 0.08);
   float ply = floor(r / 0.0018);
   gGlue = 1.0 - smoothstep(0.0, 0.07, fract(r / 0.0018));
-  gPore = fract(sin(dot(floor(q * 12.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
-  float f = clamp(gLines * 0.75 + hash11(ply) * 0.2 + big * 0.3 + gPore * 0.2, 0.0, 1.0);
+  gPore = mix(0.5, fract(sin(dot(floor(q * 5.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453), 1.0 - smoothstep(0.15, 0.5, fq * 5.0));
+  float f = clamp(gLines * 0.75 + hash11(ply) * 0.2 + big * 0.3 + gPore * 0.08, 0.0, 1.0);
   vec3 c = mix(uLight, uDark, f);
   c = mix(c, uDark * 0.5, gGlue * 0.7 * (1.0 - smoothstep(0.0006, 0.004, fwidth(r))));
   diffuseColor.rgb = c;
@@ -197,7 +214,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.32 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=18', res, undefined, () => res(null)));
+  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=25', res, undefined, () => res(null)));
   if (shadowTex) {
     shadowTex.colorSpace = THREE.SRGBColorSpace;
     const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
@@ -258,7 +275,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     mats.rollers.normalMap = NT[cfg.up.kind]; U.tNormB.value = NT[kB];
     U.uTile.value.set(KA.tile, KB.tile); U.uNScale.value.set(KA.normal, KB.normal);
     U.uRough.value.set(KA.rough, KB.rough); U.uSheen.value.set(KA.sheen, KB.sheen, KA.sheenRough, KB.sheenRough);
-    U.uCoat.value.set(KA.coat, KB.coat); U.uLeather.value.set(cfg.up.kind === 'leather' ? 1 : 0, kB === 'leather' ? 1 : 0);
+    U.uCoat.value.set(KA.coat, KB.coat); U.uLeather.value.set(cfg.up.kind === 'leather' ? 1 : 0, kB === 'leather' ? 1 : 0); U.uVelvet.value.set(cfg.up.kind === 'velvet' ? 1 : 0, kB === 'velvet' ? 1 : 0);
     mats.trim.color.copy(A.b.clone().lerp(A.a, 0.4)); mats.trim.roughness = KA.rough; mats.trim.sheen = KA.sheen; mats.trim.clearcoat = KA.coat;
     const F = mats.frame, FU = F.userData.u;
     if (cfg.frame.type === 'wood') {
@@ -268,8 +285,10 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
       mats.rail.color.copy(lin(METALS[0].c)); mats.rail.metalness = 0; mats.rail.roughness = METALS[0].rough;
     } else {
       const mt = METALS.find((x) => x.id === cfg.frame.id) || METALS[0];
-      FU.uWood.value = 0; F.color.copy(lin(mt.c)); F.metalness = mt.metal; F.roughness = mt.rough; F.clearcoat = mt.coat;
-      mats.rail.color.copy(lin(mt.c)); mats.rail.metalness = mt.metal; mats.rail.roughness = mt.rough;
+      const mc = cfg.frame.custom ? fromHex(cfg.frame.custom) : lin(mt.c);     // custom powder coat: satin, non-metallic
+      FU.uWood.value = 0; F.color.copy(mc); F.metalness = mt.metal; F.roughness = mt.rough; F.clearcoat = mt.coat;
+      mats.rail.color.copy(mc); mats.rail.metalness = mt.metal; mats.rail.roughness = mt.rough;
+      if (cfg.frame.custom) { F.metalness = mats.rail.metalness = 0; F.roughness = mats.rail.roughness = 0.4; F.clearcoat = 0.2; }
     }
     mats.rollers.needsUpdate = true; dirty = true;
   }

@@ -404,3 +404,81 @@ p { margin: 0 0 var(--sp-2); }
 .hero .kicker, .hero-line, .shot, .hero-title { text-shadow: 0 1px 2px oklch(8% 0.01 60 / .55), 0 0 18px oklch(8% 0.01 60 / .45); }
 .hero-shade { background: linear-gradient(to bottom, oklch(10% 0.006 60 / .6) 0%, transparent 28%, transparent 48%, oklch(10% 0.006 60 / .55) 66%, oklch(10% 0.006 60 / .88) 100%); }
 @media (max-aspect-ratio: 3/4) { .hero-shade { background: linear-gradient(to bottom, oklch(10% 0.006 60 / .6) 0%, transparent 26%, transparent 42%, oklch(10% 0.006 60 / .7) 60%, oklch(10% 0.006 60 / .92) 100%); } }
+
+/* ---------------------------------------------------------------- round 8: the build is one screen (chair always in view, one tab open) */
+.build { padding: var(--sp-8) 0 var(--sp-6); }
+.build-grid { height: calc(100svh - 84px); min-height: 520px; grid-template-columns: minmax(0, 1fr) 400px; align-items: stretch; }
+.stage { min-height: 0; height: 100%; }
+.panel { min-height: 0; height: 100%; overflow-y: auto; overscroll-behavior: contain; gap: 0; border: 1px solid var(--studio-3); background: oklch(20% 0.009 60 / .7); scrollbar-width: thin; }
+.panel [hidden] { display: none !important; }
+.panel .opt { border-top: 0; padding: var(--sp-2) var(--sp-2) var(--sp-3); }
+.deck-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: var(--sp-1); padding: 0 0 0 var(--sp-1); background: var(--studio-2); border-bottom: 1px solid var(--studio-3); }
+.tabs { display: flex; flex: 1 1 auto; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { flex: 1 0 auto; min-height: 48px; padding: 0 .8rem; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--chalk-2); font: 600 var(--s-xs)/1 var(--f-body); letter-spacing: .04em; cursor: pointer; transition: color var(--t-fast), border-color var(--t-med) var(--e-out); }
+.tabs button[aria-selected="true"] { color: var(--chalk); border-bottom-color: var(--stripe); }
+.tabs button:active { transform: scale(.96); }
+@media (hover: hover) and (pointer: fine) { .tabs button:hover { color: var(--chalk); } }
+.deck-price { margin: 0; padding: 0 var(--sp-2); font: 400 var(--s-md)/1 var(--f-display); white-space: nowrap; }
+/* looks tab: the 12 signatures as a 3-up grid that fits without scrolling on desktop */
+.panel .sig { margin: 0; }
+.panel .sig-label { margin-bottom: var(--sp-2); }
+.panel .sig-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow: visible; }
+.panel .sig-row button, .panel .sig-row button img { width: 100%; }
+.panel .sig-row button img { height: auto; aspect-ratio: 4 / 4.4; }
+.panel .sum { border-top: 0; }
+.dock { display: none !important; }
+@media (max-width: 1000px) {
+  .build { padding: var(--sp-6) 0 var(--sp-4); }
+  .build-head { margin-bottom: var(--sp-2); }
+  .build-sub { display: none; }
+  .build-grid { grid-template-columns: 1fr; grid-template-rows: 54% 46%; gap: 0; padding: 0; height: calc(100svh - 64px); }
+  .stage { border-left: 0; border-right: 0; }
+  .panel { border-left: 0; border-right: 0; border-top: 0; }
+  .panel .sig-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; padding-bottom: var(--sp-1); }
+  .panel .sig-row button { flex: 0 0 31%; width: auto; scroll-snap-align: start; }
+  .panel .sig-label { display: none; }
+  .panel .opt legend { display: none; }
+  .stage-tools .chip { min-height: 34px; }
+}
+@media (max-width: 1000px) {
+  .tabs button { flex: 1 1 0; padding: 0 .3rem; min-width: 0; letter-spacing: 0; }
+  .deck-price { font-size: var(--s-sm); padding: 0 var(--sp-1); }
+  .panel .sig-row { scrollbar-width: none; }
+  .panel .sig-row::-webkit-scrollbar { display: none; }
+  .panel .sig-row button { flex-basis: 38%; }
+  .stage-tools { flex-wrap: nowrap; overflow-x: auto; right: var(--sp-1); scrollbar-width: none; }
+  .stage-tools::-webkit-scrollbar { display: none; }
+  .stage-tools .chip { flex: 0 0 auto; }
+}
+/* type legibility: Bodoni Moda's display optical size (opsz 96) has near-invisible hairlines on phones.
+   Everything except the hero word uses the text cut (opsz 18) at 500: same family, sturdy hairlines. */
+h2, h3, legend, .opt legend, .sum-name, .price, .deck-price, .dock-price, .tw-cap b, .shot #shot-n,
+.lede, .proof dd, blockquote {
+  font-optical-sizing: none; font-variation-settings: "opsz" 18; font-weight: 500;
+}
+.hero-title { font-optical-sizing: auto; }
+/* ---------------------------------------------------------------- background layer: half-moon arcs (default) or the old dot grid
+   Switch with <html data-bg="dots"> to get the previous look back (backup kept in css/backup/background-dots.css). */
+@property --bgy { syntax: '<length>'; inherits: false; initial-value: 0px; }
+:root { --arcs-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='300' viewBox='0 0 560 300'%3E%3Cg fill='none' stroke='%23a2401f' stroke-opacity='.055'%3E%3Cpath d='M30 290a110 110 0 0 1 220 0' stroke-width='14'/%3E%3Cpath d='M310 290a110 110 0 0 1 220 0' stroke-width='14'/%3E%3Cpath d='M70 290a70 70 0 0 1 140 0M350 290a70 70 0 0 1 140 0' stroke-width='1.2' stroke-dasharray='5 4'/%3E%3C/g%3E%3C/svg%3E");
+        --arcs-chalk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='300' viewBox='0 0 560 300'%3E%3Cg fill='none' stroke='%23efe6d6' stroke-opacity='.035'%3E%3Cpath d='M30 290a110 110 0 0 1 220 0' stroke-width='14'/%3E%3Cpath d='M310 290a110 110 0 0 1 220 0' stroke-width='14'/%3E%3Cpath d='M70 290a70 70 0 0 1 140 0M350 290a70 70 0 0 1 140 0' stroke-width='1.2' stroke-dasharray='5 4'/%3E%3C/g%3E%3C/svg%3E"); }
+html:not([data-bg="dots"]) .paper { background-image: var(--arcs-ink), radial-gradient(circle at 1px 1px, var(--dot) 1.1px, transparent 1.4px);
+  background-size: 1500px 800px, 24px 24px; background-position: 50% var(--bgy), 0 calc(var(--bgy) * .5); }
+html:not([data-bg="dots"]) .studio:not(.build) { background-image: var(--arcs-chalk); background-size: 1500px 800px; background-position: 50% var(--bgy); }
+html[data-bg="dots"] .paper { background-position: 0 var(--bgy); }
+.piece-fig img.px { transform: scale(1.3); }
+@media (prefers-reduced-motion: reduce) { .paper, .studio { --bgy: 0px; } }
+/* WebXR AR overlay (Android) */
+.xr-canvas { position: fixed; inset: 0; z-index: 90; }
+.xr-ov { position: fixed; inset: 0; z-index: 91; pointer-events: none; color: var(--chalk); font: 500 var(--s-sm)/1.3 var(--f-body); }
+.xr-ov button { pointer-events: auto; }
+.xr-exit { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; width: 48px; height: 48px; border-radius: 50%; border: 1px solid oklch(93% 0.02 85 / .5); background: oklch(15% 0.01 60 / .6); color: inherit; font-size: 1.6rem; }
+.xr-hint { position: absolute; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom)); transform: translateX(-50%); margin: 0; padding: .6rem 1rem; border-radius: 999px; background: oklch(15% 0.01 60 / .65); white-space: nowrap; }
+.xr-size { position: absolute; left: 16px; top: max(20px, env(safe-area-inset-top)); margin: 0; font-size: var(--s-xs); padding: .4rem .7rem; border-radius: 999px; background: oklch(15% 0.01 60 / .55); max-width: 70vw; }
+.xr-ctrl { position: absolute; left: 50%; bottom: calc(60px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; gap: 8px; padding: 6px; border-radius: 999px; background: oklch(15% 0.01 60 / .7); }
+.xr-ctrl[hidden] { display: none; }
+.xr-ctrl button { min-width: 56px; height: 52px; padding: 0 1rem; border-radius: 999px; border: 1px solid oklch(93% 0.02 85 / .35); background: transparent; color: inherit; font: 600 var(--s-sm)/1 var(--f-body); }
+.xr-ctrl button:active { background: var(--chalk); color: var(--studio); }
+.tabs button { flex: 1 1 0; min-width: 0; padding: 0 .4rem; letter-spacing: 0; }
+.deck-price { font-size: var(--s-sm); padding: 0 var(--sp-2) 0 var(--sp-1); }

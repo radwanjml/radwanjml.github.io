@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/img/poster.webp" fetchpriority="high">
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=25">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -151,11 +151,6 @@
       <p class="build-sub">Drag to turn it. Tap a glowing point to see how that part is made.</p>
     </header>
 
-    <div class="sig" role="group" aria-label="Signature builds">
-      <p class="sig-label">Start from a signature build</p>
-      <div class="sig-row" id="sig-row"></div>
-    </div>
-
     <div class="build-grid">
       <div class="stage" id="stage">
         <img class="stage-poster" src="assets/img/hero_01_cognac_black.webp" alt="" aria-hidden="true" width="1080" height="1350">
@@ -184,14 +179,29 @@
       </div>
 
       <form class="panel" id="panel" aria-label="Options" onsubmit="return false">
-        <fieldset class="opt">
+        <div class="deck-head">
+          <div class="tabs" role="tablist" aria-label="Choose what to change">
+            <button type="button" role="tab" data-go="looks" aria-selected="true">Looks</button>
+            <button type="button" role="tab" data-go="cover" aria-selected="false">Cover</button>
+            <button type="button" role="tab" data-go="stripe" aria-selected="false">Stripe</button>
+            <button type="button" role="tab" data-go="frame" aria-selected="false">Frame</button>
+            <button type="button" role="tab" data-go="order" aria-selected="false">Order</button>
+          </div>
+          <p class="deck-price" aria-live="polite"><span id="deck-price">₹1,64,000</span></p>
+        </div>
+        <div class="sig opt" data-tab="looks" role="group" aria-label="Signature builds">
+      <p class="sig-label">Start from a signature build</p>
+      <div class="sig-row" id="sig-row"></div>
+    </div>
+
+        <fieldset class="opt" data-tab="cover">
           <legend><span class="opt-n">1</span> Upholstery</legend>
           <div class="seg" role="radiogroup" aria-label="Upholstery material" id="up-kind"></div>
           <div class="swatches" role="radiogroup" aria-label="Upholstery colour" id="up-col"></div>
           <label class="picker"><span>Any colour</span><input type="color" id="up-custom" value="#7a3b1c"></label>
         </fieldset>
 
-        <fieldset class="opt">
+        <fieldset class="opt" data-tab="stripe">
           <legend><span class="opt-n">2</span> Stripe</legend>
           <div class="seg" role="radiogroup" aria-label="Stripe" id="st-mode"></div>
           <div class="st-more" id="st-more">
@@ -201,14 +211,15 @@
           </div>
         </fieldset>
 
-        <fieldset class="opt">
+        <fieldset class="opt" data-tab="frame">
           <legend><span class="opt-n">3</span> Frame</legend>
           <div class="seg" role="radiogroup" aria-label="Frame material" id="fr-type"></div>
           <div class="swatches swatches-lg" role="radiogroup" aria-label="Frame finish" id="fr-col"></div>
+          <label class="picker" id="fr-picker"><span>Any powder-coat colour</span><input type="color" id="fr-custom" value="#2f4858"></label>
           <p class="note" id="fr-note"></p>
         </fieldset>
 
-        <div class="sum">
+        <div class="sum opt" data-tab="order">
           <p class="sum-name" id="sum-name">Cognac leather, satin black frame</p>
           <p class="price"><span id="price">₹1,64,000</span> <small>illustrative</small></p>
           <ul class="sum-lines" id="sum-lines"></ul>
@@ -227,16 +238,6 @@
   </section>
 
   <!-- AT HOME -------------------------------------------------------- -->
-  <section class="home" aria-labelledby="home-h">
-    <picture>
-      <source media="(max-width: 760px)" srcset="assets/img/room_04_boucle_whiteoak_1080x1350.webp">
-      <img src="assets/img/room_02_noir_walnut_1920x1080.webp" alt="Duolune in noir leather on a walnut frame, in a bright living room beside a small side table and plant" width="1920" height="1080" loading="lazy">
-    </picture>
-    <div class="home-cap wrap">
-      <h2 id="home-h">At home</h2>
-      <p>Noir leather on walnut. It takes up 1.74 by 1.1 metres of floor, about the same as a three-seat sofa, but it's open underneath, so the room still feels big.</p>
-    </div>
-  </section>
 
   <!-- GALLERY -------------------------------------------------------- -->
   <section class="studio gallery" aria-labelledby="gal-h">
@@ -375,6 +376,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-<script type="module" src="js/app.js?v=18"></script>
+<script type="module" src="js/app.js?v=25"></script>
 </body>
 </html>
