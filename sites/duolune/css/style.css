@@ -165,9 +165,9 @@ p { margin: 0 0 var(--sp-2); }
 .stage.is-ready .stage-poster { opacity: 0; }
 .stage-overlay { position: absolute; inset: 0; pointer-events: none; }
 .stage-overlay > * { pointer-events: auto; }
-.hs { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 0; background: none; padding: 0; cursor: pointer; transition: opacity var(--t-med); display: grid; place-items: center; }
-.hs.is-hidden { opacity: 0; pointer-events: none; }
-.hs-dot { position: relative; width: 22px; height: 22px; border-radius: 50%; background: oklch(18% 0.01 60 / .55); border: 1.5px solid oklch(96% 0.02 85 / .95); backdrop-filter: blur(4px); box-shadow: 0 1px 6px oklch(10% 0.01 60 / .5); transition: transform var(--t-fast) var(--e-out), background var(--t-fast); }
+.hs { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 0; background: none; padding: 0; cursor: pointer; display: grid; place-items: center; }
+.hs.is-hidden { visibility: hidden; pointer-events: none; }   /* round 14: no fade; dots froze half-faded on first load */
+.hs-dot { position: relative; width: 22px; height: 22px; border-radius: 50%; background: oklch(18% 0.01 60 / .7); border: 1.5px solid oklch(96% 0.02 85 / .95); box-shadow: 0 1px 6px oklch(10% 0.01 60 / .5); transition: transform var(--t-fast) var(--e-out), background var(--t-fast); }
 .hs-dot::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: oklch(96% 0.02 85); transition: background var(--t-fast); }
 .hs-dot::before { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 1px solid oklch(96% 0.02 85 / .7); animation: ripple 3.2s var(--e-out) infinite; }
 @keyframes ripple { 0% { transform: scale(1); opacity: .8; } 70%, 100% { transform: scale(1.9); opacity: 0; } }
@@ -187,7 +187,12 @@ p { margin: 0 0 var(--sp-2); }
 .info li { font-size: var(--s-xs); padding: .25rem 0 .25rem 1.1rem; position: relative; }
 .info li::before { content: ""; position: absolute; left: 0; top: .78em; width: .6rem; border-top: 2px dashed var(--accent); }
 .info-x { position: absolute; right: .5rem; top: .5rem; width: 44px; height: 44px; border: 0; background: none; font: 400 1.75rem/1 var(--f-body); color: inherit; cursor: pointer; }
-@media (max-width: 620px) { .info { left: var(--sp-1); right: var(--sp-1); top: auto; bottom: var(--sp-8); width: auto; max-height: 52%; overflow: auto; } }
+@media (max-width: 620px) {   /* round 14: a compact sheet over the lower part of the stage; the part is framed above it */
+  .info { left: var(--sp-1); right: var(--sp-1); top: auto; bottom: 4.25rem; width: auto; max-height: 40%; overflow: auto; padding: var(--sp-2); background: oklch(97% 0.006 95); }
+  .info h3 { font-size: var(--s-md); margin-bottom: var(--sp-1); }
+  .info p { font-size: var(--s-xs); line-height: 1.45; }
+  .info ul { padding-top: var(--sp-1); }
+}
 
 /* loader: an arc that gets stitched */
 .loader { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--sp-1); text-align: center; background: oklch(19% 0.008 60 / .55); transition: opacity var(--t-slow) var(--e-out), visibility var(--t-slow); }
@@ -500,3 +505,8 @@ html[data-bg="dots"] .paper { background-position: 0 var(--bgy); }
 
 /* round 12: prints held while the 3D downloads have no src yet; never paint their alt text (visibility: hidden also dropped the buttons' accessible names) */
 .tw-grid img:not([src]), .gal-row img:not([src]) { color: transparent; }   /* keeps the alt as the button name */
+
+/* round 14: AR on the stage, filled so it reads as the main action; the dialog's own place button */
+.chip.chip-ar { background: var(--chalk); color: var(--studio); border-color: var(--chalk); font-weight: 600; }
+.chip.chip-ar::before { content: ""; display: inline-block; width: .9em; height: .9em; margin-right: .45em; vertical-align: -.1em; border: 1.5px solid currentColor; border-radius: 2px; transform: perspective(20px) rotateX(35deg); }
+.ar-go { margin-top: var(--sp-2); width: 100%; justify-content: center; }

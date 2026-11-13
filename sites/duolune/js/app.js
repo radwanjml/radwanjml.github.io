@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=41';
-import { initPlanner } from './planner.js?v=41';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=42';
+import { initPlanner } from './planner.js?v=42';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -40,7 +40,7 @@ const stName = (s) => s.stripe.mode === 'none' ? '' : `${s.stripe.mode === 'twin
 const frName = (s) => s.frame.type !== 'wood' && s.frame.custom ? 'custom powder-coat frame' : s.frame.type === 'wood' ? `${WOODS.find((w) => w.id === s.frame.id).name.toLowerCase()} frame` : `${METALS.find((m) => m.id === s.frame.id).name.toLowerCase()} frame`;
 function describe(s) { return [upName(s), stName(s), frName(s)].filter(Boolean).join(', ').replace(/^./, (c) => c.toUpperCase()); }
 function price(s) {
-  const lines = [['Duolune, cognac leather, satin black', BASE_PRICE]];
+  const lines = [['Duolune base (leather, steel frame)', BASE_PRICE]];   // round 14: named the default build even when another cover was chosen
   const k = KINDS[s.up.kind].price; if (k) lines.push([`${KINDS[s.up.kind].label} upholstery`, k]);
   if (s.up.custom) lines.push(['Custom colour, dyed to order', PRICE.customColour]);
   if (s.stripe.mode !== 'none') { lines.push([`${s.stripe.mode === 'twin' ? 'Twin' : 'Single'} stripe`, PRICE.stripe[s.stripe.mode]]); if (s.stripe.custom) lines.push(['Custom stripe colour', PRICE.stripeCustom]); }
@@ -148,8 +148,8 @@ async function boot() {
   try {
     let glbBuf = null;   // start the model download now, in parallel with three.js and its addons (same LITE rule as configurator.js)
     { const q = new URLSearchParams(location.search); const L = q.has('lite') ? q.get('lite') === '1' : innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
-      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=41' : 'assets/model/duolune.glb?v=41').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
-    const { createConfigurator } = await import('./configurator.js?v=41');
+      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=42' : 'assets/model/duolune.glb?v=42').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
+    const { createConfigurator } = await import('./configurator.js?v=42');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -197,10 +197,12 @@ $('#share-btn').addEventListener('click', async () => {
 // ---------------------------------------------------------------- AR (model-viewer, loaded only when asked)
 const dlg = $('#ar-dlg');
 $('#ar-btn').addEventListener('click', async () => {
-  // Android Chrome: our own WebXR mode (double-tap to place, on-floor controls, locked 1:1 scale). iPhone: Apple Quick Look via model-viewer.
+  // Round 14: every phone uses model-viewer (Android: its WebXR placement, Scene Viewer as fallback; iPhone: Quick Look).
+  // Our own WebXR mode (ar.js) could not find the floor on Red's Android, while model-viewer's had worked there; it stays
+  // reachable for testing with ?xr=custom.
   try {
-    if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const { startAR } = await import('./ar.js?v=41');
+    if (new URLSearchParams(location.search).get('xr') === 'custom' && navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
+      const { startAR } = await import('./ar.js?v=42');
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
@@ -209,14 +211,16 @@ $('#ar-btn').addEventListener('click', async () => {
   let mv = dlg.querySelector('model-viewer');
   if (!mv) {
     mv = document.createElement('model-viewer');
-    Object.entries({ src: 'assets/model/duolune.glb?v=41', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
+    Object.entries({ src: 'assets/model/duolune.glb?v=42', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
       .forEach(([k, v]) => mv.setAttribute(k, v));
     $('#ar-stage').appendChild(mv);
-    mv.addEventListener('load', () => paintAR(mv));
+    mv.addEventListener('load', () => { paintAR(mv); const go = $('#ar-go'); if (go && mv.canActivateAR) go.hidden = false; });
   } else paintAR(mv);
   mv.addEventListener('ar-status', (e) => { if (e.detail.status === 'failed') $('#ar-hint').textContent = 'AR is not available on this device. Open this page on a phone with AR support.'; });
   if (!/Android|iPhone|iPad/i.test(navigator.userAgent)) $('#ar-hint').textContent = 'AR works on phones. Open this page on Android (Chrome) or iPhone (Safari) and tap this button again. You can turn the chair here meanwhile.';
 });
+$('#t-ar').addEventListener('click', () => $('#ar-btn').click());   // round 14: AR is a selling point, so it sits on the stage, not only in Order
+$('#ar-go')?.addEventListener('click', () => dlg.querySelector('model-viewer')?.activateAR());   // a fresh tap: activateAR needs a user gesture
 // colours for AR, as {material: [r, g, b, rough, metal]} in linear RGB (shared by model-viewer and our WebXR mode)
 function arPaint(s) {
   const fromHexLin = (h) => [1, 3, 5].map((i) => { const c = parseInt(h.slice(i, i + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
