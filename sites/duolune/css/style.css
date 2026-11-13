@@ -493,3 +493,7 @@ html[data-bg="dots"] .paper { background-position: 0 var(--bgy); }
 .panel { overscroll-behavior: auto; }
 .build-grid > * { min-width: 0; }
 @media (max-width: 1000px) { .build-grid { grid-template-columns: minmax(0, 1fr); } .panel .sig-row button { flex: 0 0 38%; } }
+/* r11: the nav/skip links landed the "Build yours" kicker under the fixed bar (its padding is smaller than the other sections').
+   Desktop lands it at ~96 px like the others; phones at ~78 px (bar is 68). */
+.build { scroll-margin-top: 32px; }
+@media (max-width: 1000px) { .build { scroll-margin-top: 30px; } }   /* the section top must stay above y=40, where headerTone() samples, or the bar turns light */
