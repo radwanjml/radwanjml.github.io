@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=39';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=41';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -202,11 +202,13 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   let dirty = true;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, dprCap));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+  // dev A/B only: ?tm=aces|agx &exp= &sig= (studio env blur) &lr= (leather roughness)
+  const TM = QP.get('tm') || 'aces';
+  renderer.toneMapping = TM === 'agx' ? THREE.AgXToneMapping : THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = +(QP.get('exp') || 1.0);
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), +(QP.get('sig') || 0.12)).texture;
   scene.environmentIntensity = 0.28;
   const camera = new THREE.PerspectiveCamera(32, 1, 0.05, 50);
   camera.position.set(2.6, 1.35, 2.9);
@@ -222,14 +224,14 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.18 }));   // r11: 0.32 read as a black slab against Cycles
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  tl.load('assets/model/contact_shadow_a.jpg?v=39', (shadowTex) => {   // not awaited: the chair must not wait on its shadow
+  tl.load('assets/model/contact_shadow_a.jpg?v=41', (shadowTex) => {   // not awaited: the chair must not wait on its shadow
     shadowTex.colorSpace = THREE.NoColorSpace;   // greyscale alpha (was the PNG alpha channel)
     const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: shadowTex, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false }));
     sp.rotation.x = -Math.PI / 2; sp.position.set(0.1, 0.001, 0); sp.renderOrder = -1; scene.add(sp); dirty = true;
   });
 
   // textures
-  const ldTex = (n, srgb = false) => new Promise((res, rej) => tl.load(`assets/tex/${n}.${n.endsWith("_n") && !QP.has("jpgn") ? "webp" : "jpg"}`, (t) => {
+  const ldTex = (n, srgb = false) => new Promise((res, rej) => tl.load(`assets/tex/${n}${n.endsWith("_n") && !QP.has("jpgn") ? (LITE ? "_lite.webp" : ".webp") : ".jpg"}`, (t) => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     if (srgb) t.colorSpace = THREE.SRGBColorSpace; dirty = true; res(t);
   }, undefined, rej));
@@ -244,7 +246,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
   const gl = new GLTFLoader().setDRACOLoader(draco);
   const pre = glb ? await glb : null;   // app.js started this download alongside the module import
-  const gltf = pre ? await gl.parseAsync(pre, '') : await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=39' : 'duolune.glb?v=39'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
+  const gltf = pre ? await gl.parseAsync(pre, '') : await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=41' : 'duolune.glb?v=41'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
   tick('model');
   await Promise.all(texJobs);
   tex.leather = tex.leather_n; tex.leatherR = tex.leather_r;
@@ -260,6 +262,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     st.minFilter = THREE.LinearMipmapLinearFilter; st.magFilter = THREE.LinearFilter; st.generateMipmaps = true;
     st.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy()); st.needsUpdate = true; tex.stitch = st;
   }
+  const TRIM_UVM = 0.45;   // trim bake-atlas UV units per metre (measured on both GLBs, round 12: 0.456 desktop / 0.444 lite)
   const NT = { leather: tex.leather_n, wool: flatN, boucle: flatN, velvet: flatN };
   const ntWant = { leather: true }; let lastCfg = null;
   const needKind = (k) => { if (ntWant[k]) return; ntWant[k] = ldTex(k + '_n').then((t) => { NT[k] = t; if (lastCfg) apply(lastCfg); }).catch(() => {}); };
@@ -279,12 +282,12 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   // Loaded after first paint; each part has its own lightmap UV (rollers: 3rd UV set, others: the only one).
   const GI = 0.7;   // decoded x2 then x0.35: bounce adds shape and colour bleed without lifting blacks (1.6 washed the frame grey)
   for (const [k, m] of Object.entries(mats)) {
-    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=39`, (t) => {
+    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=41`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.aoMap = t; m.aoMapIntensity = k === 'rollers' ? 0.9 : 1.0; m.needsUpdate = true; dirty = true;
     });
     // baked Cycles bounce light (indirect diffuse, studio lights + floor), stored x0.5; three adds it to the live direct light
-    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=39`, (t) => {
+    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=41`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.lightMap = t; m.lightMapIntensity = GI; m.needsUpdate = true; dirty = true;
     });
@@ -315,9 +318,14 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     needKind(cfg.up.kind); needKind(kB);
     mats.rollers.normalMap = NT[cfg.up.kind]; U.tNormB.value = NT[kB];
     U.uTile.value.set(KA.tile, KB.tile); U.uNScale.value.set(KA.normal, KB.normal);
-    U.uRough.value.set(KA.rough, KB.rough); U.uSheen.value.set(KA.sheen, KB.sheen, KA.sheenRough, KB.sheenRough);
+    const LR = QP.get('lr'); const rA = LR ? +LR : KA.rough; U.uRough.value.set(rA, KB.rough); U.uSheen.value.set(KA.sheen, KB.sheen, KA.sheenRough, KB.sheenRough);
     U.uCoat.value.set(KA.coat, KB.coat); U.uLeather.value.set(cfg.up.kind === 'leather' ? 1 : 0, kB === 'leather' ? 1 : 0); U.uVelvet.value.set(cfg.up.kind === 'velvet' ? 1 : 0, kB === 'velvet' ? 1 : 0);
-    mats.trim.color.copy(A.b.clone().lerp(A.a, 0.4)); mats.trim.roughness = KA.rough; mats.trim.sheen = KA.sheen; mats.trim.clearcoat = KA.coat;
+    // end panels get the cover's grain (round 12): same normal map, own repeat (clone shares the image). Trim UVs are the
+    // bake atlas (TRIM_UVM), so repeat = 1 / (tile x TRIM_UVM). Strength ~ half the rollers', so the panel reads leather, not crinkle.
+    { const src = NT[cfg.up.kind]; if (src !== flatN) { if (!mats.trim.normalMap || mats.trim.normalMap.source !== src.source) { const t = src.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; mats.trim.normalMap = t; mats.trim.needsUpdate = true; }
+      const rp = 1 / (KA.tile * TRIM_UVM); mats.trim.normalMap.repeat.set(rp, rp); const ns = KA.normal * 0.55; mats.trim.normalScale.set(ns, ns); }
+      else if (mats.trim.normalMap) { mats.trim.normalMap = null; mats.trim.needsUpdate = true; } }
+    mats.trim.color.copy(A.b.clone().lerp(A.a, 0.4)); mats.trim.roughness = Math.max(rA, 0.55);   // flat end panels mirrored the studio panels as a pale patch; real end panels are less polished (round 12) mats.trim.sheen = KA.sheen; mats.trim.clearcoat = KA.coat;
     const F = mats.frame, FU = F.userData.u;
     if (cfg.frame.type === 'wood') {
       const w = WOODS.find((x) => x.id === cfg.frame.id) || WOODS[0];

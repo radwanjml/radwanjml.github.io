@@ -15,7 +15,7 @@ Any static server works, for example `python -m http.server 4190 --directory sit
 | `js/configurator.js` | three.js r160 viewer. Loaded only when the build section comes near (or on tap when the connection is slow). |
 | `js/planner.js` | "Will it fit" floor plan (2D canvas) |
 | `assets/model/duolune.glb` | ~500 KB (phone `duolune_lite.glb` ~425 KB) plus baked Cycles AO/GI JPGs per part, built by `tools/export_web_ao.py`. Draco, metres. Six meshes: rollers, trim, frame, rail, hardware, feet |
-| `assets/tex/*_n.webp` | Seamless normal maps (loaded only for the covers in the build) for leather, wool, bouclé and velvet (generated, tile by construction) |
+| `assets/tex/*_n.webp`, `*_n_lite.webp` | Seamless normal maps (loaded only for the covers in the build) for leather, wool, bouclé and velvet (generated, tile by construction). Phones get the 256 px `_lite` versions (leather 135 → 28 KB). The end panels reuse the cover's map (`TRIM_UVM` = 0.45 atlas UV per metre) |
 | `assets/film/` | Hero film v3: 40 s loop at 72 BPM with music (muted until the sound button). It cuts between the wide orbit and details every bar, and the finish changes every beat. `hero_1080`/`hero_720` (16:9), `hero_square` (1:1, screens 3:4 to 3:2), `hero_portrait` (9:16). Rendered by `Blender/.../scripts/film_cuts.py` |
 
 ## The tricks
@@ -35,9 +35,12 @@ Any static server works, for example `python -m http.server 4190 --directory sit
 5. **AR uses `<model-viewer>`**, loaded only when someone taps "See it in your room". The same GLB is recoloured through its materials API to match the build. Android uses Scene Viewer, iPhone uses Quick Look (model-viewer generates the USDZ). Stripes and stitching don't carry into AR; colours do.
 
 ## Rebuilding the assets
-- **Model:** `blender -b Arc_Recliner8.blend --python tools/export_web_ao.py -- <out>/duolune.glb [lite]`, then re-save the JPGs at q70 (AO greyscale) with Pillow; see the session record, round 11
+- **Model:** `blender -b Arc_Recliner8.blend --python tools/export_web_ao.py -- <out>/duolune.glb [lite]`, then re-save the JPGs at q70 (AO greyscale) with Pillow; see the session record, round 11. **After any re-bake, copy the four raw `*trim*.jpg` into `tools/backup_r12/model/` and run `python tools/clean_trim_bake.py`**, or the blotchy, crinkled end discs come back (round 12)
 - **Textures:** `blender -b --python tools/gen_textures.py -- tools/tex_src`, then convert to JPG with ffmpeg
 - **Film:** `Blender/Furniture/Arc_Recliner/scripts/film.py`. See the session record there.
+
+## Dev-only URL switches
+`?lite=0|1`, `?m=<model folder>`, `?jpgn`, and since round 12 `?tm=agx`, `?exp=`, `?sig=` (studio env blur, default 0.12) and `?lr=` (leather roughness) for realism A/Bs.
 
 ## Licences
 - Room HDRI: Poly Haven, CC0 (see ../ASSETS.md). The side table and plant were removed from the configurator on 13 Nov (they still appear in the baked room render).

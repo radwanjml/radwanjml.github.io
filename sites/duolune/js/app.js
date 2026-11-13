@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=39';
-import { initPlanner } from './planner.js?v=39';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=41';
+import { initPlanner } from './planner.js?v=41';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -23,7 +23,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const toSRGB = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
 const hex = (a) => '#' + a.map((v) => Math.round(Math.min(1, Math.max(0, toSRGB(v))) * 255).toString(16).padStart(2, '0')).join('');
-const inr = (n) => '₹' + n.toLocaleString('en-IN');
+const INR = new Intl.NumberFormat('en-IN'); const inr = (n) => '₹' + INR.format(n);   // one formatter: toLocaleString built one per call (52 ms at 4x CPU)
 
 // ---------------------------------------------------------------- state
 const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -119,10 +119,23 @@ render();
 const tw = $('#tw-grid');
 for (const g of SIGNATURES) {
   const li = document.createElement('li');
-  li.innerHTML = `<button type="button" data-id="${g.id}"><figure><img src="assets/img/hero_${g.img}.webp" alt="Duolune, ${g.name}" width="1080" height="1350" loading="lazy"></figure><p class="tw-cap"><b>${g.name}</b><span>${inr(price(g.cfg).total)}</span></p></button>`;
+  li.innerHTML = `<button type="button" data-id="${g.id}"><figure><img data-src="assets/img/hero_${g.img}.webp" alt="Duolune, ${g.name}" width="1080" height="1350" loading="lazy"></figure><p class="tw-cap"><b>${g.name}</b><span>${inr(price(g.cfg).total)}</span></p></button>`;
   li.querySelector('button').addEventListener('click', () => { state = clone(g.cfg); activeSig = g.id; changed(true); $('#build').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); });
   tw.appendChild(li);
 }
+
+// ---------------------------------------------------------------- hold the gallery while the 3D downloads (round 12)
+// On slow links the gallery below the build (8 prints, ~370 KB) started with the GLB and split the bandwidth with it.
+// Its images wait until the 3D is ready or has failed, or until the visitor actually reaches the gallery.
+// The twelve-up grid just above the build is held the same way (jumping to the build pulled 8 of its prints in).
+const galImgs = [...document.querySelectorAll('#gal-row img')].filter((i) => !i.complete);
+for (const i of galImgs) { i.dataset.src = i.getAttribute('src'); i.removeAttribute('src'); }
+const heldImgs = [...galImgs, ...document.querySelectorAll('#tw-grid img[data-src]')];
+const show = (i) => { if (!i.getAttribute('src')) i.src = i.dataset.src; };
+const nearIO = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { nearIO.unobserve(e.target); show(e.target); } }, { rootMargin: '200px 0px' });
+heldImgs.forEach((i) => nearIO.observe(i));
+let galOut = false;
+const releaseGallery = () => { if (galOut) return; galOut = true; nearIO.disconnect(); heldImgs.forEach(show); };
 
 // ---------------------------------------------------------------- configurator (lazy)
 const loader = $('#loader'); const stage = $('#stage');
@@ -135,8 +148,8 @@ async function boot() {
   try {
     let glbBuf = null;   // start the model download now, in parallel with three.js and its addons (same LITE rule as configurator.js)
     { const q = new URLSearchParams(location.search); const L = q.has('lite') ? q.get('lite') === '1' : innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
-      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=39' : 'assets/model/duolune.glb?v=39').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
-    const { createConfigurator } = await import('./configurator.js?v=39');
+      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=41' : 'assets/model/duolune.glb?v=41').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
+    const { createConfigurator } = await import('./configurator.js?v=41');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -144,16 +157,18 @@ async function boot() {
     });
     viewer.apply(state);
     stage.classList.add('is-ready'); loader.classList.add('is-done'); $('#stage-tools').hidden = false;
+    releaseGallery();
     if (!lite) viewer.setRoom(true); else { $('#t-room').setAttribute('aria-pressed', 'false'); }
   } catch (err) {
     console.error(err);
     $('#ld-msg').textContent = 'The 3D view could not start on this device. The renders below show every finish.';
-    loader.classList.remove('is-loading'); $('#ld-start').textContent = 'Try again'; loading = false;
+    loader.classList.remove('is-loading'); $('#ld-start').textContent = 'Try again'; loading = false; releaseGallery();
   } finally { clearInterval(mt); }
 }
 $('#ld-start').addEventListener('click', boot);
 const conn = navigator.connection; const lite = conn && (conn.saveData || /2g/.test(conn.effectiveType || ''));
 if (!lite) new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); boot(); } }, { rootMargin: '400px 0px' }).observe(stage);
+else releaseGallery();   // save-data / 2G: 3D waits for a tap, so nothing to hold for
 
 function toggle(btn, fn) { btn.addEventListener('click', () => { const v = btn.getAttribute('aria-pressed') !== 'true'; btn.setAttribute('aria-pressed', String(v)); fn(v); }); }
 toggle($('#t-room'), (v) => viewer?.setRoom(v));
@@ -185,7 +200,7 @@ $('#ar-btn').addEventListener('click', async () => {
   // Android Chrome: our own WebXR mode (double-tap to place, on-floor controls, locked 1:1 scale). iPhone: Apple Quick Look via model-viewer.
   try {
     if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const { startAR } = await import('./ar.js?v=39');
+      const { startAR } = await import('./ar.js?v=41');
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
@@ -194,7 +209,7 @@ $('#ar-btn').addEventListener('click', async () => {
   let mv = dlg.querySelector('model-viewer');
   if (!mv) {
     mv = document.createElement('model-viewer');
-    Object.entries({ src: 'assets/model/duolune.glb?v=39', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
+    Object.entries({ src: 'assets/model/duolune.glb?v=41', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
       .forEach(([k, v]) => mv.setAttribute(k, v));
     $('#ar-stage').appendChild(mv);
     mv.addEventListener('load', () => paintAR(mv));
@@ -263,18 +278,28 @@ function headerTone() {
   const y = 40; let tone = 'hero';
   for (const z of zones) { const r = z.getBoundingClientRect(); if (r.top <= y && r.bottom > y) tone = z.classList.contains('hero') ? 'hero' : z.classList.contains('studio') ? 'dark' : 'paper'; }
   bar.classList.toggle('is-solid', tone === 'paper'); bar.classList.toggle('is-dark', tone === 'dark');
-  const p = Math.min(1, scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight));
-  document.documentElement.style.setProperty('--seam', p.toFixed(4));
+  const p = Math.min(1, scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight)).toFixed(3);
+  if (p !== lastSeam) { lastSeam = p; seamEl?.style.setProperty('--seam', p); }   // on the seam only: on <html> it restyled the whole page per scroll
 }
-addEventListener('scroll', headerTone, { passive: true }); headerTone();
+// one read per frame, never during script evaluation (that forced an extra full layout at load)
+const seamEl = document.querySelector('.seam'); let lastSeam = ''; let toneQ = false;
+const queueTone = () => { if (toneQ) return; toneQ = true; requestAnimationFrame(() => { toneQ = false; headerTone(); }); };
+addEventListener('scroll', queueTone, { passive: true }); queueTone();
 
 const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(() => fn({ timeRemaining: () => 8 }), 200));
 // ~30 scroll triggers each measure layout when created. Build them one small job at a time inside idle slices,
 // so no single task blocks input (one big batch was 4 tasks of 90-165 ms at 4x CPU; Lighthouse, 13 Nov)
 const runIdle = (jobs) => { const step = (dl) => { do { const j = jobs.shift(); if (j) j(); } while (jobs.length && dl.timeRemaining() > 6); if (jobs.length) idle(step); }; idle(step); };
+// ScrollTrigger is fetched after load (round 12): as a deferred script its evaluation forced the page's first full
+// layout synchronously (134 ms at 4x CPU). After load, layout is already clean, so it costs almost nothing.
+const showReveals = () => document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; });
 addEventListener('load', () => {
+  if (!window.gsap || reduced) { showReveals(); return; }
+  const st = document.createElement('script'); st.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js';
+  st.onload = setupScroll; st.onerror = showReveals; document.head.appendChild(st);
+});
+function setupScroll() {
   const g = window.gsap;
-  if (!g || reduced) { document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; }); return; }
   g.registerPlugin(window.ScrollTrigger);
   const jobs = [];
   g.utils.toArray('.reveal').forEach((el) => jobs.push(() => g.to(el, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 86%' } })));
@@ -291,7 +316,7 @@ addEventListener('load', () => {
   const arc = document.querySelector('.arc-draw path');
   if (arc) jobs.push(() => { g.set(arc, { strokeDasharray: '0.006 0.004', clipPath: 'inset(0 100% 0 0)' }); g.fromTo('.arc-draw', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'none', scrollTrigger: { trigger: '.arc-fig', start: 'top 75%', end: 'bottom 45%', scrub: 0.6 } }); });
   runIdle(jobs);
-});
+}
 
 // ---------------------------------------------------------------- gallery lightbox
 const lb = $('#lightbox');
@@ -303,7 +328,9 @@ const closeLb = () => { lb.hidden = true; };
 $('#lb-x').addEventListener('click', closeLb); lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lb.hidden) closeLb(); });
 
-initPlanner();
+// the planner measures its canvas; run during script evaluation that forced the page's first full layout (434 ms at
+// 4x CPU once nothing earlier did). It starts when it nears the viewport; IO callbacks run after the browser's own layout.
+{ const fc = $('#fit-canvas'); if (fc) new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); initPlanner(); } }, { rootMargin: '800px 0px' }).observe(fc); }
 
 // ---------------------------------------------------------------- control deck: one tab open, chair always in view
 const tabs = [...document.querySelectorAll('.tabs [role=tab]')];

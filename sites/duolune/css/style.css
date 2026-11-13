@@ -76,9 +76,9 @@ p { margin: 0 0 var(--sp-2); }
 
 /* header */
 .bar { position: fixed; inset: 0 0 auto; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: .75rem var(--gutter); color: var(--chalk); transition: background var(--t-med) var(--e-out), color var(--t-med); }
-.bar.is-solid { background: oklch(97% 0.006 95 / .92); color: var(--ink); backdrop-filter: blur(10px); border-bottom: 1px solid var(--rule); }
+.bar.is-solid { background: oklch(97% 0.006 95 / .96); color: var(--ink); backdrop-filter: blur(10px); border-bottom: 1px solid var(--rule); }
 .bar.is-solid .btn { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.bar.is-dark { background: oklch(19.5% 0.008 60 / .88); color: var(--chalk); border-bottom-color: var(--studio-3); }
+.bar.is-dark { background: oklch(19.5% 0.008 60 / .97); backdrop-filter: blur(10px); color: var(--chalk); border-bottom-color: var(--studio-3); }
 .bar.is-dark .btn { background: var(--chalk); color: var(--studio); border-color: var(--chalk); }
 .mark { font: italic 500 var(--s-md)/1 var(--f-display); text-decoration: none; display: inline-block; padding: .75rem 0; }
 .bar nav { display: flex; gap: var(--sp-3); }
@@ -497,3 +497,6 @@ html[data-bg="dots"] .paper { background-position: 0 var(--bgy); }
    Desktop lands it at ~96 px like the others; phones at ~78 px (bar is 68). */
 .build { scroll-margin-top: 32px; }
 @media (max-width: 1000px) { .build { scroll-margin-top: 30px; } }   /* the section top must stay above y=40, where headerTone() samples, or the bar turns light */
+
+/* round 12: prints held while the 3D downloads have no src yet; never paint their alt text (visibility: hidden also dropped the buttons' accessible names) */
+.tw-grid img:not([src]), .gal-row img:not([src]) { color: transparent; }   /* keeps the alt as the button name */

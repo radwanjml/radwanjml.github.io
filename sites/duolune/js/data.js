@@ -1,6 +1,6 @@
 // Duolune: every finish, price and hotspot lives here. Colours are linear RGB (same values as the Blender materials).
 export const KINDS = {
-  leather: { label: 'Leather', tex: 'leather', tile: 0.05, rough: 0.44, sheen: 0.03, sheenRough: 0.4, coat: 0.1, normal: 0.4, price: 0 },
+  leather: { label: 'Leather', tex: 'leather', tile: 0.05, rough: 0.36, sheen: 0.03, sheenRough: 0.4, coat: 0.1, normal: 0.4, price: 0 },
   wool:    { label: 'Wool',    tex: 'wool',    tile: 0.04, rough: 0.9,  sheen: 0.6,  sheenRough: 0.45, coat: 0,    normal: 0.8,  price: -12000 },
   boucle:  { label: 'Bouclé',  tex: 'boucle',  tile: 0.06, rough: 0.96, sheen: 0.7,  sheenRough: 0.5,  coat: 0,    normal: 1.1,  price: 6000 },
   velvet:  { label: 'Velvet',  tex: 'velvet',  tile: 0.2,  rough: 0.68, sheen: 1.0,  sheenRough: 0.32, coat: 0,    normal: 0.35, price: 9000 },
