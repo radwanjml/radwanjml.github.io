@@ -510,3 +510,8 @@ html[data-bg="dots"] .paper { background-position: 0 var(--bgy); }
 .chip.chip-ar { background: var(--chalk); color: var(--studio); border-color: var(--chalk); font-weight: 600; }
 .chip.chip-ar::before { content: ""; display: inline-block; width: .9em; height: .9em; margin-right: .45em; vertical-align: -.1em; border: 1.5px solid currentColor; border-radius: 2px; transform: perspective(20px) rotateX(35deg); }
 .ar-go { margin-top: var(--sp-2); width: 100%; justify-content: center; }
+
+/* round 15: Android Chrome painted a backdrop-filtered chip as a blank box when it sat half out of the scrolling row
+   ("Reset view"). Stage chips are opaque instead. */
+.stage-tools .chip { backdrop-filter: none; background: oklch(22% 0.01 60); }
+.stage-tools .chip.chip-ar { background: var(--chalk); }

@@ -50,7 +50,7 @@ export async function startAR({ paint, name }) {
 
   // the chair, painted with the current build
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
-  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('assets/model/duolune.glb?v=42');
+  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('assets/model/duolune.glb?v=43');
   const chair = new THREE.Group(); const model = gltf.scene;
   const box = new THREE.Box3().setFromObject(model); const c = box.getCenter(new THREE.Vector3());
   model.position.set(-c.x, -box.min.y, -c.z);                      // centred on its footprint, feet on the floor
