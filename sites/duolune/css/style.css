@@ -356,4 +356,51 @@ p { margin: 0 0 var(--sp-2); }
 .intro p { font-size: var(--s-xs); color: var(--chalk-2); letter-spacing: .02em; margin: 0; }
 @media (prefers-reduced-motion: reduce) { .intro .is { animation: none; clip-path: none; } }
 
-@media (max-width: 620px) { .stage-tools .chip { min-height: 32px; padding: 0 .7rem; font-size: .75rem; } .stage-tools { gap: 6px; left: var(--sp-1); bottom: var(--sp-1); } }
+@media (max-width: 620px) { .stage-tools .chip { min-height: 36px; padding: 0 .7rem; font-size: var(--s-xs); } .stage-tools { gap: 6px; left: var(--sp-1); bottom: var(--sp-1); } }
+
+/* ---------------------------------------------------------------- polish pass (13 Nov): depth, hover, press
+   Named motion only (--t-*, --e-*). Hover effects only where a real pointer exists; press feedback everywhere. */
+:root { --lift: 0 1px 2px oklch(10% 0.01 60 / .18), 0 10px 28px -12px oklch(10% 0.01 60 / .45);
+        --lift-hi: 0 2px 4px oklch(10% 0.01 60 / .2), 0 22px 44px -16px oklch(10% 0.01 60 / .55);
+        --pin: 0 1px 1px oklch(30% 0.02 60 / .08), 0 12px 30px -18px oklch(30% 0.03 60 / .35); }
+.btn, .chip, .seg button, .sw, .icon-btn, .sig-row button, .tw-grid button, .gal-row button { -webkit-tap-highlight-color: transparent; }
+.btn, .chip, .seg button, .icon-btn { transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast) var(--e-out), box-shadow var(--t-med) var(--e-out); }
+.btn:active, .chip:active, .seg button:active, .icon-btn:active { transform: scale(.97); transition-duration: 60ms; }
+.sw { transition: transform var(--t-fast) var(--e-out), box-shadow var(--t-fast); }
+.sw:active { transform: scale(.9); }
+.sig-row button { transition: transform var(--t-med) var(--e-out), box-shadow var(--t-med) var(--e-out), border-color var(--t-fast), color var(--t-fast); }
+.sig-row button img { transition: transform var(--t-med) var(--e-out); }
+.sig-row button:active { transform: translateY(-1px) scale(.98); }
+.sig-row button[aria-pressed="true"] { box-shadow: var(--lift); }
+.piece-fig, .tw-grid figure { box-shadow: var(--pin); }              /* prints pinned on the pattern paper */
+.studio .piece-fig, .gal-row img { box-shadow: var(--lift); }
+.info { animation: card-in var(--t-med) var(--e-out); }
+@keyframes card-in { from { opacity: 0; transform: translateY(8px); } }
+.bar nav a { text-decoration: none !important; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size var(--t-med) var(--e-out), opacity var(--t-fast); padding-bottom: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { box-shadow: var(--lift); }
+  .chip:hover, .seg button:hover { border-color: var(--chalk-2); color: var(--chalk); }
+  .chip-ink:hover { border-color: var(--ink-2); color: var(--ink); }
+  .icon-btn:hover { background: var(--chalk); color: var(--studio); border-color: var(--chalk); }
+  .sw:hover { transform: scale(1.1); box-shadow: 0 4px 12px -4px oklch(10% 0.01 60 / .6); }
+  .sig-row button:hover { transform: translateY(-4px); box-shadow: var(--lift-hi); color: var(--chalk); }
+  .sig-row button:hover img { transform: scale(1.05); }
+  .sig-row button { overflow: hidden; }
+  .bar nav a:hover { background-size: 100% 1px; }
+  .tw-grid button:hover figure { box-shadow: var(--lift-hi); }
+  .gal-row button img { transition: transform var(--t-med) var(--e-out), box-shadow var(--t-med) var(--e-out); }
+  .gal-row button:hover img { transform: translateY(-4px); box-shadow: var(--lift-hi); }
+}
+/* parallax layers (driven by GSAP in app.js; off for reduced motion) */
+.hero-film { will-change: transform; transform-origin: 50% 60%; }
+.piece-fig img.px { transform: scale(1.12); will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .btn:active, .chip:active, .seg button:active, .icon-btn:active, .sw:active, .sig-row button:active { transform: none; }
+  .sig-row button:hover, .sig-row button:hover img, .gal-row button:hover img, .sw:hover { transform: none; }
+  .info { animation: none; }
+  .piece-fig img.px { transform: none; }
+}
+/* legibility over the moving film: the film changes finish every beat (white bouclé, sand), so text gets its own quiet scrim */
+.hero .kicker, .hero-line, .shot, .hero-title { text-shadow: 0 1px 2px oklch(8% 0.01 60 / .55), 0 0 18px oklch(8% 0.01 60 / .45); }
+.hero-shade { background: linear-gradient(to bottom, oklch(10% 0.006 60 / .6) 0%, transparent 28%, transparent 48%, oklch(10% 0.006 60 / .55) 66%, oklch(10% 0.006 60 / .88) 100%); }
+@media (max-aspect-ratio: 3/4) { .hero-shade { background: linear-gradient(to bottom, oklch(10% 0.006 60 / .6) 0%, transparent 26%, transparent 42%, oklch(10% 0.006 60 / .7) 60%, oklch(10% 0.006 60 / .92) 100%); } }

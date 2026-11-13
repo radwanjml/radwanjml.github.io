@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=10';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=18';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -190,14 +190,14 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   controls.minDistance = 0.55; controls.maxDistance = 6; controls.maxPolarAngle = Math.PI * 0.56; controls.enablePan = false;
   controls.autoRotate = false; controls.autoRotateSpeed = 0.45;
   const key = new THREE.DirectionalLight(0xfff2e2, 3.4); key.position.set(2.5, 3.2, 2.2); key.castShadow = true;
-  key.shadow.mapSize.setScalar(LITE ? 1024 : 2048); key.shadow.camera.left = -1.6; key.shadow.camera.right = 1.6; key.shadow.camera.top = 1.6; key.shadow.camera.bottom = -1.6;
+  key.shadow.mapSize.setScalar(LITE ? 1024 : 2048); key.shadow.camera.left = -3; key.shadow.camera.right = 3; key.shadow.camera.top = 3; key.shadow.camera.bottom = -3; key.shadow.camera.far = 14;   // wide enough that the frustum edge never shows on the floor
   key.shadow.radius = 6; key.shadow.blurSamples = 16; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.01;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0xdfe8ff, 2.0); rim.position.set(-2.4, 1.6, -2.2); scene.add(rim);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.32 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png', res, undefined, () => res(null)));
+  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=18', res, undefined, () => res(null)));
   if (shadowTex) {
     shadowTex.colorSpace = THREE.SRGBColorSpace;
     const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
@@ -375,7 +375,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     }
   }
 
-  // ---------------- room: blurred CC0 interior (Poly Haven "lebombo") + a side table and plant, loaded after the chair
+  // ---------------- room: blurred CC0 interior (Poly Haven "lebombo") + a side table and plant, loaded after the chair (no props)
   const studioEnv = scene.environment;
   const room = { loaded: false, on: false, group: new THREE.Group(), env: null, bg: null };
   room.group.visible = false; scene.add(room.group);
@@ -388,15 +388,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     const hdr = await new RGBELoader().loadAsync('assets/env/lebombo_512.hdr');
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     room.bg = hdr; room.env = pmrem.fromEquirectangular(hdr).texture;
-    const plain = new GLTFLoader();
-    const [table, plant] = await Promise.all([plain.loadAsync('assets/env/table/round_wooden_table_01_1k.gltf'), plain.loadAsync('assets/env/plant/potted_plant_04_1k.gltf')]);
-    const t = table.scene; const tb = new THREE.Box3().setFromObject(t);
-    const ts = 0.55 / Math.max(0.01, tb.max.y - tb.min.y);          // side-table height 55 cm
-    t.scale.setScalar(ts); t.position.set(-1.25, -tb.min.y * ts, -0.62);
-    const p = plant.scene; const pb = new THREE.Box3().setFromObject(p);
-    const ps = 0.32 / Math.max(0.01, pb.max.y - pb.min.y);
-    p.scale.setScalar(ps); p.position.set(-1.25, 0.55 - pb.min.y * ps, -0.62);
-    for (const o of [t, p]) { o.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); room.group.add(o); }
+    // the side table and plant were removed on 13 Nov (rustic Poly Haven props fought the satin steel and cast a stray shadow); scale comes from Dimensions and the fit planner
     room.loaded = true;
   }
   async function setRoom(on) {

@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=10';
-import { initPlanner } from './planner.js?v=10';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=18';
+import { initPlanner } from './planner.js?v=18';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -128,7 +128,7 @@ async function boot() {
   loader.classList.add('is-loading');
   let mi = 0; const mt = setInterval(() => { $('#ld-msg').textContent = MSGS[++mi % MSGS.length]; }, 1100);
   try {
-    const { createConfigurator } = await import('./configurator.js?v=10');
+    const { createConfigurator } = await import('./configurator.js?v=18');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -205,11 +205,11 @@ dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
 // ---------------------------------------------------------------- hero film
 const film = $('#film');
 if (matchMedia('(max-aspect-ratio: 1/1)').matches) film.poster = 'assets/img/poster_portrait.webp';
-const SHOTS = SIGNATURES.map((g) => [g.id, g.name.replace(' / ', ', ')]);   // the hero film runs the 12 signatures, 2 s each
+const SHOTS = SIGNATURES.map((g) => [g.id, g.name.replace(' / ', ', ')]);   // the hero film: 40 s at 72 BPM, the finish changes every beat (25 f = 5/6 s), 12 signatures x 4
 const OFFSET = 0; // film starts on the bar
 let lastShot = -1, ticking = false;
 function shotTick() {
-  const i = Math.min(11, Math.floor(((film.currentTime + OFFSET) % 24) / 2));
+  const i = Math.min(11, Math.floor(((film.currentTime + OFFSET) % 24) / 2));   // v2 film (24 s, 2 s per finish); v3 version is in tools/hero_v3_stash
   if (i !== lastShot) { lastShot = i; $('#shot-n').textContent = SHOTS[i][0]; $('#shot-name').textContent = SHOTS[i][1]; }
   if (!film.paused) requestAnimationFrame(shotTick); else ticking = false;
 }
@@ -247,6 +247,15 @@ addEventListener('load', () => {
   if (!g || reduced) { document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; }); return; }
   g.registerPlugin(window.ScrollTrigger);
   g.utils.toArray('.reveal').forEach((el) => g.to(el, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 86%' } }));
+  // parallax: the film (background) drifts slower than the title and controls (foreground) as the hero leaves
+  const hero = document.querySelector('.hero');
+  g.to('.hero-film', { yPercent: 18, scale: 1.06, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+  g.to('.hero-title', { yPercent: -35, opacity: 0.15, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+  // prints inside their frames move against the page (frames are overflow: hidden)
+  g.utils.toArray('.piece-fig img').forEach((img) => { img.classList.add('px');
+    g.fromTo(img, { yPercent: -5 }, { yPercent: 5, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } }); });
+  // the paper's dot grid sits on a layer behind the content
+  g.utils.toArray('.paper').forEach((sec) => g.fromTo(sec, { backgroundPositionY: '0px' }, { backgroundPositionY: '-120px', ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: true } }));
   const arc = document.querySelector('.arc-draw path');
   if (arc) { g.set(arc, { strokeDasharray: '0.006 0.004', clipPath: 'inset(0 100% 0 0)' }); g.fromTo('.arc-draw', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'none', scrollTrigger: { trigger: '.arc-fig', start: 'top 75%', end: 'bottom 45%', scrub: 0.6 } }); }
 });
