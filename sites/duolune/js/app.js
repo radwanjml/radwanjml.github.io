@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=33';
-import { initPlanner } from './planner.js?v=33';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=34';
+import { initPlanner } from './planner.js?v=34';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -133,11 +133,14 @@ async function boot() {
   loader.classList.add('is-loading');
   let mi = 0; const mt = setInterval(() => { $('#ld-msg').textContent = MSGS[++mi % MSGS.length]; }, 1100);
   try {
-    const { createConfigurator } = await import('./configurator.js?v=33');
+    let glbBuf = null;   // start the model download now, in parallel with three.js and its addons (same LITE rule as configurator.js)
+    { const q = new URLSearchParams(location.search); const L = q.has('lite') ? q.get('lite') === '1' : innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
+      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=34' : 'assets/model/duolune.glb?v=34').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
+    const { createConfigurator } = await import('./configurator.js?v=34');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
-      onHotspot: showInfo,
+      onHotspot: showInfo, glb: glbBuf,
     });
     viewer.apply(state);
     stage.classList.add('is-ready'); loader.classList.add('is-done'); $('#stage-tools').hidden = false;
@@ -182,7 +185,7 @@ $('#ar-btn').addEventListener('click', async () => {
   // Android Chrome: our own WebXR mode (double-tap to place, on-floor controls, locked 1:1 scale). iPhone: Apple Quick Look via model-viewer.
   try {
     if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const { startAR } = await import('./ar.js?v=33');
+      const { startAR } = await import('./ar.js?v=34');
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
