@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=26';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=30';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -49,7 +49,7 @@ function upholsteryMaterial(tex) {
     uColB: { value: new THREE.Color() }, uColB2: { value: new THREE.Color() },
     uThread: { value: new THREE.Color() },
     uStripe: { value: new THREE.Vector3(0, 0, 0) },             // in, out, mode (0 none, 1 single, 2 twin)
-    tNormB: { value: tex.leather }, tGrain: { value: tex.leatherR },
+    tNormB: { value: tex.leather }, tGrain: { value: tex.leatherR }, tStitch: { value: tex.stitch },
     uTile: { value: new THREE.Vector2(0.08, 0.08) },            // A, B tile size (m)
     uNScale: { value: new THREE.Vector2(0.55, 0.55) },
     uRough: { value: new THREE.Vector2(0.42, 0.42) },
@@ -68,7 +68,7 @@ function upholsteryMaterial(tex) {
       .replace('#include <common>', `#include <common>
 varying vec2 vUv0; varying float vTone; varying vec3 vObj;
 uniform vec3 uColA, uColA2, uColB, uColB2, uThread; uniform vec3 uStripe;
-uniform sampler2D tNormB, tGrain; uniform vec2 uTile, uNScale, uRough, uCoat, uLeather, uVelvet; uniform vec4 uSheen;
+uniform sampler2D tNormB, tGrain, tStitch; uniform vec2 uTile, uNScale, uRough, uCoat, uLeather, uVelvet; uniform vec4 uSheen;
 ${NOISE}
 float gMask; float gStitch; float gH; float gBurn;
 void duoluneFields(){
@@ -86,30 +86,30 @@ void duoluneFields(){
   // top-stitch ring 16.5 mm from each end
   float dv = abs(v - 0.0165);
   float ph = fract((u + jit + dv * 1.2) / 0.004);
-  float pw = max(fwidth(ph), 0.06);
-  float dash = smoothstep(0.0, pw, ph) * (1.0 - smoothstep(0.62 - pw, 0.62, ph));          // a thread with rounded ends
-  float lw = max(fwidth(v), 0.0001);
-  float ring = (1.0 - smoothstep(0.00045 - lw, 0.00045 + lw, dv)) * dash;
+  // thread: sampled from a mipmapped stitch texture (x along the thread, one dash per 4 mm; y across, 1.8 mm), so the
+  // GPU filters it at every distance and angle instead of the shader aliasing it.
+  vec4 sRing = texture2D(tStitch, vec2(ph, (v - 0.0165) / 0.0018 + 0.5));
+  float ring = sRing.r;
   float groove = 1.0 - smoothstep(0.0004, 0.0019, dv);
   // underside seam (u = 0 faces the floor) with two stitch rows
   float su = abs(u);
   float sgroove = 1.0 - smoothstep(0.0, 0.0017, su);
   float sph = fract((v + jit) / 0.004);
-  float spw = max(fwidth(sph), 0.06);
-  float srow = (1.0 - smoothstep(0.0004, 0.0007 + fwidth(u), abs(su - 0.0036))) * smoothstep(0.0, spw, sph) * (1.0 - smoothstep(0.62 - spw, 0.62, sph)) * step(0.0165, v);
+  vec4 sRow = texture2D(tStitch, vec2(sph, (su - 0.0036) / 0.0018 + 0.5));
+  float srow = sRow.r * step(0.0165, v);
   // stripe seams + double top-stitch
   float sd = 9.0;
   if (uStripe.z > 0.5) { sd = abs(ay - uStripe.y); if (uStripe.z > 1.5) sd = min(sd, abs(ay - uStripe.x)); }
   float stgroove = 1.0 - smoothstep(0.0, 0.0015, sd);
   float stph = fract((u + jit) / 0.004);
-  float stw = max(fwidth(stph), 0.06);
-  float strow = (1.0 - smoothstep(0.0003, 0.0006 + fwidth(ay), abs(sd - 0.0036))) * smoothstep(0.0, stw, stph) * (1.0 - smoothstep(0.62 - stw, 0.62, stph));
+  vec4 sSt = texture2D(tStitch, vec2(stph, (sd - 0.0036) / 0.0018 + 0.5));
+  float strow = sSt.r;
   // puckering where the cover pulls round the end
   float pm = smoothstep(0.003, 0.0066, v) * (1.0 - smoothstep(0.0066, 0.025, v));
   float nA = texture2D(tGrain, vUv0 * 0.9).r; float nB = texture2D(tGrain, vUv0 * 0.45 + 0.37).r;
   float pk = sin(u * 6.2831 / 0.0115 + (nA - 0.5) * 10.0) * pm * smoothstep(0.35, 0.65, nB) * (1.0 - smoothstep(0.0015, 0.004, fwidth(u)));
   gStitch = max(max(ring, srow), strow) * aa;
-  gH = (ring * 0.9 + srow * 0.6 + strow * 0.6) * aa - groove * 0.35 - sgroove * 0.9 - stgroove * 0.9 + pk * 0.25;
+  gH = (sRing.g * 0.9 + sRow.g * step(0.0165, v) * 0.6 + sSt.g * 0.6) * aa - groove * 0.35 - sgroove * 0.9 - stgroove * 0.9 + pk * 0.25;
   gBurn = max(1.0 - smoothstep(0.0, 0.0165, v), max(sgroove, stgroove) * 0.6);
 }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
@@ -127,7 +127,7 @@ vec3 nA = texture2D(normalMap, nuvA).xyz * 2.0 - 1.0; nA.xy *= uNScale.x;
 vec3 nB = texture2D(tNormB, nuvB).xyz * 2.0 - 1.0; nB.xy *= uNScale.y;
 vec3 mapN = normalize(mix(nA, nB, gMask));
 normal = normalize(tbn * mapN);
-{ vec2 dH = vec2(dFdx(gH), dFdy(gH)) * 0.0011; normal = perturbBump(-vViewPosition, normal, dH * 900.0, faceDirection); }`)
+{ float bf = 1.0 - smoothstep(0.0006, 0.003, fwidth(vUv0.y) + fwidth(vUv0.x)); vec2 dH = vec2(dFdx(gH), dFdy(gH)) * 0.0011 * bf; normal = perturbBump(-vViewPosition, normal, dH * 900.0, faceDirection); }`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 roughnessFactor = mix(uRough.x, uRough.y, gMask) + gStitch * 0.2 + (grainT - 0.55) * 0.2 * lea;`)
       .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
@@ -166,17 +166,20 @@ float gLines; float gGlue; float gPore;`)
 if (uWood > 0.5) {
   // bent laminated wood: plies concentric with the arc (centre = origin, axis = Z); long grain follows the bend
   float r = length(vObj.xy); float th = atan(vObj.y, vObj.x); float lat = vObj.z;
-  vec3 q = vec3(r * 110.0, lat * 110.0, th * 0.9);
-  float g = snoise(q) * 0.5 + 0.5;
-  float fq = length(fwidth(q));                                   // grain cycles per pixel
-  float fig = fract(g * 9.0);
-  float lineFade = 1.0 - smoothstep(0.04, 0.16, fq * 9.0);        // figure lines fade to their average before they alias
-  gLines = mix(0.32, smoothstep(0.35, 1.0, fig), lineFade);
+  // long grain follows the bend (theta stretched), figure varies across the face (r, lat). Two octaves so there is always
+  // visible grain: a coarse figure that never fades, and fine lines that fade only when smaller than ~2 px.
+  vec3 q = vec3(r * 70.0, lat * 70.0, th * 1.2);
+  float g = snoise(q) * 0.5 + 0.5 + snoise(q * vec3(2.1, 2.1, 0.6) + 7.3) * 0.18;
+  float fq = length(fwidth(q));
+  float coarse = smoothstep(0.25, 0.75, fract(g * 3.0));
+  float fine = smoothstep(0.4, 1.0, fract(g * 11.0));
+  float lineFade = 1.0 - smoothstep(0.35, 1.2, fq * 11.0);
+  gLines = clamp(coarse * 0.55 + mix(0.3, fine, lineFade) * 0.45, 0.0, 1.0);
   float big = snoise(q * 0.08);
   float ply = floor(r / 0.0018);
   gGlue = 1.0 - smoothstep(0.0, 0.07, fract(r / 0.0018));
   gPore = mix(0.5, fract(sin(dot(floor(q * 5.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453), 1.0 - smoothstep(0.15, 0.5, fq * 5.0));
-  float f = clamp(gLines * 0.75 + hash11(ply) * 0.2 + big * 0.3 + gPore * 0.08, 0.0, 1.0);
+  float f = clamp(gLines * 0.85 + hash11(ply) * 0.15 + big * 0.25 + gPore * 0.06, 0.0, 1.0);
   vec3 c = mix(uLight, uDark, f);
   c = mix(c, uDark * 0.5, gGlue * 0.7 * (1.0 - smoothstep(0.0006, 0.004, fwidth(r))));
   diffuseColor.rgb = c;
@@ -214,7 +217,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.32 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=26', res, undefined, () => res(null)));
+  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=30', res, undefined, () => res(null)));
   if (shadowTex) {
     shadowTex.colorSpace = THREE.SRGBColorSpace;
     const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
@@ -233,10 +236,22 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
 
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
   const gl = new GLTFLoader().setDRACOLoader(draco);
-  const gltf = await new Promise((res, rej) => gl.load(LITE ? 'assets/model/duolune_lite.glb?v=26' : 'assets/model/duolune.glb?v=26', res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
+  const gltf = await new Promise((res, rej) => gl.load(LITE ? 'assets/model/duolune_lite.glb?v=30' : 'assets/model/duolune.glb?v=30', res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
   tick('model');
   await Promise.all(texJobs);
   tex.leather = tex.leather_n; tex.leatherR = tex.leather_r;
+  { // stitch texture: R = thread coverage, G = thread height. 128 (along) x 64 (across). Capsule-shaped dash, 62% duty.
+    const W = 128, H = 64, d = new Uint8Array(W * H * 4);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const fx = (x + 0.5) / W, fy = (y + 0.5) / H;
+      const cx = Math.min(Math.max(fx, 0.12), 0.50), dx = (fx - cx) / 0.12, dy = (fy - 0.5) / 0.25;   // thread = middle half
+      const r2 = dx * dx + dy * dy; const cov = Math.max(0, Math.min(1, (1 - Math.sqrt(r2)) * 4));
+      const i = (y * W + x) * 4; d[i] = cov * 255; d[i + 1] = Math.sqrt(Math.max(0, 1 - r2)) * 255; d[i + 2] = 0; d[i + 3] = 255;
+    }
+    const st = new THREE.DataTexture(d, W, H); st.wrapS = THREE.RepeatWrapping; st.wrapT = THREE.ClampToEdgeWrapping;
+    st.minFilter = THREE.LinearMipmapLinearFilter; st.magFilter = THREE.LinearFilter; st.generateMipmaps = true;
+    st.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy()); st.needsUpdate = true; tex.stitch = st;
+  }
   const NT = { leather: tex.leather_n, wool: tex.wool_n, boucle: tex.boucle_n, velvet: tex.velvet_n };
 
   const root = gltf.scene; scene.add(root);
@@ -252,10 +267,16 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   for (const [k, m] of Object.entries(mats)) if (parts[k]) parts[k].material = m;
   // baked Cycles ambient occlusion (greyscale, colour-independent): contact shadows between rollers, under the seat, round the bolts.
   // Loaded after first paint; each part has its own lightmap UV (rollers: 3rd UV set, others: the only one).
+  const GI = 0.7;   // decoded x2 then x0.35: bounce adds shape and colour bleed without lifting blacks (1.6 washed the frame grey)
   for (const [k, m] of Object.entries(mats)) {
-    tl.load(`assets/model/${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=26`, (t) => {
+    tl.load(`assets/model/${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=30`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.aoMap = t; m.aoMapIntensity = k === 'rollers' ? 0.9 : 1.0; m.needsUpdate = true; dirty = true;
+    });
+    // baked Cycles bounce light (indirect diffuse, studio lights + floor), stored x0.5; three adds it to the live direct light
+    if (!['hardware', 'feet'].includes(k)) tl.load(`assets/model/${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=30`, (t) => {
+      t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
+      m.lightMap = t; m.lightMapIntensity = GI; m.needsUpdate = true; dirty = true;
     });
   }
   window.__duo = { scene, parts, mats, camera, controls, renderer };
