@@ -14,9 +14,10 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d1a17'/%3E%3Cpath d='M6 24a10 10 0 0 1 20 0' stroke='%23e9dcc6' stroke-width='3' fill='none'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<link id="gf" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet"></noscript>
 <link rel="preload" as="image" href="assets/img/poster.webp" fetchpriority="high">
-<link rel="stylesheet" href="css/style.css?v=30">
+<link rel="stylesheet" href="css/style.css?v=31">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -47,7 +48,7 @@
 <main id="top">
   <!-- HERO ---------------------------------------------------------- -->
   <section class="hero" aria-label="Duolune">
-    <video class="hero-film" id="film" playsinline muted loop autoplay preload="metadata" poster="assets/img/poster.webp" aria-hidden="true">
+    <video class="hero-film" id="film" playsinline muted loop preload="none" poster="assets/img/poster.webp" aria-hidden="true">
       <source src="assets/film/hero_1080.mp4" type="video/mp4" media="(min-width: 1300px)">
       <source src="assets/film/hero_720.mp4" type="video/mp4">
     </video>
@@ -376,6 +377,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-<script type="module" src="js/app.js?v=30"></script>
+<script type="module" src="js/app.js?v=31"></script>
 </body>
 </html>

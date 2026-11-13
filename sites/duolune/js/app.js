@@ -1,12 +1,14 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=30';
-import { initPlanner } from './planner.js?v=30';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=31';
+import { initPlanner } from './planner.js?v=31';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
 {
   const intro = document.getElementById('intro');
   const poster = new Image(); poster.src = matchMedia('(max-aspect-ratio: 1/1)').matches ? 'assets/img/poster_portrait.webp' : 'assets/img/poster.webp';
-  const ready = Promise.all([document.fonts?.ready, poster.decode?.().catch(() => {}), new Promise((r) => setTimeout(r, 900))]);
+  const gf = document.getElementById('gf');   // font sheet loads non-blocking (media=print swap); wait for it, then the faces
+  const sheet = !gf || gf.media === 'all' ? Promise.resolve() : new Promise((r) => { gf.addEventListener('load', r, { once: true }); gf.addEventListener('error', r, { once: true }); });
+  const ready = Promise.all([sheet.then(() => document.fonts?.ready), poster.decode?.().catch(() => {}), new Promise((r) => setTimeout(r, 900))]);
   const lift = () => {
     intro && intro.classList.add('is-gone');
     const g = window.gsap;
@@ -131,7 +133,7 @@ async function boot() {
   loader.classList.add('is-loading');
   let mi = 0; const mt = setInterval(() => { $('#ld-msg').textContent = MSGS[++mi % MSGS.length]; }, 1100);
   try {
-    const { createConfigurator } = await import('./configurator.js?v=30');
+    const { createConfigurator } = await import('./configurator.js?v=31');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -180,7 +182,7 @@ $('#ar-btn').addEventListener('click', async () => {
   // Android Chrome: our own WebXR mode (double-tap to place, on-floor controls, locked 1:1 scale). iPhone: Apple Quick Look via model-viewer.
   try {
     if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const { startAR } = await import('./ar.js?v=30');
+      const { startAR } = await import('./ar.js?v=31');
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
@@ -238,7 +240,14 @@ function setPlaying(p) {
 }
 const saveData = !!(navigator.connection && navigator.connection.saveData);
 if (!reduced && !saveData) {
-  new IntersectionObserver(([e]) => { if (e.isIntersecting && !film.dataset.userPaused) setPlaying(true); else film.pause(); }, { threshold: 0.25 }).observe(film);
+  // the poster is the LCP; decoding the film during load cost ~5 s of main thread on a throttled phone (Lighthouse, 13 Nov),
+  // so the film only starts once the page has loaded and gone idle
+  let filmOk = false, inView = true;
+  const tryPlay = () => { if (filmOk && inView && !film.dataset.userPaused) setPlaying(true); else film.pause(); };
+  new IntersectionObserver(([e]) => { inView = e.isIntersecting; tryPlay(); }, { threshold: 0.25 }).observe(film);
+  const arm = () => { filmOk = true; tryPlay(); };
+  const afterLoad = () => setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(arm, { timeout: 2500 }) : arm()), 1200);
+  if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad, { once: true });
 } else setPlaying(false);
 if (saveData) setPlaying(false);
 pauseBtn.addEventListener('click', () => { const p = film.paused; film.dataset.userPaused = p ? '' : '1'; if (p) delete film.dataset.userPaused; setPlaying(p); });
@@ -256,7 +265,8 @@ function headerTone() {
 }
 addEventListener('scroll', headerTone, { passive: true }); headerTone();
 
-addEventListener('load', () => {
+const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(fn, 200));
+addEventListener('load', () => idle(() => {   // ~40 scroll triggers measure layout on creation: do it when the main thread is free
   const g = window.gsap;
   if (!g || reduced) { document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; }); return; }
   g.registerPlugin(window.ScrollTrigger);
@@ -274,7 +284,7 @@ addEventListener('load', () => {
   g.utils.toArray('main h2:not(.hero-title)').forEach((h) => g.fromTo(h, { yPercent: 18 }, { yPercent: -18, ease: 'none', scrollTrigger: { trigger: h, start: 'top bottom', end: 'bottom top', scrub: 0.4 } }));
   const arc = document.querySelector('.arc-draw path');
   if (arc) { g.set(arc, { strokeDasharray: '0.006 0.004', clipPath: 'inset(0 100% 0 0)' }); g.fromTo('.arc-draw', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'none', scrollTrigger: { trigger: '.arc-fig', start: 'top 75%', end: 'bottom 45%', scrub: 0.6 } }); }
-});
+}));
 
 // ---------------------------------------------------------------- gallery lightbox
 const lb = $('#lightbox');
