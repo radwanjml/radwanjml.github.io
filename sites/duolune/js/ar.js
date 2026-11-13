@@ -49,37 +49,49 @@ export async function startAR({ paint, name }) {
   ret.add(ring, disc);
 
   // the chair, painted with the current build
-  const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
-  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('assets/model/duolune.glb?v=43');
-  const chair = new THREE.Group(); const model = gltf.scene;
-  const box = new THREE.Box3().setFromObject(model); const c = box.getCenter(new THREE.Vector3());
-  model.position.set(-c.x, -box.min.y, -c.z);                      // centred on its footprint, feet on the floor
-  model.traverse((o) => { if (!o.isMesh) return; o.castShadow = true;
-    const p = paint[o.material?.name] || paint[o.name]; if (!p) return;
-    o.material = new THREE.MeshStandardMaterial({ color: new THREE.Color().setRGB(p[0], p[1], p[2], THREE.LinearSRGBColorSpace), roughness: p[3], metalness: p[4] }); });
-  chair.add(model);
+  // round 16: the session starts first (Chrome only allows it right after the tap); the chair loads inside it
+  const chair = new THREE.Group(); let model = null;
+  const loadChair = async () => {
+    const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
+    const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('assets/model/duolune.glb?v=44');
+    model = gltf.scene;
+    const box = new THREE.Box3().setFromObject(model); const c = box.getCenter(new THREE.Vector3());
+    model.position.set(-c.x, -box.min.y, -c.z);                      // centred on its footprint, feet on the floor
+    model.traverse((o) => { if (!o.isMesh) return; o.castShadow = true;
+      const p = paint[o.material?.name] || paint[o.name]; if (!p) return;
+      o.material = new THREE.MeshStandardMaterial({ color: new THREE.Color().setRGB(p[0], p[1], p[2], THREE.LinearSRGBColorSpace), roughness: p[3], metalness: p[4] }); });
+    chair.add(model);
+  };
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(4, 4).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: 0.35 }));
   shadow.receiveShadow = true; chair.add(shadow);
   chair.visible = false; scene.add(chair);
 
+  const say = (t) => { hint.textContent = t; };
   // ---- session
   let session, hitSrc = null;
   try {
     session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'local-floor'], domOverlay: { root: ov } });
   } catch (e) { cleanup(); throw e; }
-  renderer.xr.setReferenceSpaceType('local');
-  await renderer.xr.setSession(session);
+  // local-floor gives a real floor height (y = 0), used when the hit test finds no plane yet
+  const hasFloor = !session.enabledFeatures || session.enabledFeatures.includes('local-floor');
+  renderer.xr.setReferenceSpaceType(hasFloor ? 'local-floor' : 'local');
+  try { await renderer.xr.setSession(session); }
+  catch { renderer.xr.setReferenceSpaceType('local'); await renderer.xr.setSession(session); }
+  const floorKnown = renderer.xr.getReferenceSpace && hasFloor;
   const viewer = await session.requestReferenceSpace('viewer');
-  hitSrc = await session.requestHitTestSource({ space: viewer });
+  hitSrc = await session.requestHitTestSource({ space: viewer }).catch(() => null);
+  let ready = false; const t0 = performance.now(); let lastRealHit = 0;
+  say('Loading the chair…');
+  loadChair().then(() => { ready = true; say('Move your phone slowly to find the floor'); }).catch(() => { say('The chair could not load. Close and try again.'); });
 
   // ---- state machine: seek -> armed -> placed (-> controls) ; move = back to seek
   let mode = 'seek', armedAt = 0, ctrlAt = 0, lastHit = null;
-  const say = (t) => { hint.textContent = t; };
   const showCtrl = (on) => { ctrl.hidden = !on; ctrlAt = performance.now(); };
   const ray = new THREE.Raycaster(); const tmp = new THREE.Matrix4();
 
   session.addEventListener('select', (ev) => {
     const now = performance.now();
+    if (!ready) return;
     if (mode === 'seek' && lastHit) { mode = 'armed'; armedAt = now; say('Tap again to place it here'); return; }
     if (mode === 'armed') {
       if (now - armedAt > ARM_MS || !lastHit) { mode = 'seek'; say('Tap the floor where you want it'); return; }
@@ -97,7 +109,7 @@ export async function startAR({ paint, name }) {
       if (!pose) return;
       tmp.fromArray(pose.transform.matrix);
       ray.ray.origin.setFromMatrixPosition(tmp); ray.ray.direction.set(0, 0, -1).transformDirection(tmp);
-      if (ray.intersectObject(model, true).length) { showCtrl(true); say('Turn it, move it, or tap Done'); }
+      if (model && ray.intersectObject(model, true).length) { showCtrl(true); say('Turn it, move it, or tap Done'); }
     }
   });
   ctrl.addEventListener('click', (e) => {
@@ -110,16 +122,30 @@ export async function startAR({ paint, name }) {
   ov.querySelector('.xr-exit').addEventListener('click', () => session.end());
   session.addEventListener('end', cleanup);
 
+  // where the screen centre meets the floor: y = 0 with local-floor, else about 1.4 m below the phone
+  const fo = new THREE.Vector3(), fd = new THREE.Vector3(); let camY0 = null;
+  function floorGuess() {
+    const cam = renderer.xr.getCamera(); fo.setFromMatrixPosition(cam.matrixWorld); fd.set(0, 0, -1).transformDirection(cam.matrixWorld);
+    if (camY0 === null) camY0 = fo.y;
+    const fy = floorKnown ? 0 : camY0 - 1.4;
+    if (fd.y > -0.2) return null;                                   // looking too flat: ask to point down
+    const k = (fy - fo.y) / fd.y; if (k <= 0 || k > 6) return null;
+    return new THREE.Matrix4().makeTranslation(fo.x + fd.x * k, fy, fo.z + fd.z * k);
+  }
   renderer.setAnimationLoop((t, frame) => {
     if (!frame) return;
     const now = performance.now();
     if (mode === 'armed' && now - armedAt > ARM_MS) { mode = 'seek'; say('Tap the floor where you want it'); }
     if (!ctrl.hidden && now - ctrlAt > CTRL_MS) showCtrl(false);
     if (mode === 'seek' || mode === 'armed') {
-      const hits = frame.getHitTestResults(hitSrc);
+      const hits = hitSrc ? frame.getHitTestResults(hitSrc) : [];
       const pose = hits.length ? hits[0].getPose(renderer.xr.getReferenceSpace()) : null;
-      if (pose) {
-        if (mode === 'seek') { lastHit = new THREE.Matrix4().fromArray(pose.transform.matrix); ret.matrix.copy(lastHit); if (hint.textContent.startsWith('Move your phone')) say('Tap the floor where you want it'); }
+      let m = null;
+      if (pose) { m = new THREE.Matrix4().fromArray(pose.transform.matrix); lastRealHit = now; }
+      else if (now - lastRealHit > 2500 && now - t0 > 2500) m = floorGuess();   // no plane yet: the view's centre on the floor
+      if (!ready) m = null;
+      if (m) {
+        if (mode === 'seek') { lastHit = m; ret.matrix.copy(lastHit); if (/^Move your phone|^Loading/.test(hint.textContent)) say('Tap the floor where you want it'); }
         ret.visible = true;
       } else if (mode === 'seek') { ret.visible = false; lastHit = null; }
       const k = mode === 'armed' ? 0.35 + 0.15 * Math.sin(now / 160) : 0;

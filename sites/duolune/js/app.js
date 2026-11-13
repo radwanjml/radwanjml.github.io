@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=43';
-import { initPlanner } from './planner.js?v=43';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=44';
+import { initPlanner } from './planner.js?v=44';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -152,16 +152,17 @@ async function boot() {
   try {
     let glbBuf = null;   // start the model download now, in parallel with three.js and its addons (same LITE rule as configurator.js)
     { const q = new URLSearchParams(location.search); const L = q.has('lite') ? q.get('lite') === '1' : innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
-      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=43' : 'assets/model/duolune.glb?v=43').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
-    const { createConfigurator } = await import('./configurator.js?v=43');
+      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=44' : 'assets/model/duolune.glb?v=44').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
+    const { createConfigurator } = await import('./configurator.js?v=44');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
-      onHotspot: showInfo, glb: glbBuf, onLost: ctxLost, onRestored: ctxBack,
+      onHotspot: showInfo, glb: glbBuf, onLost: ctxLost, onRestored: ctxBack, onTurnOff: () => $('#t-rot').setAttribute('aria-pressed', 'false'),
     });
     viewer.apply(state);
     stage.classList.add('is-ready'); loader.classList.add('is-done'); $('#stage-tools').hidden = false;
     releaseGallery();
+    warmAR();
     if (!lite) viewer.setRoom(true); else { $('#t-room').setAttribute('aria-pressed', 'false'); }
   } catch (err) {
     console.error(err);
@@ -211,14 +212,18 @@ $('#share-btn').addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------- AR (model-viewer, loaded only when asked)
+// round 16: check AR support and fetch ar.js while the visitor looks at the chair, so the tap goes straight to the session
+let xrOK = null, arMod = null;
+function warmAR() { if (!navigator.xr) { xrOK = false; return; }
+  navigator.xr.isSessionSupported('immersive-ar').then((v) => { xrOK = v; if (v) arMod = import('./ar.js?v=44'); }).catch(() => { xrOK = false; }); }
 const dlg = $('#ar-dlg');
 $('#ar-btn').addEventListener('click', async () => {
-  // Round 14: every phone uses model-viewer (Android: its WebXR placement, Scene Viewer as fallback; iPhone: Quick Look).
-  // Our own WebXR mode (ar.js) could not find the floor on Red's Android, while model-viewer's had worked there; it stays
-  // reachable for testing with ?xr=custom.
+  // Android Chrome: our own WebXR mode (two taps to place, tap the chair to turn or move it, locked 1:1).
+  // Round 16: back as the default (Red's choice), with the session started straight from the tap and a floor fallback.
+  // iPhone, or anything without immersive-ar: model-viewer (Quick Look / Scene Viewer). ?xr=mv forces model-viewer.
   try {
-    if (new URLSearchParams(location.search).get('xr') === 'custom' && navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const { startAR } = await import('./ar.js?v=43');
+    if (new URLSearchParams(location.search).get('xr') !== 'mv' && (xrOK ?? (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')))) {
+      const { startAR } = await (arMod || import('./ar.js?v=44'));
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
@@ -227,7 +232,7 @@ $('#ar-btn').addEventListener('click', async () => {
   let mv = dlg.querySelector('model-viewer');
   if (!mv) {
     mv = document.createElement('model-viewer');
-    Object.entries({ src: 'assets/model/duolune.glb?v=43', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
+    Object.entries({ src: 'assets/model/duolune.glb?v=44', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
       .forEach(([k, v]) => mv.setAttribute(k, v));
     $('#ar-stage').appendChild(mv);
     mv.addEventListener('load', () => { paintAR(mv); const go = $('#ar-go'); if (go && mv.canActivateAR) go.hidden = false; });
