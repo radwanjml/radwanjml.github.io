@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=32';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=33';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -219,10 +219,10 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.32 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow.png?v=32', res, undefined, () => res(null)));
+  const shadowTex = await new Promise((res) => tl.load('assets/model/contact_shadow_a.jpg?v=33', res, undefined, () => res(null)));
   if (shadowTex) {
-    shadowTex.colorSpace = THREE.SRGBColorSpace;
-    const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
+    shadowTex.colorSpace = THREE.NoColorSpace;   // greyscale alpha (was the PNG alpha channel)
+    const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
     sp.rotation.x = -Math.PI / 2; sp.position.set(0.1, 0.001, 0); sp.renderOrder = -1; scene.add(sp);
   }
 
@@ -234,11 +234,14 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const tex = {};
   let loaded = 0; const total = 6;
   const tick = (what) => { loaded++; onProgress?.(loaded / total, what); };
-  const texJobs = ['leather_n', 'wool_n', 'boucle_n', 'velvet_n', 'leather_r'].map((n) => ldTex(n).then((t) => { tex[n] = t; tick(n); }));
+  // upholstery normal maps load on demand (only the kinds in the build; ~250 KB each), a flat normal stands in until then
+  const flatN = new THREE.DataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1); flatN.wrapS = flatN.wrapT = THREE.RepeatWrapping; flatN.needsUpdate = true;
+  for (const n of ['leather_n', 'wool_n', 'boucle_n', 'velvet_n']) tex[n] = flatN;
+  const texJobs = ['leather_r', 'leather_n'].map((n) => ldTex(n).then((t) => { tex[n] = t; loaded = Math.max(loaded, total - 3); tick(n); }));
 
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
   const gl = new GLTFLoader().setDRACOLoader(draco);
-  const gltf = await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=32' : 'duolune.glb?v=32'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
+  const gltf = await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=33' : 'duolune.glb?v=33'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
   tick('model');
   await Promise.all(texJobs);
   tex.leather = tex.leather_n; tex.leatherR = tex.leather_r;
@@ -254,7 +257,9 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     st.minFilter = THREE.LinearMipmapLinearFilter; st.magFilter = THREE.LinearFilter; st.generateMipmaps = true;
     st.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy()); st.needsUpdate = true; tex.stitch = st;
   }
-  const NT = { leather: tex.leather_n, wool: tex.wool_n, boucle: tex.boucle_n, velvet: tex.velvet_n };
+  const NT = { leather: tex.leather_n, wool: flatN, boucle: flatN, velvet: flatN };
+  const ntWant = { leather: true }; let lastCfg = null;
+  const needKind = (k) => { if (ntWant[k]) return; ntWant[k] = ldTex(k + '_n').then((t) => { NT[k] = t; if (lastCfg) apply(lastCfg); }).catch(() => {}); };
 
   const root = gltf.scene; scene.add(root);
   const parts = {}; root.traverse((o) => { if (o.isMesh) { parts[o.name] = o; o.castShadow = true; o.receiveShadow = true; } });
@@ -271,12 +276,12 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   // Loaded after first paint; each part has its own lightmap UV (rollers: 3rd UV set, others: the only one).
   const GI = 0.7;   // decoded x2 then x0.35: bounce adds shape and colour bleed without lifting blacks (1.6 washed the frame grey)
   for (const [k, m] of Object.entries(mats)) {
-    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=32`, (t) => {
+    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=33`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.aoMap = t; m.aoMapIntensity = k === 'rollers' ? 0.9 : 1.0; m.needsUpdate = true; dirty = true;
     });
     // baked Cycles bounce light (indirect diffuse, studio lights + floor), stored x0.5; three adds it to the live direct light
-    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=32`, (t) => {
+    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=33`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.lightMap = t; m.lightMapIntensity = GI; m.needsUpdate = true; dirty = true;
     });
@@ -295,6 +300,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   }
   function apply(cfg) {
     const U = mats.rollers.userData.u;
+    lastCfg = cfg;
     const A = colourSet(cfg.up.kind, cfg.up.colour, cfg.up.custom); const KA = KINDS[cfg.up.kind];
     const st = cfg.stripe || { mode: 'none' };
     const on = st.mode && st.mode !== 'none';
@@ -303,6 +309,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     U.uColA.value.copy(A.a); U.uColA2.value.copy(A.b); U.uColB.value.copy(B.a); U.uColB2.value.copy(B.b); U.uThread.value.copy(A.t);
     const e = STRIPES[on ? st.mode : 'none'];
     U.uStripe.value.set(e[0], e[1], on ? (st.mode === 'twin' ? 2 : 1) : 0);
+    needKind(cfg.up.kind); needKind(kB);
     mats.rollers.normalMap = NT[cfg.up.kind]; U.tNormB.value = NT[kB];
     U.uTile.value.set(KA.tile, KB.tile); U.uNScale.value.set(KA.normal, KB.normal);
     U.uRough.value.set(KA.rough, KB.rough); U.uSheen.value.set(KA.sheen, KB.sheen, KA.sheenRough, KB.sheenRough);
