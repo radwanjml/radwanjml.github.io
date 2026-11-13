@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duolune: a lounge chair built from two half-moons</title>
+<meta name="description" content="Duolune is a concept lounge chair: two bent arcs with seventeen tailored rollers hung between them. Build yours in 3D in leather, wool, bouclé or velvet, add a racing stripe, and see it in your room.">
+<meta name="theme-color" content="#1d1a17">
+<meta property="og:title" content="Duolune: a lounge chair built from two half-moons">
+<meta property="og:description" content="Two bent arcs with seventeen tailored rollers hung between them. Build yours in 3D.">
+<meta property="og:image" content="assets/img/og.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d1a17'/%3E%3Cpath d='M6 24a10 10 0 0 1 20 0' stroke='%23e9dcc6' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/img/poster.webp" fetchpriority="high">
+<link rel="stylesheet" href="css/style.css?v=6">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div class="intro" id="intro" aria-hidden="true">
+  <p class="intro-mark">Duolune</p>
+  <svg viewBox="0 0 120 64"><path class="ia" d="M8 60a52 52 0 0 1 104 0"/><path class="is" d="M8 60a52 52 0 0 1 104 0" pathLength="1"/></svg>
+  <p>Two half-moons, being stitched</p>
+</div>
+<a class="skip" href="#build">Skip to the configurator</a>
+<div class="seam" aria-hidden="true"><span></span><span></span></div>
+
+<header class="bar" id="bar">
+  <a class="mark" href="#top" aria-label="Duolune, back to top">Duolune</a>
+  <nav aria-label="Sections">
+    <a href="#idea">The idea</a>
+    <a href="#build">Build yours</a>
+    <a href="#fit">Will it fit</a>
+    <a href="#details">Details</a>
+  </nav>
+  <a class="btn btn-small" href="#build">Build yours</a>
+</header>
+
+<main id="top">
+  <!-- HERO ---------------------------------------------------------- -->
+  <section class="hero" aria-label="Duolune">
+    <div class="hero-top">
+      <h1 class="hero-title">Duo<em>lune</em></h1>
+      <div class="hero-side">
+        <p class="kicker">Lounge chair N°1 · a concept by <a href="https://radwanjml.github.io/">Radwan Jameel</a></p>
+        <p class="hero-line">Two half-moons, and seventeen tailored rollers hanging between them.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#build">Build yours</a>
+          <button class="btn btn-ghost" id="sound" type="button" aria-pressed="false">Play with sound</button>
+        </div>
+      </div>
+    </div>
+    <div class="hero-filmbox">
+      <video class="hero-film" id="film" playsinline muted loop autoplay preload="metadata" poster="assets/img/poster.webp" aria-hidden="true">
+        <source src="assets/film/duolune_portrait.mp4" type="video/mp4" media="(max-width: 860px)">
+        <source src="assets/film/duolune_1080.mp4" type="video/mp4" media="(min-width: 1300px)">
+        <source src="assets/film/duolune_720.mp4" type="video/mp4">
+      </video>
+      <div class="hero-meta">
+        <p class="shot" aria-live="off"><span id="shot-n">01</span> <span id="shot-name">Cognac leather on satin black</span></p>
+        <button class="icon-btn" id="pause" type="button" aria-label="Pause film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATEMENT ----------------------------------------------------- -->
+  <section class="paper statement" id="idea">
+    <div class="wrap">
+      <p class="lede reveal">Duolune began as a sketch of two arcs with a curve hanging between them. Turning it into a chair you could build meant working out how the seat holds on to the frame. The answer is six bolts, and you can see every one.</p>
+      <dl class="proof reveal">
+        <div><dt>Arcs</dt><dd>2</dd></div>
+        <div><dt>Rollers</dt><dd>17</dd></div>
+        <div><dt>Bolts carrying the seat</dt><dd>6</dd></div>
+        <div><dt>Length</dt><dd>1740<small>mm</small></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- DESIGN STUDY: the pattern book ---------------------------------- -->
+  <section class="paper study" aria-labelledby="study-h">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">The pattern book</p>
+        <h2 id="study-h">Four pieces make the chair</h2>
+      </header>
+
+      <article class="piece piece-wide reveal">
+        <figure class="piece-fig arc-fig">
+          <img src="assets/img/side.webp" alt="Side view of Duolune: a black semicircular arc with a curved line of cognac rollers hanging inside it" width="1920" height="1080" loading="lazy">
+          <svg class="arc-draw" viewBox="0 0 1920 1080" aria-hidden="true"><path d="M455 742 A505 505 0 0 1 1465 742" pathLength="1"/></svg>
+        </figure>
+        <div class="piece-txt">
+          <p class="piece-n">Piece 01</p>
+          <h3>The arc</h3>
+          <p>Each side is one half-circle, 1,100 mm across. That one line is the leg and the armrest at once. The seat hangs inside it like a hammock in a doorway.</p>
+          <p class="aside">Steel: 110 × 55 mm hollow section, 3 mm wall, about 13 kg a side. Wood: plies 1.8 mm thick, bent over a form.</p>
+        </div>
+      </article>
+
+      <article class="piece reveal">
+        <figure class="piece-fig"><img src="assets/img/joint.webp" alt="Close-up of a steel acorn nut and spacer tube joining a roller to the side rail" width="1080" height="1350" loading="lazy"></figure>
+        <div class="piece-txt">
+          <p class="piece-n">Piece 02</p>
+          <h3>The hang</h3>
+          <p>Three rollers on each side carry a through-axle. A steel spacer crosses the gap to the rail, and an acorn nut closes it. Six bolts hold up the whole seat, and none of them is hidden.</p>
+        </div>
+      </article>
+
+      <article class="piece reveal">
+        <figure class="piece-fig"><img src="assets/img/plan.webp" alt="Duolune seen from directly above: the rollers form a lens shape, wider in the middle" width="1080" height="1350" loading="lazy"></figure>
+        <div class="piece-txt">
+          <p class="piece-n">Piece 03</p>
+          <h3>The lens</h3>
+          <p>From above, the rollers swell from 450 mm at the head and foot to 825 mm at the hips. Your body is wider in the middle, so the seat is too.</p>
+        </div>
+      </article>
+
+      <article class="piece reveal">
+        <figure class="piece-fig"><img src="assets/img/01_cognac_black_CAM_Stitch.webp" alt="Macro of a cognac leather roller end: welt piping, a covered button and a row of top-stitching" width="1080" height="1350" loading="lazy"></figure>
+        <div class="piece-txt">
+          <p class="piece-n">Piece 04</p>
+          <h3>The seam</h3>
+          <p>Each roller is a tailored tube: a flat end panel, welt piping round the edge, a covered button, and one row of top-stitching 16 mm in. Underneath runs a double-stitched seam you'll only see if you look for it.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- THE TWELVE ------------------------------------------------------ -->
+  <section class="paper twelve" aria-labelledby="tw-h">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">Signature builds</p>
+        <h2 id="tw-h">Twelve to start from</h2>
+      </header>
+      <ul class="tw-grid" id="tw-grid"></ul>
+    </div>
+  </section>
+
+  <!-- CONFIGURATOR ---------------------------------------------------- -->
+  <section class="studio build" id="build" aria-labelledby="build-h">
+    <header class="build-head wrap">
+      <p class="kicker">Build yours</p>
+      <h2 id="build-h">Your Duolune</h2>
+      <p class="build-sub">Drag to turn it. Tap a glowing point to see how that part is made.</p>
+    </header>
+
+    <div class="sig" role="group" aria-label="Signature builds">
+      <p class="sig-label">Start from a signature build</p>
+      <div class="sig-row" id="sig-row"></div>
+    </div>
+
+    <div class="build-grid">
+      <div class="stage" id="stage">
+        <img class="stage-poster" src="assets/img/hero_01_cognac_black.webp" alt="" aria-hidden="true" width="1080" height="1350">
+        <canvas id="cfg-canvas" aria-label="3D view of your Duolune. Drag to turn, scroll or pinch to zoom." role="img"></canvas>
+        <div class="stage-overlay" id="cfg-overlay"></div>
+        <div class="loader" id="loader" role="status" aria-live="polite">
+          <svg viewBox="0 0 120 70" aria-hidden="true"><path class="ld-arc" d="M10 64a50 50 0 0 1 100 0" pathLength="1"/><path class="ld-seam" d="M10 64a50 50 0 0 1 100 0" pathLength="1"/></svg>
+          <p class="ld-pct"><span id="ld-pct">0</span>%</p>
+          <p class="ld-msg" id="ld-msg">Threading the needle</p>
+          <button class="btn" id="ld-start" type="button">Load the 3D chair <small>(1.5 MB)</small></button>
+        </div>
+        <div class="stage-tools" id="stage-tools" hidden>
+          <button type="button" class="chip" id="t-room" aria-pressed="true">Room</button>
+          <button type="button" class="chip" id="t-hs" aria-pressed="true">Show points</button>
+          <button type="button" class="chip" id="t-dim" aria-pressed="false">Dimensions</button>
+          <button type="button" class="chip" id="t-rot" aria-pressed="true">Turn</button>
+          <button type="button" class="chip" id="t-reset">Reset view</button>
+        </div>
+        <aside class="info" id="info" hidden aria-live="polite">
+          <button type="button" class="info-x" id="info-x" aria-label="Close detail">×</button>
+          <p class="kicker" id="info-k"></p>
+          <h3 id="info-t"></h3>
+          <p id="info-b"></p>
+          <ul id="info-p"></ul>
+        </aside>
+      </div>
+
+      <form class="panel" id="panel" aria-label="Options" onsubmit="return false">
+        <fieldset class="opt">
+          <legend><span class="opt-n">1</span> Upholstery</legend>
+          <div class="seg" role="radiogroup" aria-label="Upholstery material" id="up-kind"></div>
+          <div class="swatches" role="radiogroup" aria-label="Upholstery colour" id="up-col"></div>
+          <label class="picker"><span>Any colour</span><input type="color" id="up-custom" value="#7a3b1c"></label>
+        </fieldset>
+
+        <fieldset class="opt">
+          <legend><span class="opt-n">2</span> Stripe</legend>
+          <div class="seg" role="radiogroup" aria-label="Stripe" id="st-mode"></div>
+          <div class="st-more" id="st-more">
+            <div class="seg seg-sm" role="radiogroup" aria-label="Stripe material" id="st-kind"></div>
+            <div class="swatches" role="radiogroup" aria-label="Stripe colour" id="st-col"></div>
+            <label class="picker"><span>Any colour</span><input type="color" id="st-custom" value="#d8c3a0"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="opt">
+          <legend><span class="opt-n">3</span> Frame</legend>
+          <div class="seg" role="radiogroup" aria-label="Frame material" id="fr-type"></div>
+          <div class="swatches swatches-lg" role="radiogroup" aria-label="Frame finish" id="fr-col"></div>
+          <p class="note" id="fr-note"></p>
+        </fieldset>
+
+        <div class="sum">
+          <p class="sum-name" id="sum-name">Cognac leather, satin black frame</p>
+          <p class="price"><span id="price">₹1,64,000</span> <small>illustrative</small></p>
+          <ul class="sum-lines" id="sum-lines"></ul>
+          <p class="lead">If built: 6 to 8 weeks to order, delivered and assembled.</p>
+          <div class="sum-actions">
+            <button type="button" class="btn" id="ar-btn">See it in your room</button>
+            <a class="btn btn-ghost" id="wa-btn" target="_blank" rel="noopener">Ask about this build</a>
+          </div>
+          <div class="sum-actions sum-actions-sm">
+            <button type="button" class="link" id="snap-btn">Save image</button>
+            <button type="button" class="link" id="share-btn">Copy link</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- AT HOME -------------------------------------------------------- -->
+  <section class="home" aria-labelledby="home-h">
+    <picture>
+      <source media="(max-width: 760px)" srcset="assets/img/room_04_boucle_whiteoak_1080x1350.webp">
+      <img src="assets/img/room_02_noir_walnut_1920x1080.webp" alt="Duolune in noir leather on a walnut frame, in a bright living room beside a small side table and plant" width="1920" height="1080" loading="lazy">
+    </picture>
+    <div class="home-cap wrap">
+      <h2 id="home-h">At home</h2>
+      <p>Noir leather on walnut. It takes up 1.74 by 1.1 metres of floor, about the same as a three-seat sofa, but it's open underneath, so the room still feels big.</p>
+    </div>
+  </section>
+
+  <!-- GALLERY -------------------------------------------------------- -->
+  <section class="studio gallery" aria-labelledby="gal-h">
+    <header class="wrap sec-head sec-head-dark">
+      <p class="kicker">Up close</p>
+      <h2 id="gal-h">The parts you'd only notice in person</h2>
+    </header>
+    <div class="gal-row" id="gal-row" tabindex="0" aria-label="Gallery, scroll sideways">
+      <figure><button type="button" data-full="assets/img/10_stripe_noir_sand_twin_underside.webp"><img src="assets/img/10_stripe_noir_sand_twin_underside.webp" alt="Low view underneath Duolune: black leather rollers with twin sand stripes wrapping round them" loading="lazy" width="1120" height="700"></button><figcaption>Underneath. The stripes wrap all the way round.</figcaption></figure>
+      <figure><button type="button" data-full="assets/img/10_stripe_noir_sand_twin_CAM_StripeMacro.webp"><img src="assets/img/10_stripe_noir_sand_twin_CAM_StripeMacro.webp" alt="Twin sand stripes sewn into black leather rollers" loading="lazy" width="1080" height="1350"></button><figcaption>Twin stripe, sewn flush.</figcaption></figure>
+      <figure><button type="button" data-full="assets/img/02_noir_walnut_CAM_Wood.webp"><img src="assets/img/02_noir_walnut_CAM_Wood.webp" alt="Walnut arc close-up, grain following the curve" loading="lazy" width="1080" height="1350"></button><figcaption>Walnut, bent in plies.</figcaption></figure>
+      <figure><button type="button" data-full="assets/img/04_boucle_whiteoak_CAM_Stitch.webp"><img src="assets/img/04_boucle_whiteoak_CAM_Stitch.webp" alt="Ivory bouclé roller end with welt and button" loading="lazy" width="1080" height="1350"></button><figcaption>Bouclé, piped at the end.</figcaption></figure>
+      <figure><button type="button" data-full="assets/img/09_stripe_oatmeal_cognac_CAM_StripeMacro.webp"><img src="assets/img/09_stripe_oatmeal_cognac_CAM_StripeMacro.webp" alt="Cognac leather stripe sewn into oatmeal wool rollers" loading="lazy" width="1080" height="1350"></button><figcaption>Leather stripe in wool.</figcaption></figure>
+      <figure><button type="button" data-full="assets/img/05_charcoal_sage_CAM_Stitch.webp"><img src="assets/img/05_charcoal_sage_CAM_Stitch.webp" alt="Charcoal wool roller end" loading="lazy" width="1080" height="1350"></button><figcaption>Charcoal wool.</figcaption></figure>
+      <figure><button type="button" data-full="assets/img/04_boucle_whiteoak_CAM_Wood.webp"><img src="assets/img/04_boucle_whiteoak_CAM_Wood.webp" alt="White oak arc close-up" loading="lazy" width="1080" height="1350"></button><figcaption>White oak.</figcaption></figure>
+      <figure><button type="button" data-full="assets/img/02_noir_walnut_CAM_Stitch.webp"><img src="assets/img/02_noir_walnut_CAM_Stitch.webp" alt="Noir leather roller end" loading="lazy" width="1080" height="1350"></button><figcaption>Noir leather.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- FIT PLANNER ----------------------------------------------------- -->
+  <section class="paper fit" id="fit" aria-labelledby="fit-h">
+    <div class="wrap fit-grid">
+      <div class="fit-txt">
+        <p class="kicker">Will it fit</p>
+        <h2 id="fit-h">Measure the corner first</h2>
+        <p>Enter your room, then drag the chair where you'd put it. The dashed line is the 600 mm you need to walk past it.</p>
+        <div class="fit-inputs">
+          <label>Room width <span><input type="number" id="fit-w" min="1.8" max="12" step="0.1" value="4.2"> m</span></label>
+          <label>Room depth <span><input type="number" id="fit-d" min="1.8" max="12" step="0.1" value="3.6"> m</span></label>
+        </div>
+        <div class="fit-actions">
+          <button type="button" class="chip chip-ink" id="fit-rot">Turn 15°</button>
+          <button type="button" class="chip chip-ink" id="fit-reset">Centre it</button>
+        </div>
+        <p class="fit-status" id="fit-status" role="status">Fits, with room to walk round it.</p>
+      </div>
+      <div class="fit-canvas-wrap">
+        <canvas id="fit-canvas" aria-label="Floor plan of your room with Duolune's footprint. Drag the chair to move it." role="img"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPECS + DETAILS -------------------------------------------------- -->
+  <section class="paper details" id="details" aria-labelledby="det-h">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">Details</p>
+        <h2 id="det-h">The numbers</h2>
+      </header>
+      <div class="spec-grid">
+        <table class="spec">
+          <caption>Dimensions</caption>
+          <tbody>
+            <tr><th scope="row">Length</th><td>1740 mm</td></tr>
+            <tr><th scope="row">Width, outside the arcs</th><td>1100 mm</td></tr>
+            <tr><th scope="row">Height</th><td>1030 mm</td></tr>
+            <tr><th scope="row">Seat height</th><td>290 mm</td></tr>
+            <tr><th scope="row">Seat width, hips / head and foot</th><td>825 / 450 mm</td></tr>
+            <tr><th scope="row">Rollers</th><td>16 × Ø110 mm, plus a Ø200 mm head pillow</td></tr>
+            <tr><th scope="row">Weight</th><td>about 56 kg in steel, 45 kg in wood</td></tr>
+          </tbody>
+        </table>
+        <table class="spec">
+          <caption>Construction</caption>
+          <tbody>
+            <tr><th scope="row">Arcs</th><td>Steel hollow section 110 × 55 × 3 mm, or laminated walnut, oak, ash or smoked oak</td></tr>
+            <tr><th scope="row">Side rails</th><td>70 × 30 mm steel hollow section, welded (steel) or bolted (wood) to the arcs</td></tr>
+            <tr><th scope="row">Spine</th><td>Two 11 × 44 mm steel stringers, on edge, through every roller</td></tr>
+            <tr><th scope="row">Seat fixing</th><td>Three through-axles a side; spacer tube, washer, acorn nut</td></tr>
+            <tr><th scope="row">Upholstery</th><td>Leather, wool, bouclé or velvet; welt-piped ends; lock-stitch</td></tr>
+            <tr><th scope="row">Feet</th><td>Four natural rubber glides</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="faq">
+        <details><summary>How long does it take?</summary><p>Six to eight weeks from order. Each chair is cut and sewn to your configuration, so nothing waits in a warehouse.</p></details>
+        <details><summary>What does delivery include?</summary><p>Two people bring it in, bolt the seat to the arcs and take the packaging away. The seat comes off the frame in one piece, so it fits through a standard 800 mm door.</p></details>
+        <details><summary>How do I look after leather and fabric?</summary><p>Leather: wipe with a damp cloth, condition twice a year, keep it out of direct sun. Wool, bouclé and velvet: vacuum with a soft brush; blot spills, don't rub them.</p></details>
+        <details><summary>Can a single roller be replaced?</summary><p>Yes. Every roller is fixed to the spine on its own, so one damaged roller is swapped without touching the others.</p></details>
+        <details><summary>Is the seat really that low?</summary><p>The lowest roller sits 290 mm off the floor. It's a lounger: you sink in with your feet forward. If you need to get up easily, ask about the raised frame.</p></details>
+        <details><summary>Can I order one?</summary><p>Not yet. Duolune is a concept, and the prices on this page are illustrative. If you make furniture and want to build it, get in touch below.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAKING OF -------------------------------------------------------- -->
+  <section class="studio making" aria-labelledby="mk-h">
+    <div class="wrap making-grid">
+      <header>
+        <p class="kicker">How this was made</p>
+        <h2 id="mk-h">One model, start to finish</h2>
+      </header>
+      <ol class="steps">
+        <li><h3>Model</h3><p>The shape was modelled in Blender. Its first version had no way for the seat to hold on to the frame, so the joints were engineered afterwards: real axles, real spacers, real sizes.</p></li>
+        <li><h3>Material</h3><p>Every finish on this page is procedural: grain, stitching, the seams and the ply lines in the wood. Nothing on this page is a photograph.</p></li>
+        <li><h3>Film</h3><p>The film at the top cuts on the bar of the music, at 120 BPM. It cuts every two seconds and changes the finish on each cut.</p></li>
+        <li><h3>Web</h3><p>The chair you turned above is a 330 KB file. The stitching and the stripe are drawn by the graphics card as you look at them, so changing a colour costs nothing to download.</p></li>
+      </ol>
+      <aside class="makers">
+        <p class="kicker">For furniture makers</p>
+        <p class="makers-line">I can do this for your pieces: one model of each, renders of every finish, and a page like this one where buyers build their own.</p>
+        <a class="btn" href="https://radwanjml.github.io/partners/">See how it works</a>
+      </aside>
+      <p class="credit">Designed, engineered and visualised by <a href="https://radwanjml.github.io/">Radwan Jameel</a>, with AI-assisted code. Music: "Electro" by Pro Sensory (Alex McCulloch), CC0. Built with Blender, three.js and model-viewer.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot paper">
+  <div class="wrap foot-grid">
+    <p class="foot-mark">Duolune</p>
+    <p>A concept piece. Not for sale yet; prices are illustrative.</p>
+    <p><a href="https://radwanjml.github.io/">radwanjml.github.io</a></p>
+  </div>
+</footer>
+
+<div class="dock" id="dock" aria-hidden="true">
+  <div><p class="dock-name" id="dock-name">Cognac leather, satin black frame</p><p class="dock-price" id="dock-price">₹1,64,000</p></div>
+  <a class="btn btn-small" href="#panel" tabindex="-1">Options</a>
+</div>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Image">
+  <button type="button" class="info-x" id="lb-x" aria-label="Close image">×</button>
+  <div class="lb-frame" id="lb-frame"></div>
+</div>
+
+<dialog class="ar" id="ar-dlg" aria-labelledby="ar-h">
+  <div class="ar-in">
+    <button type="button" class="info-x" id="ar-x" aria-label="Close">×</button>
+    <h2 id="ar-h">See it in your room</h2>
+    <p class="ar-hint" id="ar-hint">On a phone, tap the button in the corner of the view to place Duolune at full size. Colours follow your build; stripes and stitching show in the 3D view only.</p>
+    <div class="ar-stage" id="ar-stage"></div>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script type="module" src="js/app.js?v=6"></script>
+</body>
+</html>
