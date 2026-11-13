@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=36';
-import { initPlanner } from './planner.js?v=36';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=37';
+import { initPlanner } from './planner.js?v=37';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -135,8 +135,8 @@ async function boot() {
   try {
     let glbBuf = null;   // start the model download now, in parallel with three.js and its addons (same LITE rule as configurator.js)
     { const q = new URLSearchParams(location.search); const L = q.has('lite') ? q.get('lite') === '1' : innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
-      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=36' : 'assets/model/duolune.glb?v=36').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
-    const { createConfigurator } = await import('./configurator.js?v=36');
+      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=37' : 'assets/model/duolune.glb?v=37').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
+    const { createConfigurator } = await import('./configurator.js?v=37');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -185,7 +185,7 @@ $('#ar-btn').addEventListener('click', async () => {
   // Android Chrome: our own WebXR mode (double-tap to place, on-floor controls, locked 1:1 scale). iPhone: Apple Quick Look via model-viewer.
   try {
     if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const { startAR } = await import('./ar.js?v=36');
+      const { startAR } = await import('./ar.js?v=37');
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
@@ -194,7 +194,7 @@ $('#ar-btn').addEventListener('click', async () => {
   let mv = dlg.querySelector('model-viewer');
   if (!mv) {
     mv = document.createElement('model-viewer');
-    Object.entries({ src: 'assets/model/duolune.glb?v=36', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
+    Object.entries({ src: 'assets/model/duolune.glb?v=37', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
       .forEach(([k, v]) => mv.setAttribute(k, v));
     $('#ar-stage').appendChild(mv);
     mv.addEventListener('load', () => paintAR(mv));
@@ -268,26 +268,30 @@ function headerTone() {
 }
 addEventListener('scroll', headerTone, { passive: true }); headerTone();
 
-const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(fn, 200));
-addEventListener('load', () => idle(() => {   // ~40 scroll triggers measure layout on creation: do it when the main thread is free
+const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(() => fn({ timeRemaining: () => 8 }), 200));
+// ~30 scroll triggers each measure layout when created. Build them one small job at a time inside idle slices,
+// so no single task blocks input (one big batch was 4 tasks of 90-165 ms at 4x CPU; Lighthouse, 13 Nov)
+const runIdle = (jobs) => { const step = (dl) => { do { const j = jobs.shift(); if (j) j(); } while (jobs.length && dl.timeRemaining() > 6); if (jobs.length) idle(step); }; idle(step); };
+addEventListener('load', () => {
   const g = window.gsap;
   if (!g || reduced) { document.querySelectorAll('.reveal').forEach((el) => { el.style.opacity = 1; el.style.transform = 'none'; }); return; }
   g.registerPlugin(window.ScrollTrigger);
-  g.utils.toArray('.reveal').forEach((el) => g.to(el, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 86%' } }));
+  const jobs = [];
+  g.utils.toArray('.reveal').forEach((el) => jobs.push(() => g.to(el, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 86%' } })));
   // parallax: the film (background) drifts slower than the title and controls (foreground) as the hero leaves
   const hero = document.querySelector('.hero');
-  g.to('.hero-film', { yPercent: 24, scale: 1.06, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
-  g.to('.hero-title', { yPercent: -50, opacity: 0.1, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+  jobs.push(() => g.to('.hero-film', { yPercent: 24, scale: 1.06, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } }));
+  jobs.push(() => g.to('.hero-title', { yPercent: -50, opacity: 0.1, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } }));
   // prints inside their frames move against the page (frames are overflow: hidden)
-  g.utils.toArray('.piece-fig img').forEach((img) => { img.classList.add('px');
-    g.fromTo(img, { yPercent: -8 }, { yPercent: 8, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } }); });
-  // the paper's dot grid sits on a layer behind the content
+  g.utils.toArray('.piece-fig img').forEach((img) => jobs.push(() => { img.classList.add('px');
+    g.fromTo(img, { yPercent: -8 }, { yPercent: 8, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } }); }));
   // background layers drift WITH the scroll (so they read as further away); headings move against it (nearer)
-  g.utils.toArray('.paper, .studio').forEach((sec) => g.fromTo(sec, { '--bgy': '-110px' }, { '--bgy': '110px', ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: 0.4 } }));
-  g.utils.toArray('main h2:not(.hero-title)').forEach((h) => g.fromTo(h, { yPercent: 18 }, { yPercent: -18, ease: 'none', scrollTrigger: { trigger: h, start: 'top bottom', end: 'bottom top', scrub: 0.4 } }));
+  g.utils.toArray('.paper, .studio').forEach((sec) => jobs.push(() => g.fromTo(sec, { '--bgy': '-110px' }, { '--bgy': '110px', ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: 0.4 } })));
+  g.utils.toArray('main h2:not(.hero-title)').forEach((h) => jobs.push(() => g.fromTo(h, { yPercent: 18 }, { yPercent: -18, ease: 'none', scrollTrigger: { trigger: h, start: 'top bottom', end: 'bottom top', scrub: 0.4 } })));
   const arc = document.querySelector('.arc-draw path');
-  if (arc) { g.set(arc, { strokeDasharray: '0.006 0.004', clipPath: 'inset(0 100% 0 0)' }); g.fromTo('.arc-draw', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'none', scrollTrigger: { trigger: '.arc-fig', start: 'top 75%', end: 'bottom 45%', scrub: 0.6 } }); }
-}));
+  if (arc) jobs.push(() => { g.set(arc, { strokeDasharray: '0.006 0.004', clipPath: 'inset(0 100% 0 0)' }); g.fromTo('.arc-draw', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'none', scrollTrigger: { trigger: '.arc-fig', start: 'top 75%', end: 'bottom 45%', scrub: 0.6 } }); });
+  runIdle(jobs);
+});
 
 // ---------------------------------------------------------------- gallery lightbox
 const lb = $('#lightbox');
