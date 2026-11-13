@@ -16,7 +16,7 @@ Any static server works, for example `python -m http.server 4190 --directory sit
 | `js/planner.js` | "Will it fit" floor plan (2D canvas) |
 | `assets/model/duolune.glb` | 330 KB. Draco-compressed and in metres. Six meshes: rollers, trim, frame, rail, hardware, feet |
 | `assets/tex/*_n.jpg` | Seamless normal maps for leather, wool, bouclé and velvet (generated, tile by construction) |
-| `assets/film/` | Hero film, 16 s at 120 BPM |
+| `assets/film/` | Hero film: one silent 24 s orbit, the finish changes every 2 s through the 12 signatures (`hero_1080`, `hero_720`, `hero_portrait`). Rendered by `Blender/.../scripts/film_orbit.py` |
 
 ## The tricks
 1. **One model, every finish.** The rollers carry UV0 = (arc length round the roller, distance from its end) in metres, and UV1.x = a random tone per roller. The shader uses those to draw everything procedurally:
@@ -40,7 +40,7 @@ Any static server works, for example `python -m http.server 4190 --directory sit
 - **Film:** `Blender/Furniture/Arc_Recliner/scripts/film.py`. See the session record there.
 
 ## Licences
-- Music: "Electro" by Pro Sensory (Alex McCulloch), CC0, from OpenGameArt. Credited voluntarily.
+- Room HDRI, side table and plant: Poly Haven, CC0 (see ../ASSETS.md). The page has no music.
 - three.js (MIT), model-viewer (Apache 2.0), GSAP (free licence), simplex noise by Ashima Arts / Stefan Gustavson (MIT).
 - Fonts: Bodoni Moda and Archivo (OFL), via Google Fonts.
 - Every image and the model are original renders. No photographs, stock or AI imagery.

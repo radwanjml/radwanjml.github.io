@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/img/poster.webp" fetchpriority="high">
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=10">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -47,25 +47,24 @@
 <main id="top">
   <!-- HERO ---------------------------------------------------------- -->
   <section class="hero" aria-label="Duolune">
-    <div class="hero-top">
-      <h1 class="hero-title">Duo<em>lune</em></h1>
+    <video class="hero-film" id="film" playsinline muted loop autoplay preload="metadata" poster="assets/img/poster.webp" aria-hidden="true">
+      <source src="assets/film/hero_portrait.mp4" type="video/mp4" media="(max-aspect-ratio: 1/1)">
+      <source src="assets/film/hero_1080.mp4" type="video/mp4" media="(min-width: 1300px)">
+      <source src="assets/film/hero_720.mp4" type="video/mp4">
+    </video>
+    <div class="hero-shade" aria-hidden="true"></div>
+    <h1 class="hero-title">Duo<em>lune</em></h1>
+    <div class="hero-foot">
       <div class="hero-side">
         <p class="kicker">Lounge chair N°1 · a concept by <a href="https://radwanjml.github.io/">Radwan Jameel</a></p>
-        <p class="hero-line">Two half-moons, and seventeen tailored rollers hanging between them.</p>
+        <p class="hero-line">Two half-moons, and seventeen tailored rollers hanging between them. Twelve ways to finish it, and any colour you like.</p>
         <div class="hero-actions">
           <a class="btn" href="#build">Build yours</a>
-          <button class="btn btn-ghost" id="sound" type="button" aria-pressed="false">Play with sound</button>
+          <a class="btn btn-ghost" href="#idea">How it's made</a>
         </div>
       </div>
-    </div>
-    <div class="hero-filmbox">
-      <video class="hero-film" id="film" playsinline muted loop autoplay preload="metadata" poster="assets/img/poster.webp" aria-hidden="true">
-        <source src="assets/film/duolune_portrait.mp4" type="video/mp4" media="(max-width: 860px)">
-        <source src="assets/film/duolune_1080.mp4" type="video/mp4" media="(min-width: 1300px)">
-        <source src="assets/film/duolune_720.mp4" type="video/mp4">
-      </video>
       <div class="hero-meta">
-        <p class="shot" aria-live="off"><span id="shot-n">01</span> <span id="shot-name">Cognac leather on satin black</span></p>
+        <p class="shot"><span id="shot-n">01</span><span class="shot-of">/ 12</span> <span id="shot-name">Cognac leather, satin black</span></p>
         <button class="icon-btn" id="pause" type="button" aria-label="Pause film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg></button>
       </div>
     </div>
@@ -335,7 +334,7 @@
       <ol class="steps">
         <li><h3>Model</h3><p>The shape was modelled in Blender. Its first version had no way for the seat to hold on to the frame, so the joints were engineered afterwards: real axles, real spacers, real sizes.</p></li>
         <li><h3>Material</h3><p>Every finish on this page is procedural: grain, stitching, the seams and the ply lines in the wood. Nothing on this page is a photograph.</p></li>
-        <li><h3>Film</h3><p>The film at the top cuts on the bar of the music, at 120 BPM. It cuts every two seconds and changes the finish on each cut.</p></li>
+        <li><h3>Film</h3><p>The film at the top is one slow turn around the chair. Every two seconds the finish changes, through all twelve signature builds, and the camera never cuts.</p></li>
         <li><h3>Web</h3><p>The chair you turned above is a 330 KB file. The stitching and the stripe are drawn by the graphics card as you look at them, so changing a colour costs nothing to download.</p></li>
       </ol>
       <aside class="makers">
@@ -343,7 +342,7 @@
         <p class="makers-line">I can do this for your pieces: one model of each, renders of every finish, and a page like this one where buyers build their own.</p>
         <a class="btn" href="https://radwanjml.github.io/partners/">See how it works</a>
       </aside>
-      <p class="credit">Designed, engineered and visualised by <a href="https://radwanjml.github.io/">Radwan Jameel</a>, with AI-assisted code. Music: "Electro" by Pro Sensory (Alex McCulloch), CC0. Built with Blender, three.js and model-viewer.</p>
+      <p class="credit">Designed, engineered and visualised by <a href="https://radwanjml.github.io/">Radwan Jameel</a>, with AI-assisted code. Room backdrop and props: Poly Haven, CC0. Built with Blender, three.js and model-viewer.</p>
     </div>
   </section>
 </main>
@@ -377,6 +376,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-<script type="module" src="js/app.js?v=9"></script>
+<script type="module" src="js/app.js?v=10"></script>
 </body>
 </html>

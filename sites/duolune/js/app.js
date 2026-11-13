@@ -1,11 +1,11 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=9';
-import { initPlanner } from './planner.js?v=9';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=10';
+import { initPlanner } from './planner.js?v=10';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
 {
   const intro = document.getElementById('intro');
-  const poster = new Image(); poster.src = matchMedia('(max-width: 860px)').matches ? 'assets/img/poster_portrait.webp' : 'assets/img/poster.webp';
+  const poster = new Image(); poster.src = matchMedia('(max-aspect-ratio: 1/1)').matches ? 'assets/img/poster_portrait.webp' : 'assets/img/poster.webp';
   const ready = Promise.all([document.fonts?.ready, poster.decode?.().catch(() => {}), new Promise((r) => setTimeout(r, 900))]);
   const lift = () => {
     intro && intro.classList.add('is-gone');
@@ -128,7 +128,7 @@ async function boot() {
   loader.classList.add('is-loading');
   let mi = 0; const mt = setInterval(() => { $('#ld-msg').textContent = MSGS[++mi % MSGS.length]; }, 1100);
   try {
-    const { createConfigurator } = await import('./configurator.js?v=9');
+    const { createConfigurator } = await import('./configurator.js?v=10');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -204,16 +204,12 @@ dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
 
 // ---------------------------------------------------------------- hero film
 const film = $('#film');
-if (matchMedia('(max-width: 860px)').matches) film.poster = 'assets/img/poster_portrait.webp';
-const SHOTS = [
-  ['01', 'Cognac leather on satin black'], ['02', 'Noir with twin sand stripes, from below'], ['03', 'Walnut, bent in plies'],
-  ['04', 'From above: the lens'], ['05', 'Ivory bouclé, piped ends'], ['06', 'The arc, side on'],
-  ['07', 'Four builds, one beat each'], ['08', 'Oxblood on bronze'],
-];
+if (matchMedia('(max-aspect-ratio: 1/1)').matches) film.poster = 'assets/img/poster_portrait.webp';
+const SHOTS = SIGNATURES.map((g) => [g.id, g.name.replace(' / ', ', ')]);   // the hero film runs the 12 signatures, 2 s each
 const OFFSET = 0; // film starts on the bar
 let lastShot = -1, ticking = false;
 function shotTick() {
-  const i = Math.min(7, Math.floor(((film.currentTime + OFFSET) % 16) / 2));
+  const i = Math.min(11, Math.floor(((film.currentTime + OFFSET) % 24) / 2));
   if (i !== lastShot) { lastShot = i; $('#shot-n').textContent = SHOTS[i][0]; $('#shot-name').textContent = SHOTS[i][1]; }
   if (!film.paused) requestAnimationFrame(shotTick); else ticking = false;
 }
@@ -232,11 +228,7 @@ if (!reduced && !saveData) {
 } else setPlaying(false);
 if (saveData) setPlaying(false);
 pauseBtn.addEventListener('click', () => { const p = film.paused; film.dataset.userPaused = p ? '' : '1'; if (p) delete film.dataset.userPaused; setPlaying(p); });
-$('#sound').addEventListener('click', (e) => {
-  const on = film.muted; film.muted = !on; e.currentTarget.setAttribute('aria-pressed', String(on));
-  e.currentTarget.textContent = on ? 'Mute' : 'Play with sound';
-  if (on) { film.currentTime = 0; delete film.dataset.userPaused; setPlaying(true); }
-});
+
 
 // ---------------------------------------------------------------- header + seam + reveals
 const bar = $('#bar');
