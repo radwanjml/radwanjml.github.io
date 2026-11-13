@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=6';
-import { initPlanner } from './planner.js?v=6';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=9';
+import { initPlanner } from './planner.js?v=9';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -128,7 +128,7 @@ async function boot() {
   loader.classList.add('is-loading');
   let mi = 0; const mt = setInterval(() => { $('#ld-msg').textContent = MSGS[++mi % MSGS.length]; }, 1100);
   try {
-    const { createConfigurator } = await import('./configurator.js?v=6');
+    const { createConfigurator } = await import('./configurator.js?v=9');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },

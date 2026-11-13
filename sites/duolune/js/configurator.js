@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=6';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=9';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -42,7 +42,7 @@ vec3 perturbBump(vec3 surf_pos, vec3 surf_norm, vec2 dHdxy, float faceDirection)
 }`;
 
 function upholsteryMaterial(tex) {
-  const m = new THREE.MeshPhysicalMaterial({ roughness: 0.5, sheen: 1, sheenRoughness: 0.4, clearcoat: 1, clearcoatRoughness: 0.32 });
+  const m = new THREE.MeshPhysicalMaterial({ roughness: 0.5, sheen: 1, sheenRoughness: 0.4 });
   m.normalMap = tex.leather; m.normalScale = new THREE.Vector2(0.5, 0.5);
   const u = {
     uColA: { value: new THREE.Color() }, uColA2: { value: new THREE.Color() },
@@ -81,7 +81,7 @@ void duoluneFields(){
     if (uStripe.z > 1.5) m *= smoothstep(uStripe.x - 0.0003, uStripe.x + 0.0003, ay);
   }
   gMask = m;
-  float jit = snoise(vec3(vUv0 * 33.0, 1.7)) * 0.0009;
+  float jit = (texture2D(tGrain, vUv0 * 3.1).r - 0.5) * 0.0018;
   // top-stitch ring 16.5 mm from each end
   float dv = abs(v - 0.0165);
   float ph = fract((u + jit + dv * 1.2) / 0.004);
@@ -100,7 +100,8 @@ void duoluneFields(){
   float strow = (1.0 - smoothstep(0.0003, 0.0006, abs(sd - 0.0036))) * step(stph, 0.62);
   // puckering where the cover pulls round the end
   float pm = smoothstep(0.003, 0.0066, v) * (1.0 - smoothstep(0.0066, 0.025, v));
-  float pk = sin(u * 6.2831 / 0.0115 + snoise(vec3(vUv0 * 18.0, 3.1)) * 5.0) * pm * smoothstep(-0.2, 0.4, snoise(vec3(vUv0 * 9.0, 7.0)));
+  float nA = texture2D(tGrain, vUv0 * 0.9).r; float nB = texture2D(tGrain, vUv0 * 0.45 + 0.37).r;
+  float pk = sin(u * 6.2831 / 0.0115 + (nA - 0.5) * 10.0) * pm * smoothstep(0.35, 0.65, nB);
   gStitch = max(max(ring, srow), strow) * aa;
   gH = (ring * 0.9 + srow * 0.6 + strow * 0.6) * aa - groove * 0.35 - sgroove * 0.9 - stgroove * 0.9 + pk * 0.25;
   gBurn = max(1.0 - smoothstep(0.0, 0.0165, v), max(sgroove, stgroove) * 0.6);
@@ -109,7 +110,7 @@ void duoluneFields(){
 duoluneFields();
 float lea = mix(uLeather.x, uLeather.y, gMask);
 float grainT = texture2D(tGrain, vUv0 / 0.08).r;
-float drift = snoise(vObj * 2.5) * 0.12 + (vTone - 0.5) * 0.28;
+float drift = (texture2D(tGrain, vObj.xz * 0.35 + vObj.y * 0.2).r - 0.55) * 0.3 + (vTone - 0.5) * 0.28;
 float tA = clamp(0.35 + drift + gBurn * mix(0.25, 0.6, uLeather.x) + (grainT - 0.6) * 0.6 * uLeather.x, 0.0, 1.0);
 float tB = clamp(0.35 + drift + gBurn * mix(0.25, 0.6, uLeather.y) + (grainT - 0.6) * 0.6 * uLeather.y, 0.0, 1.0);
 vec3 cA = mix(uColA, uColA2, tA); vec3 cB = mix(uColB, uColB2, tB);
@@ -126,7 +127,7 @@ roughnessFactor = mix(uRough.x, uRough.y, gMask) + gStitch * 0.2 + (grainT - 0.5
       .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
 material.sheenColor = vec3(mix(uSheen.x, uSheen.y, gMask)) * mix(vec3(1.0), diffuseColor.rgb * 2.0 + 0.3, 0.5);
 material.sheenRoughness = clamp(mix(uSheen.z, uSheen.w, gMask), 0.07, 1.0);
-material.clearcoat = mix(uCoat.x, uCoat.y, gMask);`);
+`);
     // the tbn variable only exists with tangent-space normal maps (USE_NORMALMAP_TANGENTSPACE) in r160 normal_fragment_begin
   };
   return m;
@@ -151,13 +152,13 @@ if (uWood > 0.5) {
   // bent laminated wood: plies concentric with the arc (centre = origin, axis = Z); long grain follows the bend
   float r = length(vObj.xy); float th = atan(vObj.y, vObj.x); float lat = vObj.z;
   vec3 q = vec3(r * 160.0, lat * 160.0, th * 0.9);
-  float g = snoise(q * vec3(1.0, 1.0, 1.0)) * 0.5 + 0.5 + snoise(q * 2.1) * 0.15;
+  float g = snoise(q) * 0.5 + 0.5;
   float fig = fract(g * 14.0);
   gLines = smoothstep(0.35, 1.0, fig);
   float big = snoise(q * 0.08);
   float ply = floor(r / 0.0018);
   gGlue = 1.0 - smoothstep(0.0, 0.07, fract(r / 0.0018));
-  gPore = snoise(q * 12.0) * 0.5 + 0.5;
+  gPore = fract(sin(dot(floor(q * 12.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
   float f = clamp(gLines * 0.75 + hash11(ply) * 0.2 + big * 0.3 + gPore * 0.2, 0.0, 1.0);
   vec3 c = mix(uLight, uDark, f);
   c = mix(c, uDark * 0.5, gGlue * 0.7 * (1.0 - smoothstep(0.0006, 0.004, fwidth(r))));
@@ -171,10 +172,13 @@ if (uWood > 0.5) roughnessFactor = 0.42 + gLines * 0.12;`);
 
 // ---------------------------------------------------------------- the viewer
 export async function createConfigurator({ canvas, overlay, onProgress, onReady, onHotspot }) {
+  const LITE = innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
+  let dprCap = LITE ? 1.25 : 1.5;
+  let dirty = true;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, dprCap));
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
@@ -184,9 +188,9 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const controls = new OrbitControls(camera, canvas);
   controls.target.set(0.1, 0.42, 0); controls.enableDamping = true; controls.dampingFactor = 0.07;
   controls.minDistance = 0.55; controls.maxDistance = 6; controls.maxPolarAngle = Math.PI * 0.56; controls.enablePan = false;
-  controls.autoRotate = !reduced; controls.autoRotateSpeed = 0.45;
+  controls.autoRotate = false; controls.autoRotateSpeed = 0.45;
   const key = new THREE.DirectionalLight(0xfff2e2, 3.4); key.position.set(2.5, 3.2, 2.2); key.castShadow = true;
-  key.shadow.mapSize.setScalar(innerWidth < 760 ? 1024 : 2048); key.shadow.camera.left = -1.6; key.shadow.camera.right = 1.6; key.shadow.camera.top = 1.6; key.shadow.camera.bottom = -1.6;
+  key.shadow.mapSize.setScalar(LITE ? 1024 : 2048); key.shadow.camera.left = -1.6; key.shadow.camera.right = 1.6; key.shadow.camera.top = 1.6; key.shadow.camera.bottom = -1.6;
   key.shadow.radius = 6; key.shadow.blurSamples = 16; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.01;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0xdfe8ff, 2.0); rim.position.set(-2.4, 1.6, -2.2); scene.add(rim);
@@ -203,7 +207,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   // textures
   const ldTex = (n, srgb = false) => new Promise((res, rej) => tl.load(`assets/tex/${n}.jpg`, (t) => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    if (srgb) t.colorSpace = THREE.SRGBColorSpace; res(t);
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace; dirty = true; res(t);
   }, undefined, rej));
   const tex = {};
   let loaded = 0; const total = 6;
@@ -212,7 +216,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
 
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
   const gl = new GLTFLoader().setDRACOLoader(draco);
-  const gltf = await new Promise((res, rej) => gl.load('assets/model/duolune.glb', res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
+  const gltf = await new Promise((res, rej) => gl.load(LITE ? 'assets/model/duolune_lite.glb' : 'assets/model/duolune.glb', res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
   tick('model');
   await Promise.all(texJobs);
   tex.leather = tex.leather_n; tex.leatherR = tex.leather_r;
@@ -267,7 +271,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
       FU.uWood.value = 0; F.color.copy(lin(mt.c)); F.metalness = mt.metal; F.roughness = mt.rough; F.clearcoat = mt.coat;
       mats.rail.color.copy(lin(mt.c)); mats.rail.metalness = mt.metal; mats.rail.roughness = mt.rough;
     }
-    mats.rollers.needsUpdate = true;
+    mats.rollers.needsUpdate = true; dirty = true;
   }
 
   // ---------------- dimensions + scale figure
@@ -313,7 +317,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
     if (!g || reduced) { camera.position.set(...cam); controls.target.set(...tgt); return; }
     const from = { cx: camera.position.x, cy: camera.position.y, cz: camera.position.z, tx: controls.target.x, ty: controls.target.y, tz: controls.target.z };
     tween = g.to(from, { cx: cam[0], cy: cam[1], cz: cam[2], tx: tgt[0], ty: tgt[1], tz: tgt[2], duration: dur, ease: 'power3.inOut',
-      onUpdate: () => { camera.position.set(from.cx, from.cy, from.cz); controls.target.set(from.tx, from.ty, from.tz); } });
+      onUpdate: () => { camera.position.set(from.cx, from.cy, from.cz); controls.target.set(from.tx, from.ty, from.tz); dirty = true; } });
   }
   function focus(id) {
     const h = HOTSPOTS.find((x) => x.id === id); if (!h) return;
@@ -331,29 +335,36 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
 
   // ---------------- loop
   const tmp = new THREE.Vector3();
+  controls.addEventListener('change', () => { dirty = true; });
   function resize() {
     const r = canvas.getBoundingClientRect(); const w = Math.max(1, r.width), h = Math.max(1, r.height);
     renderer.setSize(w, h, false); camera.aspect = w / h;
-    camera.fov = w / h < 0.9 ? 38 : 32; camera.updateProjectionMatrix();
+    camera.fov = w / h < 0.9 ? 38 : 32; camera.updateProjectionMatrix(); dirty = true;
   }
   new ResizeObserver(resize).observe(canvas); resize();
   let running = true; let visible = true;
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(canvas);
-  function frame() {
+  // hotspot facing: shown when the camera is on the outer side of the surface it marks (cheap, no raycasts)
+  const C = new THREE.Vector3(0.1, 0.42, 0);
+  for (const e of hsEls) e.n = e.h.under ? new THREE.Vector3(0, -1, 0.2).normalize() : e.v.clone().sub(C).setY(Math.max(0.15, e.v.y - C.y)).normalize();
+  let slow = 0, lastT = performance.now();
+  const dv = new THREE.Vector3();
+  function frame(t) {
     requestAnimationFrame(frame);
     if (!running || !visible) return;
-    controls.update();
-    if (dims.visible) fig.quaternion.copy(camera.quaternion), fig.rotation.set(0, Math.atan2(camera.position.x - fig.position.x, camera.position.z - fig.position.z), 0);
+    const moved = controls.update();
+    if (!(moved || dirty || controls.autoRotate)) { lastT = t; return; }
+    dirty = false;
+    if (dims.visible) fig.rotation.set(0, Math.atan2(camera.position.x - fig.position.x, camera.position.z - fig.position.z), 0);
     renderer.render(scene, camera);
-    const r = canvas.getBoundingClientRect(); frameN++;
+    // adaptive resolution: frames slower than ~35 fps for a while step the pixel ratio down
+    const dt = t - lastT; lastT = t;
+    if (dt > 28 && dt < 200) { if (++slow > 20 && dprCap > 0.85) { dprCap = Math.max(0.85, dprCap - 0.25); renderer.setPixelRatio(Math.min(devicePixelRatio, dprCap)); resize(); slow = 0; } } else slow = Math.max(0, slow - 1);
+    const r = canvas.getBoundingClientRect();
     for (const e of hsEls) {
       tmp.copy(e.v).project(camera);
       const x = (tmp.x * 0.5 + 0.5) * r.width, y = (-tmp.y * 0.5 + 0.5) * r.height;
-      if (frameN % 6 === 0) {
-        const dir = e.v.clone().sub(camera.position); const dist = dir.length(); ray.set(camera.position, dir.normalize()); ray.far = dist;
-        const hit = ray.intersectObjects(meshes, false)[0];
-        e.vis = (!hit || hit.distance > dist - 0.03) && tmp.z < 1 ? 1 : 0;
-      }
+      e.vis = tmp.z < 1 && e.n.dot(dv.copy(camera.position).sub(e.v)) > 0 ? 1 : 0;
       e.b.style.transform = `translate(${x}px, ${y}px)`;
       e.b.classList.toggle('is-hidden', !showHs || !e.vis);
     }
@@ -363,6 +374,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
       l.s.classList.toggle('is-hidden', !dims.visible);
     }
   }
+
   // ---------------- room: blurred CC0 interior (Poly Haven "lebombo") + a side table and plant, loaded after the chair
   const studioEnv = scene.environment;
   const room = { loaded: false, on: false, group: new THREE.Group(), env: null, bg: null };
@@ -390,18 +402,20 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   async function setRoom(on) {
     room.on = on;
     if (!room.loaded) { try { await loadRoom(); } catch (e) { console.warn('room assets', e); } }
-    if (!room.on) { scene.background = null; scene.environment = room.env || studioEnv; scene.environmentIntensity = room.env ? 0.4 : 0.28; room.group.visible = false; key.intensity = 3.2; return; }
+    if (!room.on) { renderer.shadowMap.needsUpdate = true; dirty = true; scene.background = null; scene.environment = room.env || studioEnv; scene.environmentIntensity = room.env ? 0.4 : 0.28; room.group.visible = false; key.intensity = 3.2; return; }
     scene.background = room.bg; scene.backgroundBlurriness = 0.32; scene.backgroundIntensity = 0.55;
     scene.environment = room.env; scene.environmentIntensity = 0.55; room.group.visible = true; key.intensity = 2.6;
+    renderer.shadowMap.needsUpdate = true; dirty = true;
   }
 
-  frame();
+  renderer.shadowMap.needsUpdate = true;
+  requestAnimationFrame(frame);
   onReady?.();
   return {
     apply, focus, reset, setRoom,
-    setDims(v) { dims.visible = v; if (v) moveTo([0.4, 1.6, 3.9], [0.35, 0.45, 0]); },
-    setHotspots(v) { showHs = v; },
-    setAutoRotate(v) { controls.autoRotate = v && !reduced; },
+    setDims(v) { dims.visible = v; dirty = true; if (v) moveTo([0.4, 1.6, 3.9], [0.35, 0.45, 0]); },
+    setHotspots(v) { showHs = v; dirty = true; },
+    setAutoRotate(v) { controls.autoRotate = v && !reduced; dirty = true; },
     snapshot() { renderer.render(scene, camera); return canvas.toDataURL('image/png'); },
     pause(v) { running = !v; },
   };
