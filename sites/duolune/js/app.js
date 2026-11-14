@@ -1,5 +1,5 @@
-import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=44';
-import { initPlanner } from './planner.js?v=44';
+import { KINDS, COLOURS, METALS, WOODS, SIGNATURES, BASE_PRICE, PRICE } from './data.js?v=45';
+import { initPlanner } from './planner.js?v=45';
 
 document.documentElement.classList.add('js');
 // intro: lift once fonts + the hero poster are ready, or after 2.5 s at most
@@ -152,8 +152,8 @@ async function boot() {
   try {
     let glbBuf = null;   // start the model download now, in parallel with three.js and its addons (same LITE rule as configurator.js)
     { const q = new URLSearchParams(location.search); const L = q.has('lite') ? q.get('lite') === '1' : innerWidth < 760 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(pointer: coarse)').matches;
-      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=44' : 'assets/model/duolune.glb?v=44').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
-    const { createConfigurator } = await import('./configurator.js?v=44');
+      if (!q.get('m')) glbBuf = fetch(L ? 'assets/model/duolune_lite.glb?v=45' : 'assets/model/duolune.glb?v=45').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null); }
+    const { createConfigurator } = await import('./configurator.js?v=45');
     viewer = await createConfigurator({
       canvas: $('#cfg-canvas'), overlay: $('#cfg-overlay'),
       onProgress: (p) => { const v = Math.round(Math.min(1, p) * 100); $('#ld-pct').textContent = v; loader.style.setProperty('--p', v + '%'); loader.querySelector('.ld-seam').style.clipPath = `inset(0 ${100 - v}% 0 0)`; },
@@ -215,7 +215,7 @@ $('#share-btn').addEventListener('click', async () => {
 // round 16: check AR support and fetch ar.js while the visitor looks at the chair, so the tap goes straight to the session
 let xrOK = null, arMod = null;
 function warmAR() { if (!navigator.xr) { xrOK = false; return; }
-  navigator.xr.isSessionSupported('immersive-ar').then((v) => { xrOK = v; if (v) arMod = import('./ar.js?v=44'); }).catch(() => { xrOK = false; }); }
+  navigator.xr.isSessionSupported('immersive-ar').then((v) => { xrOK = v; if (v) arMod = import('./ar.js?v=45'); }).catch(() => { xrOK = false; }); }
 const dlg = $('#ar-dlg');
 $('#ar-btn').addEventListener('click', async () => {
   // Android Chrome: our own WebXR mode (two taps to place, tap the chair to turn or move it, locked 1:1).
@@ -223,7 +223,7 @@ $('#ar-btn').addEventListener('click', async () => {
   // iPhone, or anything without immersive-ar: model-viewer (Quick Look / Scene Viewer). ?xr=mv forces model-viewer.
   try {
     if (new URLSearchParams(location.search).get('xr') !== 'mv' && (xrOK ?? (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')))) {
-      const { startAR } = await (arMod || import('./ar.js?v=44'));
+      const { startAR } = await (arMod || import('./ar.js?v=45'));
       return startAR({ paint: arPaint(state), name: describe(state) });
     }
   } catch (e) { console.warn('webxr', e); }
@@ -232,7 +232,7 @@ $('#ar-btn').addEventListener('click', async () => {
   let mv = dlg.querySelector('model-viewer');
   if (!mv) {
     mv = document.createElement('model-viewer');
-    Object.entries({ src: 'assets/model/duolune.glb?v=44', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
+    Object.entries({ src: 'assets/model/duolune.glb?v=45', loading: 'eager', ar: '', 'ar-modes': 'webxr scene-viewer quick-look', 'ar-scale': 'fixed', 'camera-controls': '', 'shadow-intensity': '1', exposure: '1.05', 'environment-image': 'neutral', alt: 'Duolune at full size', 'camera-orbit': '35deg 70deg 3.4m' })
       .forEach(([k, v]) => mv.setAttribute(k, v));
     $('#ar-stage').appendChild(mv);
     mv.addEventListener('load', () => { paintAR(mv); const go = $('#ar-go'); if (go && mv.canActivateAR) go.hidden = false; });
@@ -263,12 +263,13 @@ dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
 
 // ---------------------------------------------------------------- hero film
 const film = $('#film');
-if (matchMedia('(max-aspect-ratio: 1/1)').matches) film.poster = 'assets/img/poster_portrait.webp';
+if (matchMedia('(max-aspect-ratio: 3/4)').matches) film.poster = 'assets/img/poster_portrait.webp';
+else if (matchMedia('(max-aspect-ratio: 3/2)').matches) film.poster = 'assets/img/poster_square.webp';   // 3 films: <=3:4 portrait, <=3:2 square, wider landscape
 const SHOTS = SIGNATURES.map((g) => [g.id, g.name.replace(' / ', ', ')]);   // the hero film: 40 s at 72 BPM, the finish changes every beat (25 f = 5/6 s), 12 signatures x 4
 const OFFSET = 0; // film starts on the bar
 let lastShot = -1, ticking = false;
 function shotTick() {
-  const i = Math.min(11, Math.floor(((film.currentTime + OFFSET) % 24) / 2));   // v2 film (24 s, 2 s per finish); v3 version is in tools/hero_v3_stash
+  const i = Math.floor(((film.currentTime + OFFSET) % 40) / (5 / 6)) % 12;
   if (i !== lastShot) { lastShot = i; $('#shot-n').textContent = SHOTS[i][0]; $('#shot-name').textContent = SHOTS[i][1]; }
   if (!film.paused) requestAnimationFrame(shotTick); else ticking = false;
 }
@@ -293,6 +294,16 @@ if (!reduced && !saveData) {
   if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad, { once: true });
 } else setPlaying(false);
 if (saveData) setPlaying(false);
+const soundBtn = $('#sound');   // browsers only autoplay muted; sound is opt-in. Music: "chill loopable" by Pro Sensory (CC0)
+const SND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const SND_OFF = soundBtn.innerHTML;
+soundBtn.addEventListener('click', () => {
+  film.muted = !film.muted;
+  soundBtn.setAttribute('aria-pressed', String(!film.muted));
+  soundBtn.setAttribute('aria-label', film.muted ? 'Turn sound on' : 'Turn sound off');
+  soundBtn.innerHTML = film.muted ? SND_OFF : SND_ON;
+  if (!film.muted && film.paused) { delete film.dataset.userPaused; setPlaying(true); }
+});
 pauseBtn.addEventListener('click', () => { const p = film.paused; film.dataset.userPaused = p ? '' : '1'; if (p) delete film.dataset.userPaused; setPlaying(p); });
 
 

@@ -35,7 +35,7 @@
 <link id="gf" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet"></noscript>
 <link rel="preload" as="image" href="assets/img/poster.webp" fetchpriority="high">
-<link rel="stylesheet" href="css/style.css?v=44">
+<link rel="stylesheet" href="css/style.css?v=45">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -67,6 +67,8 @@
   <!-- HERO ---------------------------------------------------------- -->
   <section class="hero" aria-label="Duolune">
     <video class="hero-film" id="film" playsinline muted loop preload="none" poster="assets/img/poster.webp" aria-hidden="true">
+      <source src="assets/film/hero_portrait.mp4" type="video/mp4" media="(max-aspect-ratio: 3/4)">
+      <source src="assets/film/hero_square.mp4" type="video/mp4" media="(max-aspect-ratio: 3/2)">
       <source src="assets/film/hero_1080.mp4" type="video/mp4" media="(min-width: 1300px)">
       <source src="assets/film/hero_720.mp4" type="video/mp4">
     </video>
@@ -83,6 +85,7 @@
       </div>
       <div class="hero-meta">
         <p class="shot"><span id="shot-n">01</span><span class="shot-of">/ 12</span> <span id="shot-name">Cognac leather, satin black</span></p>
+        <button class="icon-btn" id="sound" type="button" aria-label="Turn sound on" aria-pressed="false" title="Music: &ldquo;chill loopable&rdquo; by Pro Sensory"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
         <button class="icon-btn" id="pause" type="button" aria-label="Pause film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg></button>
       </div>
     </div>
@@ -354,7 +357,7 @@
       <ol class="steps">
         <li><h3>Model</h3><p>The shape was modelled in Blender. Its first version had no way for the seat to hold on to the frame, so the joints were engineered afterwards: real axles, real spacers, real sizes.</p></li>
         <li><h3>Material</h3><p>Every finish on this page is procedural: grain, stitching, the seams and the ply lines in the wood. Nothing on this page is a photograph.</p></li>
-        <li><h3>Film</h3><p>The film at the top is one slow turn around the chair. Every two seconds the finish changes, through all twelve signature builds, and the camera never cuts.</p></li>
+        <li><h3>Film</h3><p>The film at the top is one slow turn around the chair. It cuts between the whole chair and its details on every bar, and the finish changes on every beat, through all twelve signature builds. Every shot turns at the same speed; nothing zooms.</p></li>
         <li><h3>Web</h3><p>The chair you turned above is about a megabyte (half that on phones). Its shading, the soft shadows where parts meet and the light bouncing off the floor, was baked in Cycles; the stitching and the stripe are drawn by the graphics card as you look, so changing a colour costs nothing to download.</p></li>
       </ol>
       <aside class="makers">
@@ -362,7 +365,7 @@
         <p class="makers-line">I can do this for your pieces: one model of each, renders of every finish, and a page like this one where buyers build their own.</p>
         <a class="btn" href="https://radwanjml.github.io/partners/">See how it works</a>
       </aside>
-      <p class="credit">Designed, engineered and visualised by <a href="https://radwanjml.github.io/">Radwan Jameel</a>, with AI-assisted code. Room backdrop and props: Poly Haven, CC0. Built with Blender, three.js and model-viewer.</p>
+      <p class="credit">Designed, engineered and visualised by <a href="https://radwanjml.github.io/">Radwan Jameel</a>, with AI-assisted code. Room backdrop and props: Poly Haven, CC0. Music: &ldquo;chill loopable&rdquo; by <a href="https://opengameart.org/content/chill-loopable">Pro Sensory (Alex McCulloch)</a>, CC0, via OpenGameArt. Built with Blender, three.js and model-viewer.</p>
     </div>
   </section>
 </main>
@@ -371,6 +374,7 @@
   <div class="wrap foot-grid">
     <p class="foot-mark">Duolune</p>
     <p>A concept piece. Not for sale yet; prices are illustrative.</p>
+    <p>Film music by <a href="https://opengameart.org/content/chill-loopable">Pro Sensory</a></p>
     <p><a href="https://radwanjml.github.io/">radwanjml.github.io</a></p>
   </div>
 </footer>
@@ -396,6 +400,6 @@
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-<script type="module" src="js/app.js?v=44"></script>
+<script type="module" src="js/app.js?v=45"></script>
 </body>
 </html>

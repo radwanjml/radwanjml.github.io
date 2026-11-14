@@ -2,6 +2,7 @@
 // [slug, title, note?]: note replaces "Modelled and rendered in Blender" (fan art credits).
 export const R = [
   ['herrand', 'Herrand delivery robot', 'Concept design · simulated in Python, rendered in Blender Cycles'],
+  ['duolune', 'Duolune lounge chair', 'Concept furniture · modelled in Blender, film rendered in Cycles'],
   ['perfume', 'JAMEEL perfume'], ['1966-headphones', '1966 Headphones'], ['wine', 'Wine pour'], ['snow-glode-paris', 'Snow globe, Paris'],
   ['potion', 'Potion'], ['milk-carton', 'Milk carton'], ['candy-geometry-nodes', 'Candy, geometry nodes'],
   ['statue-bust', 'Statue bust', 'Rendered in Blender'], ['skull-on-fire', 'Skull on fire', 'Rendered in Blender'], ['rocket', 'Rocket'], ['cosmetics', 'Magnolia strawberry perfume'],
@@ -20,8 +21,8 @@ export const R = [
 
 // Per-model extras. video: assets/video/models/<slug>.mp4 (+ .webp poster). glb: id in the 3D viewer.
 // info: Red's notes, added later. Leave empty rather than invent.
-const VIDEO = ['herrand', 'wine', 'snow-glode-paris', 'milk-carton', 'candy-geometry-nodes', 'statue-bust', 'statue-flake', 'skull-on-fire', 'smily-clip', 'topographic-map', 'rocket', 'car-gls-600', 'car-show-room', 'diwali-roof-top', 'road-car-drive', 'doc-ock-robot-arms', 'color-swatch-fans', 'asabco-motor-oil'];
-const GLB = { herrand: 'herrand', perfume: 'perfume', '1966-headphones': 'headphones', wine: 'wine', 'milk-carton': 'milk', rocket: 'rocket' };
+const VIDEO = ['herrand', 'duolune', 'wine', 'snow-glode-paris', 'milk-carton', 'candy-geometry-nodes', 'statue-bust', 'statue-flake', 'skull-on-fire', 'smily-clip', 'topographic-map', 'rocket', 'car-gls-600', 'car-show-room', 'diwali-roof-top', 'road-car-drive', 'doc-ock-robot-arms', 'color-swatch-fans', 'asabco-motor-oil'];
+const GLB = { herrand: 'herrand', duolune: 'duolune', perfume: 'perfume', '1966-headphones': 'headphones', wine: 'wine', 'milk-carton': 'milk', rocket: 'rocket' };
 export const EXTRA = Object.fromEntries(R.map(([slug]) => [slug, { video: VIDEO.includes(slug), glb: GLB[slug] || null, info: '' }]));
 
 // Herrand (21 Oct 2026): a gallery of part renders and a link to its product page. gallery: [file in assets/img/herrand/, caption]
@@ -31,5 +32,11 @@ Object.assign(EXTRA.herrand, {
   link: ['work/herrand/', 'See the product page'],
 });
 
+// Duolune (14 Nov 2026): link to the live configurator site
+Object.assign(EXTRA.duolune, {
+  info: "A concept lounge chair I designed and modelled in Blender: two bent half-moon arcs with seventeen rollers hanging between them. Seen from above, the rollers widen from 450 mm at the head and foot to 825 mm at the hips, because your body does too. Six bolts with acorn nuts hold up the whole seat, and none of them is hidden.\n\nThe site has a configurator with twelve finishes and a two-tap AR mode that puts the chair in your room at true size. It isn't for sale. I rendered the 40-second hero film in Cycles overnight on my 4 GB laptop. The web code was built with AI assistance; the modelling and the renders are mine.",
+  link: ['sites/duolune/', 'Open the configurator'],
+});
+
 // [still w, still h, video w, video h]: reserves space so the model page doesn't shift as media loads (Addendum 51)
-export const DIMS = {"herrand":[1600,1600,1280,720],"perfume":[1600,1600],"1966-headphones":[1600,1600],"wine":[900,1600,720,1280],"snow-glode-paris":[900,1600,720,1280],"potion":[1600,1600],"milk-carton":[1600,1600,1280,720],"candy-geometry-nodes":[1600,1600,1280,1280],"statue-bust":[900,1600,720,1280],"skull-on-fire":[900,1600,720,1280],"rocket":[900,1600,720,1280],"cosmetics":[905,1600],"topographic-map":[900,1600,720,1280],"smily-clip":[900,1600,720,1280],"jwellery":[1600,1600],"statue-flake":[900,1600,720,1280],"car-gls-600":[900,1600,720,1280],"baymax":[1600,1600],"doc-ock-robot-arms":[1080,1080,1080,1080],"elmo":[1600,1600],"huggy-wuggy":[900,1600],"car-show-room":[1080,1080,1080,1080],"color-swatch-fans":[900,1600,1280,1280],"color-swatch-fan-batom-outono":[900,1600],"cotton-candy-hand-moisturizer":[900,1600],"asabco-motor-oil":[1600,900,1280,720],"geodesic-dome":[1600,1600],"cappadocia":[900,1600],"hot-air-baloon":[900,1600],"armored-warior-under-a-cherry-blossom":[1280,1600],"hotel-elevation-3d-model":[900,1600],"diwali-roof-top":[900,1600,720,1280],"road-car-drive":[1600,900,1280,548],"surfer":[1600,900]};
+export const DIMS = {"herrand":[1600,1600,1280,720],"duolune":[1080,1080,1280,720],"perfume":[1600,1600],"1966-headphones":[1600,1600],"wine":[900,1600,720,1280],"snow-glode-paris":[900,1600,720,1280],"potion":[1600,1600],"milk-carton":[1600,1600,1280,720],"candy-geometry-nodes":[1600,1600,1280,1280],"statue-bust":[900,1600,720,1280],"skull-on-fire":[900,1600,720,1280],"rocket":[900,1600,720,1280],"cosmetics":[905,1600],"topographic-map":[900,1600,720,1280],"smily-clip":[900,1600,720,1280],"jwellery":[1600,1600],"statue-flake":[900,1600,720,1280],"car-gls-600":[900,1600,720,1280],"baymax":[1600,1600],"doc-ock-robot-arms":[1080,1080,1080,1080],"elmo":[1600,1600],"huggy-wuggy":[900,1600],"car-show-room":[1080,1080,1080,1080],"color-swatch-fans":[900,1600,1280,1280],"color-swatch-fan-batom-outono":[900,1600],"cotton-candy-hand-moisturizer":[900,1600],"asabco-motor-oil":[1600,900,1280,720],"geodesic-dome":[1600,1600],"cappadocia":[900,1600],"hot-air-baloon":[900,1600],"armored-warior-under-a-cherry-blossom":[1280,1600],"hotel-elevation-3d-model":[900,1600],"diwali-roof-top":[900,1600,720,1280],"road-car-drive":[1600,900,1280,548],"surfer":[1600,900]};

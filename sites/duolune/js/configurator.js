@@ -6,7 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=44';
+import { KINDS, COLOURS, METALS, WOODS, STRIPES, HOTSPOTS } from './data.js?v=45';
 
 const lin = (a) => new THREE.Color().setRGB(a[0], a[1], a[2], THREE.LinearSRGBColorSpace);
 export const fromHex = (hex) => new THREE.Color(hex);              // sRGB in, three converts
@@ -229,7 +229,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ opacity: 0.18 }));   // r11: 0.32 read as a black slab against Cycles
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const tl = new THREE.TextureLoader();
-  tl.load('assets/model/contact_shadow_a.jpg?v=44', (shadowTex) => {   // not awaited: the chair must not wait on its shadow
+  tl.load('assets/model/contact_shadow_a.jpg?v=45', (shadowTex) => {   // not awaited: the chair must not wait on its shadow
     shadowTex.colorSpace = THREE.NoColorSpace;   // greyscale alpha (was the PNG alpha channel)
     const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: shadowTex, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false }));
     sp.rotation.x = -Math.PI / 2; sp.position.set(0.1, 0.001, 0); sp.renderOrder = -1; scene.add(sp); dirty = true;
@@ -251,7 +251,7 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
   const gl = new GLTFLoader().setDRACOLoader(draco);
   const pre = glb ? await glb : null;   // app.js started this download alongside the module import
-  const gltf = pre ? await gl.parseAsync(pre, '') : await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=44' : 'duolune.glb?v=44'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
+  const gltf = pre ? await gl.parseAsync(pre, '') : await new Promise((res, rej) => gl.load(MD + (LITE ? 'duolune_lite.glb?v=45' : 'duolune.glb?v=45'), res, (e) => e.total && onProgress?.(loaded / total + (e.loaded / e.total) / total, 'model'), rej));
   tick('model');
   await Promise.all(texJobs);
   tex.leather = tex.leather_n; tex.leatherR = tex.leather_r;
@@ -287,12 +287,12 @@ export async function createConfigurator({ canvas, overlay, onProgress, onReady,
   // Loaded after first paint; each part has its own lightmap UV (rollers: 3rd UV set, others: the only one).
   const GI = 0.7;   // decoded x2 then x0.35: bounce adds shape and colour bleed without lifting blacks (1.6 washed the frame grey)
   for (const [k, m] of Object.entries(mats)) {
-    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=44`, (t) => {
+    tl.load(`${MD}${LITE ? 'ao_lite_' : 'ao_'}${k}.jpg?v=45`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.aoMap = t; m.aoMapIntensity = k === 'rollers' ? 0.9 : 1.0; m.needsUpdate = true; dirty = true;
     });
     // baked Cycles bounce light (indirect diffuse, studio lights + floor), stored x0.5; three adds it to the live direct light
-    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=44`, (t) => {
+    if (!['hardware', 'feet'].includes(k)) tl.load(`${MD}${LITE ? 'gi_lite_' : 'gi_'}${k}.jpg?v=45`, (t) => {
       t.flipY = false; t.channel = k === 'rollers' ? 2 : 0; t.colorSpace = THREE.NoColorSpace;
       m.lightMap = t; m.lightMapIntensity = GI; m.needsUpdate = true; dirty = true;
     });
