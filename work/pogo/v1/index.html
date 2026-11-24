@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<script>try{if(sessionStorage.getItem("pogoSeen"))document.documentElement.classList.add("quick")}catch(e){}</script>
+<title>POGO v1 (test build)</title>
+<meta name="description" content="POGO, a modular desk lamp that exists as CAD and simulation. Test build.">
+<link rel="icon" href="favicon.svg">
+<link rel="preload" href="../../../assets/fonts/pogo/RedHatDisplay.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:RH;src:url("../../../assets/fonts/pogo/RedHatDisplay.woff2") format("woff2");font-weight:300 900;font-display:swap}
+:root{--paper:#fafafa;--ink:#0b0b0d;--blue:#1f3bd1;--grid:rgba(31,59,209,.07);--grid2:rgba(31,59,209,.13);--m:84px;--mono:Consolas,"SF Mono",Menlo,monospace}
+*{box-sizing:border-box;margin:0}
+html{background:var(--paper);color:var(--ink);-webkit-text-size-adjust:100%}
+body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
+#main{position:relative}
+.mono{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+/* paper */
+.paper{position:fixed;inset:0;z-index:0;pointer-events:none;
+ background-image:linear-gradient(var(--grid2) 1px,transparent 1px),linear-gradient(90deg,var(--grid2) 1px,transparent 1px),
+ linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+ background-size:96px 96px,96px 96px,16px 16px,16px 16px;background-position:-1px -1px}
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:16px;height:72px;padding:0 var(--m)}
+.nav .home{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;min-height:44px}
+.nav .icon{width:32px;height:32px;display:block;visibility:hidden}
+.nav .wm{height:20px;width:auto;display:block}
+.nav .sheet{margin-left:auto}
+/* hero */
+.hero{position:relative;z-index:1;height:100vh;height:100svh;min-height:560px;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none}
+/* the CAD drawing: placeholder from first paint, the whole lamp on T3. Framed like the 3D lamp (same fill/centre; spine at 40.8% of the image) */
+.hero{--fill:76%;--cy:53.5%}
+.ph{position:absolute;left:50%;top:var(--cy);height:var(--fill);width:auto;transform:translate(-40.8%,-50%);pointer-events:none}
+.tier3 #gl{display:none}
+/* drawing -> live lamp: a plotter scan wipes down; --w = 0..100 (%) */
+.hero{--w:0}
+.wiping #gl{clip-path:inset(0 0 calc(100% - var(--w) * 1%) 0)}
+.wiping .ph{clip-path:inset(calc(var(--w) * 1%) 0 0 0)}
+.scan{position:absolute;left:0;right:0;top:calc(var(--w) * 1%);height:1px;background:var(--blue);opacity:0;pointer-events:none;box-shadow:0 0 12px 1px rgba(31,59,209,.35)}
+.wiping .scan{opacity:.7}
+@media (min-width:768px) and (max-width:1099px){.hero{--fill:60%;--cy:62.5%}}
+.hero h1{position:absolute;left:var(--m);top:22%;font-weight:700;font-size:clamp(48px,6.5vw,104px);line-height:.94;letter-spacing:-.035em;max-width:7ch;
+ text-shadow:0 0 18px var(--paper),0 0 6px var(--paper)}
+.hero .lead{position:absolute;right:var(--m);bottom:18%;font-size:clamp(19px,1.75vw,28px);line-height:1.2;font-weight:500;max-width:16ch;text-align:right;
+ text-shadow:0 0 14px var(--paper),0 0 5px var(--paper)}
+.hud{position:absolute;z-index:3;display:flex;gap:10px;align-items:center}
+.hud.bl{left:var(--m);bottom:28px}.hud.br{right:var(--m);bottom:28px;color:#4a4d57}
+.tierbtn{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--ink);padding:0 12px;min-height:32px;cursor:pointer}
+.tierbtn:focus-visible,.home:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.next{position:relative;z-index:1;min-height:60vh;padding:120px var(--m);background:var(--paper);border-top:1px solid var(--grid2)}
+.next p{max-width:62ch;font-size:17px;line-height:1.5;color:#3b3e47}
+/* loader */
+#loader{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--paper);animation:ldrOut .45s 3s forwards}
+.quick #loader{display:none}.quick .nav .icon{visibility:visible}
+@keyframes ldrOut{to{opacity:0;visibility:hidden}}
+.selfout .nav .icon{visibility:visible}
+#loader .paper{position:absolute}
+#ldr{width:min(46vw,260px);height:auto;overflow:visible;position:relative;color:var(--ink)}
+#ldr .g{stroke:var(--blue);fill:none}
+#ldrp{position:absolute;left:50%;top:calc(50% + min(23vw,130px) + 40px);transform:translateX(-50%);color:var(--blue);opacity:0}
+.loaded #loader{pointer-events:none}
+@media (max-width:767px){
+ :root{--m:20px}
+ .nav{height:60px}.nav .wm{height:16px}.nav .icon{width:26px;height:26px}
+ .hero h1{top:84px;max-width:none;font-size:clamp(40px,11.5vw,60px)}
+ .hero .lead{bottom:76px;right:var(--m);font-size:18px;max-width:22ch}
+ .hero{--fill:50%;--cy:50%}
+ .hud.bl{bottom:20px}.hud.br{display:none}.pending .hud.br{display:flex;bottom:64px}
+}
+/* loader: pure CSS from first paint. Blue construction, then ink. --lift = hex drafted height in viewBox units */
+#ldr .c{stroke:#1f3bd1;fill:none}
+#ldr *{animation-fill-mode:both;animation-timing-function:cubic-bezier(.45,0,.55,1)}
+#ldr .guides line{transform-box:fill-box;transform-origin:center;animation:ldrGuide .5s both}
+#ldr .guides line:nth-child(2){animation-delay:.04s}#ldr .guides line:nth-child(3){animation-delay:.08s}#ldr .guides line:nth-child(4){animation-delay:.12s}
+#ldr .guides line:nth-child(5){animation-delay:.16s}#ldr .guides line:nth-child(6){animation-delay:.2s}#ldr .guides line:nth-child(7){animation-delay:.24s}
+#ldr .facec{stroke-dasharray:1 1;animation:ldrDraw .5s .15s both}
+#ldr .handles{animation:ldrFade .2s .5s both}
+#ldr .eyec circle{stroke-dasharray:1 1;animation:ldrDraw .3s .45s both}#ldr .eyec line{animation:ldrFade .15s .45s both}
+#ldr .hexc polygon{stroke-dasharray:1 1;animation:ldrDraw .3s .58s both}
+#ldr .lead{animation:ldrFade .2s .78s both}
+#ldr .face{stroke-dasharray:1 1;animation:ldrDraw .42s .9s both}
+#ldr .eye{animation:ldrFade .24s 1.12s both}
+#ldr .brow{stroke-dasharray:1 1;animation:ldrDraw .18s 1.8s both;animation-timing-function:cubic-bezier(.2,.8,.3,1)}
+#ldr .hexw{transform-box:fill-box;transform-origin:center;animation:ldrHex .95s 1.2s both}
+#ldr .cons{animation:ldrClear .4s 1.3s forwards}
+#ldr .cons2{animation:ldrClear .2s 1.42s forwards}
+#ldr .hexw{--lift:220px}
+#ldr{animation:ldrSeat .14s 2.05s}
+@keyframes ldrGuide{from{transform:scale(0,1);opacity:0}to{transform:none;opacity:1}}
+@keyframes ldrDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes ldrFade{from{opacity:0}to{opacity:1}}
+@keyframes ldrClear{to{opacity:0}}
+@keyframes ldrPop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes ldrHex{0%{opacity:0;transform:translateY(calc(var(--lift) * -1)) rotate(30deg)}
+ 14%{opacity:1;transform:translateY(calc(var(--lift) * -1)) rotate(30deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
+ 34%{transform:translateY(0) rotate(30deg);animation-timing-function:cubic-bezier(0,.55,.45,1)}
+ 44%{transform:translateY(-70px) rotate(30deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
+ 53%{transform:translateY(0) rotate(30deg);animation-timing-function:cubic-bezier(0,.55,.45,1)}
+ 58%{transform:translateY(-18px) rotate(30deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
+ 63%{transform:translateY(0) rotate(30deg);animation-timing-function:cubic-bezier(.3,0,.25,1)}
+ 88%{opacity:1;transform:rotate(-68deg);animation-timing-function:cubic-bezier(.4,0,.2,1)}
+ 100%{opacity:1;transform:rotate(-60deg)}}
+@keyframes ldrSeat{50%{transform:scale(.975)}}
+@media (prefers-reduced-motion:reduce){#ldr,#ldr *{animation-duration:.01s!important;animation-delay:0s!important}}
+</style>
+</head>
+<body>
+<div class="paper" aria-hidden="true"></div>
+<header class="nav">
+ <a class="home" href="#top" aria-label="POGO, home">
+  <svg class="icon" id="navicon" viewBox="-76.8 -111.8 1433.6 1433.6" aria-hidden="true"><rect x="50" y="50" width="1180" height="1110.0" rx="240" fill="none" stroke="currentColor" stroke-width="100"/><circle cx="426.67" cy="693.80" r="176" fill="currentColor"/><polygon points="729.09,693.80 791.21,586.21 915.45,586.21 977.57,693.80 915.45,801.39 791.21,801.39" fill="none" stroke="currentColor" stroke-width="100" stroke-linejoin="round"/></svg>
+  <svg class="wm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="-20 -1110 4602 1170" fill="currentColor"><path d="M96.69 0.00V-1000.00H576.52Q675.09 -1000.00 749.34 -961.13Q823.58 -922.26 865.69 -853.41Q907.79 -784.56 907.79 -693.91Q907.79 -605.36 865.69 -536.86Q823.58 -468.36 748.62 -429.48Q673.66 -390.59 576.52 -390.59H273.26V0.00ZM273.26 -538.87H558.14Q636.44 -538.87 683.13 -580.85Q729.81 -622.83 729.81 -692.48Q729.81 -762.83 683.13 -804.80Q636.44 -846.77 558.14 -846.77H273.26Z"/><circle cx="1558.01" cy="-500.00" r="432.02" fill="none" stroke="currentColor" stroke-width="167.38"/><circle cx="1558.01" cy="-500.00" r="273.01"/><path d="M2738.20 15.71Q2627.52 15.71 2532.20 -23.94Q2436.87 -63.58 2364.76 -134.30Q2292.64 -205.01 2252.29 -298.58Q2211.94 -392.16 2211.94 -500.00Q2211.94 -607.84 2251.93 -701.42Q2291.92 -794.99 2363.33 -865.70Q2434.75 -936.42 2530.07 -976.06Q2625.39 -1015.71 2735.36 -1015.71Q2856.69 -1015.71 2964.45 -968.30Q3072.21 -920.89 3144.37 -836.01L3021.73 -721.05Q2968.79 -785.37 2894.30 -819.34Q2819.81 -853.32 2735.36 -853.32Q2662.26 -853.32 2599.91 -826.45Q2537.55 -799.57 2490.96 -751.90Q2444.36 -704.23 2418.56 -640.10Q2392.75 -575.96 2392.75 -500.00Q2392.75 -424.77 2418.91 -359.92Q2445.07 -295.07 2492.36 -247.05Q2539.65 -199.03 2602.71 -172.15Q2665.77 -145.28 2739.57 -145.28Q2819.97 -145.28 2885.30 -177.65Q2950.62 -210.03 2993.28 -266.85Q3035.93 -323.67 3047.31 -395.58H2732.19V-549.49H3234.42V-491.89Q3234.42 -383.40 3196.93 -290.94Q3159.43 -198.49 3092.67 -129.60Q3025.90 -60.70 2935.23 -22.49Q2844.56 15.71 2738.20 15.71Z"/><polygon points="3497.48,-500.00 3766.33,-932.02 4154.56,-932.02 4423.41,-500.00 4154.56,-67.98 3766.33,-67.98" fill="none" stroke="currentColor" stroke-width="167.38" stroke-linejoin="round"/></svg>
+ </a>
+ <span class="mono sheet">Sheet 01 / 06</span>
+</header>
+<main id="main" aria-busy="true">
+ <section class="hero" id="top" aria-label="POGO">
+  <canvas id="gl" role="img" aria-label="POGO, a modular desk lamp, drawn in blue CAD lines and turning slowly: an octagonal base, a jointed spine of three tubes, a head with one round eye and one hexagon eye, a two-joint arm with a gripper on the right and a flexible tentacle holding a cup on the left."></canvas>
+  <img class="ph" id="ph" src="../../../assets/img/pogo/slice/lamp-lines-upG-360.webp" width="360" height="576" alt="" fetchpriority="high">
+  <div class="scan" aria-hidden="true"></div>
+  <h1>Technically, a lamp.</h1>
+  <p class="lead">Serious mechanics.<br>Unserious personality.</p>
+  <div class="hud bl mono"><span id="tierlab">Quality</span><button class="tierbtn" id="tierbtn" type="button" aria-describedby="tierlab">Auto</button><button class="tierbtn" id="spinbtn" type="button" aria-pressed="false">Pause turn</button></div>
+  <div class="hud br mono" aria-hidden="true">Lens 50 mm</div>
+  <p class="sr" id="live" aria-live="polite"></p>
+ </section>
+ <section class="next" aria-label="Test build note">
+  <p class="mono">Test build · step 1 of 7</p>
+  <p style="margin-top:16px">Loader, quality tiers and the lamp drawn in CAD lines, live in the browser. The rest of the page comes in the next steps. POGO exists only as CAD and simulation; nothing here was built or tested on a bench. Made with AI assistance.</p>
+ </section>
+</main>
+<div id="loader" aria-hidden="true">
+ <div class="paper"></div>
+ <svg id="ldr" viewBox="-76.8 -111.8 1433.6 1433.6" aria-hidden="true">
+  <g class="cons"><g class="c guides" stroke-width="6" stroke-dasharray="14 18"><line x1="-376.8" y1="50.0" x2="1656.8" y2="50.0"/><line x1="-376.8" y1="1160.0" x2="1656.8" y2="1160.0"/><line x1="50.0" y1="-411.8" x2="50.0" y2="1621.8"/><line x1="1230.0" y1="-411.8" x2="1230.0" y2="1621.8"/><line x1="-376.8" y1="693.8" x2="1656.8" y2="693.8"/><line x1="426.7" y1="-411.8" x2="426.7" y2="1621.8"/><line x1="853.3" y1="-411.8" x2="853.3" y2="1621.8"/></g>
+  <rect class="c facec" x="50" y="50" width="1180" height="1110.0" rx="240" stroke-width="8" pathLength="1"/>
+  <g class="c handles" stroke-width="6"><circle cx="290.0" cy="290.0" r="14"/><circle cx="990.0" cy="290.0" r="14"/><circle cx="290.0" cy="920.0" r="14"/><circle cx="990.0" cy="920.0" r="14"/><line x1="290.0" y1="290.0" x2="120.3" y2="120.3" stroke-dasharray="10 10"/><line x1="120.3" y1="120.3" x2="-130.0" y2="-100.0"/><line x1="-130.0" y1="-100.0" x2="-330.0" y2="-100.0"/><text x="-340.0" y="-122.0" fill="#1f3bd1" stroke="none" font-family="Consolas,monospace" font-size="74" text-anchor="end" letter-spacing="6">R240</text></g>
+  <g class="c eyec" stroke-width="7"><circle cx="426.67" cy="693.80" r="176" pathLength="1"/><line x1="386.67" y1="693.80" x2="466.67" y2="693.80"/><line x1="426.67" y1="653.80" x2="426.67" y2="733.80"/></g></g>
+  <g class="cons2"><g class="c hexc" stroke-width="7"><polygon points="729.09,473.80 791.21,366.21 915.45,366.21 977.57,473.80 915.45,581.39 791.21,581.39" pathLength="1" transform="rotate(30 853.33 473.80)"/></g>
+  <g class="c lead" stroke-width="6"><line x1="853.33" y1="628.04" x2="853.33" y2="659.80" stroke-dasharray="12 12"/><polyline points="835.33,633.80 853.33,659.80 871.33,633.80" fill="none"/></g></g>
+  <rect class="face" x="50" y="50" width="1180" height="1110.0" rx="240" fill="none" stroke="#0b0b0d" stroke-width="100" pathLength="1"/>
+  <circle class="eye" cx="426.67" cy="693.80" r="176" fill="#0b0b0d"/>
+  
+  <g class="hexw"><polygon points="729.09,693.80 791.21,586.21 915.45,586.21 977.57,693.80 915.45,801.39 791.21,801.39" fill="none" stroke="#0b0b0d" stroke-width="100" stroke-linejoin="round"/></g>
+</svg>
+ <p id="ldrp" class="mono">Loading model</p>
+</div>
+<noscript><style>#loader{display:none}#gl{display:none}</style></noscript>
+<script defer src="../../../assets/img/pogo/slice/vendor/gsap.min.js"></script>
+<script type="module" src="app.js"></script>
+</body></html>
