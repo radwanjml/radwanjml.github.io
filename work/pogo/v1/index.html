@@ -53,7 +53,7 @@ body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
 .next{position:relative;z-index:1;min-height:60vh;padding:120px var(--m);background:var(--paper);border-top:1px solid var(--grid2)}
 .next p{max-width:62ch;font-size:17px;line-height:1.5;color:#3b3e47}
 /* loader */
-#loader{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--paper);animation:ldrOut .45s 3s forwards}
+#loader{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--paper);animation:ldrOut .45s 4s forwards}
 .quick #loader{display:none}.quick .nav .icon{visibility:visible}
 @keyframes ldrOut{to{opacity:0;visibility:hidden}}
 .selfout .nav .icon{visibility:visible}
@@ -73,38 +73,37 @@ body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
 /* loader: pure CSS from first paint. Blue construction, then ink. --lift = hex drafted height in viewBox units */
 #ldr .c{stroke:#1f3bd1;fill:none}
 #ldr *{animation-fill-mode:both;animation-timing-function:cubic-bezier(.45,0,.55,1)}
-#ldr .guides line{transform-box:fill-box;transform-origin:center;animation:ldrGuide .5s both}
-#ldr .guides line:nth-child(2){animation-delay:.04s}#ldr .guides line:nth-child(3){animation-delay:.08s}#ldr .guides line:nth-child(4){animation-delay:.12s}
-#ldr .guides line:nth-child(5){animation-delay:.16s}#ldr .guides line:nth-child(6){animation-delay:.2s}#ldr .guides line:nth-child(7){animation-delay:.24s}
-#ldr .facec{stroke-dasharray:1 1;animation:ldrDraw .5s .15s both}
-#ldr .handles{animation:ldrFade .2s .5s both}
-#ldr .eyec circle{stroke-dasharray:1 1;animation:ldrDraw .3s .45s both}#ldr .eyec line{animation:ldrFade .15s .45s both}
-#ldr .hexc polygon{stroke-dasharray:1 1;animation:ldrDraw .3s .58s both}
-#ldr .lead{animation:ldrFade .2s .78s both}
-#ldr .face{stroke-dasharray:1 1;animation:ldrDraw .42s .9s both}
-#ldr .eye{animation:ldrFade .24s 1.12s both}
-#ldr .brow{stroke-dasharray:1 1;animation:ldrDraw .18s 1.8s both;animation-timing-function:cubic-bezier(.2,.8,.3,1)}
-#ldr .hexw{transform-box:fill-box;transform-origin:center;animation:ldrHex .95s 1.2s both}
-#ldr .cons{animation:ldrClear .4s 1.3s forwards}
-#ldr .cons2{animation:ldrClear .2s 1.42s forwards}
+#ldr .guides line{transform-box:fill-box;transform-origin:center;animation:ldrGuide 0.675s both}
+#ldr .guides line:nth-child(2){animation-delay:0.054s}#ldr .guides line:nth-child(3){animation-delay:0.108s}#ldr .guides line:nth-child(4){animation-delay:0.162s}
+#ldr .guides line:nth-child(5){animation-delay:0.216s}#ldr .guides line:nth-child(6){animation-delay:0.270s}#ldr .guides line:nth-child(7){animation-delay:0.324s}
+#ldr .facec{stroke-dasharray:1 1;animation:ldrDraw 0.675s 0.203s both}
+#ldr .handles{animation:ldrFade 0.270s 0.675s both}
+#ldr .eyec circle{stroke-dasharray:1 1;animation:ldrDraw 0.405s 0.608s both}#ldr .eyec line{animation:ldrFade 0.203s 0.608s both}
+#ldr .hexc polygon{stroke-dasharray:1 1;animation:ldrDraw 0.405s 0.783s both}
+#ldr .lead{animation:ldrFade 0.270s 1.053s both}
+#ldr .face{stroke-dasharray:1 1;animation:ldrDraw 0.567s 1.215s both}
+#ldr .eye{animation:ldrFade 0.324s 1.512s both}
+#ldr .brow{stroke-dasharray:1 1;animation:ldrDraw 0.243s 2.430s both;animation-timing-function:cubic-bezier(.2,.8,.3,1)}
+#ldr .hexw{transform-box:fill-box;transform-origin:center;animation:ldrHex 1.282s 1.688s both}
+#ldr .cons{animation:ldrClear 0.540s 1.755s forwards}
+#ldr .cons2{animation:ldrClear 0.270s 1.917s forwards}
 #ldr .hexw{--lift:220px}
-#ldr{animation:ldrSeat .14s 2.05s}
+#ldr{animation:ldrSeat 0.189s 2.673s}
 @keyframes ldrGuide{from{transform:scale(0,1);opacity:0}to{transform:none;opacity:1}}
 @keyframes ldrDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 @keyframes ldrFade{from{opacity:0}to{opacity:1}}
 @keyframes ldrClear{to{opacity:0}}
 @keyframes ldrPop{from{transform:scale(0)}to{transform:scale(1)}}
 @keyframes ldrHex{0%{opacity:0;transform:translateY(calc(var(--lift) * -1)) rotate(30deg)}
- 14%{opacity:1;transform:translateY(calc(var(--lift) * -1)) rotate(30deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
- 34%{transform:translateY(0) rotate(30deg);animation-timing-function:cubic-bezier(0,.55,.45,1)}
- 44%{transform:translateY(-70px) rotate(30deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
- 53%{transform:translateY(0) rotate(30deg);animation-timing-function:cubic-bezier(0,.55,.45,1)}
- 58%{transform:translateY(-18px) rotate(30deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
- 63%{transform:translateY(0) rotate(30deg);animation-timing-function:cubic-bezier(.3,0,.25,1)}
- 88%{opacity:1;transform:rotate(-68deg);animation-timing-function:cubic-bezier(.4,0,.2,1)}
- 100%{opacity:1;transform:rotate(-60deg)}}
+ 12%{opacity:1;transform:translateY(calc(var(--lift) * -1)) rotate(30deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
+ 36%{transform:translateY(0) rotate(19deg);animation-timing-function:cubic-bezier(0,.55,.45,1)}
+ 48%{transform:translateY(-70px) rotate(11deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
+ 60%{transform:translateY(0) rotate(5deg);animation-timing-function:cubic-bezier(0,.55,.45,1)}
+ 67%{transform:translateY(-18px) rotate(1.5deg);animation-timing-function:cubic-bezier(.55,0,1,.45)}
+ 74%{transform:translateY(0) rotate(-3deg);animation-timing-function:cubic-bezier(.3,0,.3,1)}
+ 87%{transform:rotate(1deg)}100%{opacity:1;transform:rotate(0)}}
 @keyframes ldrSeat{50%{transform:scale(.975)}}
-@media (prefers-reduced-motion:reduce){#ldr,#ldr *{animation-duration:.01s!important;animation-delay:0s!important}}
+@media (prefers-reduced-motion:reduce){#ldr,#ldr *{animation-duration:0.014s!important;animation-delay:0.000s!important}}
 </style>
 </head>
 <body>
