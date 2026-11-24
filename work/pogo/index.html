@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base href="../../">
+<link rel="icon" href="assets/img/pogo/favicon.svg" type="image/svg+xml"><title>POGO · a modular desk lamp, designed and simulated · Radwan Jameel</title>
+<meta name="description" content="POGO is a modular desk lamp: ring-lock joints, a swappable head, an arm and a bendy tentacle. Designed in CAD and checked by simulation by Radwan Jameel. Not built, not physically tested. Pose it in the live builder.">
+<link rel="canonical" href="https://radwanjml.github.io/work/pogo/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://radwanjml.github.io/work/pogo/">
+<meta property="og:site_name" content="Radwan Jameel">
+<meta property="og:title" content="POGO: a modular desk lamp you can pose in the browser">
+<meta property="og:description" content="Designed in CAD, checked by simulation, not built. A design study with a live builder, by Radwan Jameel.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/img/pogo/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0B0B0D">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"CreativeWork","name":"POGO: a modular desk lamp","description":"A modular desk lamp designed in CAD and checked by simulation, with a live in-browser builder. A design study: not built or physically tested.","author":{"@type":"Person","name":"Radwan Jameel"},"url":"https://radwanjml.github.io/work/pogo/","image":"https://radwanjml.github.io/assets/img/pogo/og.jpg"}</script>
+<link rel="preload" href="assets/fonts/herrand/InterTight-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/herrand/Inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/pogo/RedHatDisplay.woff2" as="font" type="font/woff2" crossorigin>
+<style>html,body{background:#fafafa}body{margin:0;overflow-x:hidden}
+@font-face{font-family:RH;src:url("assets/fonts/pogo/RedHatDisplay.woff2") format("woff2");font-weight:300 900}
+:root{--bl:#1f3bd1;--bl-soft:rgba(31,59,209,.16);--bl-line:rgba(31,59,209,.5);--ink:#0b0b0d;--bg:#fafafa;
+ --t-display:104px;--t-lead:28px;--t-mono:13px;--m:84px}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg)}body{overflow-x:hidden;min-height:100vh;font-family:RH,Arial,sans-serif;color:var(--ink)}
+#main .mono{font:500 var(--t-mono)/1.4 Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--bl)}
+#main .stage{width:1600px;height:900px;position:relative;transform-origin:0 0;overflow:hidden}
+#main .frame{position:absolute;inset:28px;border:1px solid var(--bl-line)}
+#main .vl{position:absolute;top:92px;bottom:28px;width:1px;background:var(--bl-soft)}
+#main .hl{position:absolute;left:28px;right:28px;height:1px;background:var(--bl-soft)}
+#main .sq{position:absolute;width:9px;height:9px;background:var(--bl);margin:-4px 0 0 -4px}
+#main .nav{position:absolute;top:28px;left:28px;right:28px;height:64px;border-bottom:1px solid var(--bl-line);display:flex;align-items:center;padding:0 56px;justify-content:space-between}
+#main .nav .wm{height:26px;color:var(--ink);display:block}
+#main .nav .wmw{width:100px}
+#main .nav .links{display:flex;gap:41px}#main .nav a{color:inherit;text-decoration:none;padding:8px 0}
+#main .nav a:hover{text-decoration:underline;text-underline-offset:4px}
+#main .nav a:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+#main .lamp{position:absolute;left:902px;top:124px;height:650px}
+#main .eyebrow{position:absolute;left:var(--m);top:140px}
+#main h1{position:absolute;left:var(--m);top:226px;font-weight:800;font-size:var(--t-display);line-height:.95;letter-spacing:-.04em}
+#main .lead{position:absolute;left:var(--m);top:470px;font-size:var(--t-lead);line-height:1.25;font-weight:600;letter-spacing:-.01em;width:440px}
+#main .small{position:absolute;left:var(--m);top:560px;width:460px;color:var(--ink);opacity:.62}
+#main .small.mono{color:var(--ink)}
+#main .btn{position:absolute;left:var(--m);top:640px;border:1.5px solid var(--bl);padding:16px 28px;background:var(--bl);color:#fff}
+#main .btn.mono{color:#fff}
+#main .call{position:absolute}
+#main .ln{position:absolute;background:var(--bl);height:1px;transform-origin:0 0}
+#main .spec{position:absolute;top:806px}
+#main .cue{position:absolute;right:28px;bottom:28px;width:200px;height:72px;background:var(--ink);padding:14px 20px}
+#main .cue .mono{color:#fff}
+
+#main .btn{text-decoration:none}
+#main .btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+@media (max-width:800px){
+ body{height:auto}
+ #main .stage{width:100%!important;height:auto!important;transform:none!important;display:flex;flex-direction:column;padding:20px 20px 28px;overflow:visible}
+ #main .stage>*{position:static!important}
+ #main .frame,#main .vl,#main .hl,#main .sq,#main .call,#main .ln,#main .cue,#main .nav .mono:not(.keep){display:none!important}
+ #main .nav{order:0;height:auto;padding:0 0 16px;border-bottom:1px solid var(--bl-line);margin-bottom:28px}
+ #main .nav .mono{display:none!important}
+ #main .eyebrow{order:1;margin-bottom:14px}
+ #main h1{order:2;font-size:clamp(44px,14.5vw,84px);overflow-wrap:anywhere}
+ #main .lead{order:3;font-size:24px;margin-top:20px;width:auto}
+ #main .small{order:4;margin-top:16px;width:auto}
+ #main .btn{order:5;margin-top:24px;align-self:flex-start}
+ #main .lamp{order:6;height:auto!important;width:100%!important;max-width:360px!important;min-width:0;align-self:center;margin-top:36px}
+ #main .stage{min-width:0;max-width:100vw}
+ #main .spec{white-space:normal}
+ #main .spec{order:7;margin-top:24px;line-height:1.7}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+#main #s1wrap{position:relative;overflow:hidden}
+#main .s2{position:relative}
+#main .s2pin{height:100vh;position:relative;overflow:hidden}
+#main .stage2{width:1600px;height:900px;position:absolute;left:0;top:0;transform-origin:0 0}
+#main .stage2 .eyebrow{top:140px}
+#main h2{position:absolute;left:var(--m);top:200px;font-weight:800;font-size:76px;line-height:.98;letter-spacing:-.035em}
+#main .s2sub{position:absolute;left:var(--m);top:400px;color:var(--ink);opacity:.62;line-height:1.7}
+#main .rig{position:absolute;transform-origin:0 0}
+#main .part{position:absolute;max-width:none}
+#main .lab{position:absolute;white-space:nowrap;opacity:0}
+#main .lab span{color:var(--ink);opacity:.5;margin-right:6px}
+#main .lab i{position:absolute;top:50%;height:1px;background:var(--bl);width:0}
+#main .tblock{position:absolute;left:var(--m);bottom:110px;display:grid;grid-template-columns:repeat(4,auto);border:1px solid var(--bl-line);opacity:0}
+#main .tblock div{padding:10px 18px;border-right:1px solid var(--bl-line);display:flex;flex-direction:column;gap:4px}
+#main .tblock div:last-child{border-right:0}
+#main .tblock b{font-weight:700;font-size:17px}#main .tblock em{font-style:normal;font:500 11px Consolas,monospace;color:var(--bl);letter-spacing:.06em;text-transform:uppercase;margin-left:4px}
+#main .s2list{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:800px){
+ #main .s2pin{height:auto;overflow:visible}
+ #main .stage2{position:relative;width:100%;height:auto;transform:none!important;padding:56px 20px 0;display:flex;flex-direction:column}
+ #main .stage2>*{position:static!important}
+ #main .stage2 .frame,#main .stage2 .vl,#main .stage2 .hl,#main .lab,#main .tblock{display:none!important}
+ #main h2{font-size:clamp(40px,12vw,72px);margin-top:14px}
+ #main .s2sub{margin-top:16px}
+ #main .rig{position:relative!important;margin:28px auto 0}
+ #main .s2list{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;display:block;padding:8px 20px 0 44px;font:500 13px/1.9 Consolas,monospace;color:var(--bl);text-transform:uppercase;letter-spacing:.06em}
+}
+
+#main .s3{position:relative;border-top:1px solid var(--bl-soft)}
+#main .s3pin{height:100vh;position:relative;overflow:hidden}
+#main .stage3{width:1600px;height:900px;position:absolute;left:0;top:0;transform-origin:0 0}
+#main .stage3 .eyebrow{top:140px}
+#main .s3sub{position:absolute;left:var(--m);top:400px;color:var(--ink);opacity:.62;line-height:1.7}
+#main .pcard{position:absolute;margin:0;transform-origin:0 0;left:0;top:0}
+#main .pcard img,#main .pcard svg{position:absolute;left:0;top:0;max-width:none}
+#main .pcard .fp{stroke:var(--bl);stroke-width:22;opacity:.35}
+#main .pcard .drop{stroke:var(--ink);stroke-width:5;stroke-dasharray:18 12}
+#main .pcard .dim,#main .pcard .edge{stroke:var(--ink);stroke-width:5;fill:none}
+#main .pcard .com{fill:var(--ink);stroke:#fafafa;stroke-width:7}
+#main .callout{position:absolute;opacity:0;white-space:nowrap;color:var(--ink)}
+#main .callout b,#main .pcap b{color:var(--bl);font-weight:700}
+#main .pcap{position:absolute;opacity:0;white-space:nowrap;transform:translateX(-50%);color:var(--ink)}
+#main .stage3 .t3{opacity:0;left:auto;right:var(--m);bottom:auto;top:132px}
+#main .s3list{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:800px){
+ #main .s3pin{height:auto;overflow:visible}
+ #main .stage3{position:relative;width:100%;height:auto;transform:none!important;padding:56px 20px 24px;display:flex;flex-direction:column}
+ #main .stage3>*{position:static!important}
+ #main .stage3 .frame,#main .stage3 .hl,#main .pcap,#main .callout,#main .t3{display:none!important}
+ #main .s3sub{margin-top:16px}
+ #main .stage2 .eyebrow,#main .stage3 .eyebrow{order:0}  #main /* hero's mobile order:1 must not leak into sheets 02/03 */
+ .prow{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:24px}
+ #main .pcard{position:relative!important}
+ #main .s3list{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;display:block;padding:8px 0 0 22px;font:500 13px/1.9 Consolas,monospace;color:var(--ink);opacity:.75}
+}
+</style>
+<style>
+.cs /* POGO product page. Own theme: dark studio hero (the lamp's graphite and orange),.cs paper below. Fonts self-hosted (Inter Tight,.cs Inter,.cs JetBrains Mono; SIL OFL 1.1). */
+@font-face{ font-family: 'Inter Tight'; src: url(assets/fonts/herrand/InterTight-600.woff2) format('woff2'); font-weight: 500 700; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url(assets/fonts/herrand/Inter-400.woff2) format('woff2'); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: 'JetBrains Mono'; src: url(assets/fonts/herrand/JetBrainsMono-400.woff2) format('woff2'); font-weight: 400 500; font-display: swap; }
+.cs{ --paper: #FBFBFD; --ink: #1D1D1F; --ink-2: #5E5E64; --ink-3: #6B6B71; --line: #D8D8DE; --night: #0B0B0D; --night-ink: #F5F5F7; --night-2: #A6A6AC; --night-line: #2C2C30;
+  --accent: #F27210; --accent-ink: #B34A00;
+  --display: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif; --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --pad: clamp(16px, 5vw, 48px); --col: 860px; }
+.cs *{ box-sizing: border-box; }
+.cs{ -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { .cs{ scroll-behavior: auto; } }
+.cs{ margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.6 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+.cs img,.cs video,.cs iframe{ display: block; max-width: 100%; } .cs figure{ margin: 0; } .cs a{ color: inherit; }
+.cs .wrap{ width: min(100% - 2 * var(--pad), var(--col)); margin-inline: auto; } .cs .wide{ width: min(100% - 2 * var(--pad), 1240px); margin-inline: auto; }
+.cs .eyebrow{ font: 500 12px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+.cs h1,.cs h2,.cs h3,.cs .sub,.cs .lead{ text-wrap: balance; }
+.cs h1,.cs h2,.cs h3{ font-family: var(--display); font-weight: 600; letter-spacing: -.025em; margin: 0; }
+.cs h2{ font-size: clamp(32px, 5.4vw, 60px); line-height: 1.05; } .cs h3{ font-size: clamp(20px, 2.4vw, 26px); line-height: 1.2; letter-spacing: -.015em; margin-top: 2.2em; }
+.cs p{ margin: 1em 0 0; } .cs .lead{ font-size: clamp(19px, 2.2vw, 23px); line-height: 1.5; color: var(--ink-2); }
+.cs section{ padding-block: clamp(64px, 11vw, 128px); }
+.cs .nav{ position: fixed; inset: 0 0 auto; z-index: 20; height: 48px; display: flex; align-items: center; background: rgba(11,11,13,.94); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); color: var(--night-ink); }
+.cs .nav .wide{ display: flex; align-items: center; gap: 20px; } .cs .nav .brand{ font: 600 16px/1 var(--display); letter-spacing: .06em; text-decoration: none; }
+.cs .nav a.back{ margin-left: auto; font-size: 13px; text-decoration: none; color: #D2D2D7; } .cs .nav a.back:hover{ color: #fff; }
+.cs /* hero */
+.hero{ background: var(--night); color: var(--night-ink); padding: calc(48px + clamp(28px, 6vh, 60px)) 0 clamp(32px, 5vw, 56px); text-align: center; }
+.cs .hero .eyebrow{ color: var(--night-2); } .cs .hero h1{ font-size: clamp(60px, 13vw, 160px); line-height: .9; letter-spacing: -.04em; }
+.cs .hero .sub{ margin: 18px auto 0; font: 500 clamp(18px, 2.3vw, 26px)/1.35 var(--display); color: #FFB680; max-width: 30ch; letter-spacing: -.01em; }
+.cs .stage{ position: relative; width: min(100% - 2 * var(--pad), 1240px); margin: clamp(28px, 5vw, 48px) auto 0; aspect-ratio: 16 / 9; border-radius: clamp(12px, 2vw, 22px); overflow: hidden; background: #131316; }
+.cs .stage video,.cs .stage img{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cs .cta{ display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: clamp(24px, 4vw, 36px); }
+.cs .btn{ display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 500 15px/1 var(--body); text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+.cs .btn.primary{ background: var(--accent); color: #1A0A00; } .cs .btn.primary:hover{ background: #FF8630; } .cs .btn.ghost{ border-color: var(--night-line); color: var(--night-ink); background: transparent; } .cs .btn.ghost:hover{ border-color: #666; }
+.cs .btn:focus-visible,.cs a:focus-visible,.cs button:focus-visible{ outline: 3px solid #FFB680; outline-offset: 3px; }
+.cs .truth{ font: 500 12px/1.5 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--night-2); margin: 22px auto 0; max-width: 60ch; padding-inline: var(--pad); }
+.cs /* spec strip */
+.specs{ padding-block: clamp(40px, 6vw, 72px); border-bottom: 1px solid var(--line); }
+.cs .specs ul{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px 20px; }
+.cs .specs b{ display: block; font: 600 clamp(34px, 5vw, 56px)/1 var(--display); letter-spacing: -.03em; } .cs .specs b small{ font-size: clamp(15px, 2vw, 22px); letter-spacing: 0; color: var(--ink-2); margin-left: 3px; }
+.cs .specs span{ display: block; margin-top: 8px; font-size: 14px; line-height: 1.45; color: var(--ink-2); max-width: 24ch; }
+@media (max-width: 820px) { .cs .specs ul{ grid-template-columns: repeat(2, 1fr); } }
+.cs /* stills */
+.stills{ display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-top: 40px; }
+.cs .stills figure{ border-radius: 14px; overflow: hidden; background: #17171A; } .cs .stills img{ width: 100%; height: 100%; object-fit: cover; }
+.cs .stills .a{ grid-column: span 3; aspect-ratio: 4 / 5; } .cs .stills .b{ grid-column: span 3; aspect-ratio: 4 / 5; } .cs .stills .c,.cs .stills .d,.cs .stills .e{ grid-column: span 2; aspect-ratio: 1 / 1; }
+@media (max-width: 700px) { .cs .stills .a,.cs .stills .b{ grid-column: span 6; } .cs .stills .c,.cs .stills .d,.cs .stills .e{ grid-column: span 3; } .cs .stills .e{ grid-column: span 6; aspect-ratio: 16 / 9; } }
+.cs figcaption{ font-size: 13px; color: var(--ink-3); margin-top: 10px; } .cs .stills figcaption{ display: none; }
+.cs /* builder */
+.builder{ background: var(--night); color: var(--night-ink); } .cs .builder .eyebrow{ color: var(--night-2); } .cs .builder .lead{ color: var(--night-2); max-width: 46ch; }
+.cs .bframe{ position: relative; margin-top: 36px; border-radius: clamp(12px, 2vw, 22px); overflow: hidden; background: #131316; aspect-ratio: 16 / 10; min-height: 440px; border: 1px solid var(--night-line); }
+.cs .bframe img,.cs .bframe iframe{ position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
+.cs .bframe .go{ position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.cs .bnote{ font-size: 14px; color: var(--night-2); margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; } .cs .bnote a{ color: #FFB680; }
+@media (max-width: 700px) { .cs .bframe{ aspect-ratio: auto; height: min(82svh, 720px); } }
+.cs /* teardown + text */
+.details{ margin-top: 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; } .cs .details figure{ margin: 0; border-radius: 12px; overflow: hidden; background: #17171A; } .cs .details img{ display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; } .cs .details figcaption{ font: 500 11px/1.3 "JetBrains Mono", monospace; letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px 10px; color: #8c8a84; } @media (max-width: 800px) { .cs .details{ grid-template-columns: repeat(2, 1fr); } .cs .details figure:last-child{ grid-column: span 2; } }
+.cs .tear{ margin-top: 40px; border-radius: 16px; overflow: hidden; background: #17171A; } .cs .tear img{ width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.cs .parts{ display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 14px 0 0; padding: 0; list-style: none; font: 500 12px/1.4 var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.cs .prose h3:first-child{ margin-top: 0; } .cs .prose{ max-width: 66ch; } .cs .prose p{ color: #3A3A3F; }
+.cs .num{ font-family: var(--mono); font-size: .92em; white-space: nowrap; }
+.cs .honest{ margin-top: 48px; padding: 24px 28px; border-radius: 16px; background: #FFF3E8; border: 1px solid #F3CBA6; color: #4A2300; }
+.cs .honest h3{ margin: 0 0 8px; font-size: 20px; } .cs .honest p{ margin: .5em 0 0; color: #4A2300; }
+.cs footer{ padding: 40px 0 64px; border-top: 1px solid var(--line); font-size: 14px; color: var(--ink-2); } .cs footer .wide{ display: flex; flex-wrap: wrap; gap: 8px 28px; justify-content: space-between; }
+.cs .bnote a{display:inline-block;padding:6px 0;min-height:24px}</style>
+</head>
+<body>
+<main id=main><div id=s1wrap><div class=stage id=stage><div class=frame></div>
+<div class=vl style="left:533px"></div><div class=vl style="left:1067px"></div>
+<div class=hl style="top:300px"></div><div class=hl style="top:600px"></div>
+<div class=hl style="top:770px;background:var(--bl-line)"></div>
+<header class=nav><a class=wmw href="#top" aria-label="POGO, home"><svg class="wm" xmlns="http://www.w3.org/2000/svg" viewBox="-20 -1110 4602 1170" fill="currentColor"><path d="M96.69 0.00V-1000.00H576.52Q675.09 -1000.00 749.34 -961.13Q823.58 -922.26 865.69 -853.41Q907.79 -784.56 907.79 -693.91Q907.79 -605.36 865.69 -536.86Q823.58 -468.36 748.62 -429.48Q673.66 -390.59 576.52 -390.59H273.26V0.00ZM273.26 -538.87H558.14Q636.44 -538.87 683.13 -580.85Q729.81 -622.83 729.81 -692.48Q729.81 -762.83 683.13 -804.80Q636.44 -846.77 558.14 -846.77H273.26Z"/><circle cx="1558.01" cy="-500.00" r="432.02" fill="none" stroke="currentColor" stroke-width="167.38"/><circle cx="1558.01" cy="-500.00" r="273.01"/><path d="M2738.20 15.71Q2627.52 15.71 2532.20 -23.94Q2436.87 -63.58 2364.76 -134.30Q2292.64 -205.01 2252.29 -298.58Q2211.94 -392.16 2211.94 -500.00Q2211.94 -607.84 2251.93 -701.42Q2291.92 -794.99 2363.33 -865.70Q2434.75 -936.42 2530.07 -976.06Q2625.39 -1015.71 2735.36 -1015.71Q2856.69 -1015.71 2964.45 -968.30Q3072.21 -920.89 3144.37 -836.01L3021.73 -721.05Q2968.79 -785.37 2894.30 -819.34Q2819.81 -853.32 2735.36 -853.32Q2662.26 -853.32 2599.91 -826.45Q2537.55 -799.57 2490.96 -751.90Q2444.36 -704.23 2418.56 -640.10Q2392.75 -575.96 2392.75 -500.00Q2392.75 -424.77 2418.91 -359.92Q2445.07 -295.07 2492.36 -247.05Q2539.65 -199.03 2602.71 -172.15Q2665.77 -145.28 2739.57 -145.28Q2819.97 -145.28 2885.30 -177.65Q2950.62 -210.03 2993.28 -266.85Q3035.93 -323.67 3047.31 -395.58H2732.19V-549.49H3234.42V-491.89Q3234.42 -383.40 3196.93 -290.94Q3159.43 -198.49 3092.67 -129.60Q3025.90 -60.70 2935.23 -22.49Q2844.56 15.71 2738.20 15.71Z"/><polygon points="3497.48,-500.00 3766.33,-932.02 4154.56,-932.02 4423.41,-500.00 4154.56,-67.98 3766.33,-67.98" fill="none" stroke="currentColor" stroke-width="167.38" stroke-linejoin="round"/></svg></a><nav class="mono links" aria-label="Sections"><a href="#blueprint">Work</a><a href="#builder">Build</a><a href="#stills">Parts</a><a href="#case-study">About</a></nav><span class=mono>Sheet 01 / 06</span></header>
+<span class="mono eyebrow">// Modular desk lamp &middot; Rev A</span>
+<h1 id=top>Technically,<br>a lamp.</h1>
+<p class=lead>Serious mechanics.<br>Unserious personality.</p>
+<p class="small mono">Designed in CAD. Simulated, never built.<br>By Radwan Jameel, AI-assisted.</p>
+<a class="btn mono" href="#builder">Build your own &rarr;</a>
+<img class=lamp src="assets/img/pogo/slice/lamp-lines-upG.webp" width=405 height=650 alt="Line drawing of the POGO modular desk lamp standing upright on its octagonal base, one round-lens eye and one hexagon eye on its head">
+<span class="mono call" style="left:1197px;top:162px">Head &mdash; round lens + hex eye</span><div class=ln style="left:1149px;top:171px;width:36px"></div>
+<span class=sq style="left:533px;top:92px"></span><span class=sq style="left:1067px;top:92px"></span><span class=sq style="left:533px;top:770px"></span><span class=sq style="left:1067px;top:770px"></span>
+<span class="mono call" style="left:1067px;top:778px;transform:translateX(-50%);display:none">Desk</span>
+<div class="mono spec" style="left:var(--m)">5.08 kg simulated &middot; 25 mm tipping margin &middot; 22 poses</div>
+<div class=cue><span class=mono>Scroll &darr;</span><br><span class=mono style="opacity:.6">Sheet 01 / 06</span></div></div></div>
+
+
+<section id=blueprint class=s2 aria-labelledby=s2h>
+<div class=s2pin><div class=stage2 id=stage2>
+<div class=frame></div>
+<div class=vl style="left:533px"></div><div class=vl style="left:1067px"></div>
+<div class=hl style="top:820px;background:var(--bl-line)"></div>
+<span class="mono eyebrow">// 02 &middot; Blueprint &middot; exploded view</span>
+<h2 id=s2h>Over-engineered.<br>Under-existing.</h2>
+<p class="s2sub mono">185 parts in the CAD build. 8 modules.<br>Every joint simulated. None of it built.</p>
+<div class=rig id=rig style="width:1416px;height:2267px"><img class=part data-id=tent src="assets/img/pogo/slice/L_tent.webp" alt="" width=539 height=773 style="left:15.2px;top:562.0px"><img class=part data-id=arm src="assets/img/pogo/slice/L_arm.webp" alt="" width=803 height=775 style="left:598.8px;top:581.1px"><img class=part data-id=stub src="assets/img/pogo/slice/L_stub.webp" alt="" width=462 height=294 style="left:90.2px;top:940.7px"><img class=part data-id=s1 src="assets/img/pogo/slice/L_s1.webp" alt="" width=198 height=496 style="left:481.1px;top:1489.3px"><img class=part data-id=s2 src="assets/img/pogo/slice/L_s2.webp" alt="" width=211 height=576 style="left:461.8px;top:997.9px"><img class=part data-id=s3 src="assets/img/pogo/slice/L_s3.webp" alt="" width=226 height=529 style="left:462.8px;top:546.7px"><img class=part data-id=neck src="assets/img/pogo/slice/L_neck.webp" alt="" width=173 height=306 style="left:505.2px;top:324.8px"><img class=part data-id=head src="assets/img/pogo/slice/L_head.webp" alt="" width=563 height=365 style="left:293.0px;top:14.9px"><img class=part data-id=base src="assets/img/pogo/slice/L_base.webp" alt="" width=933 height=368 style="left:108px;top:1889px"></div>
+<div class="lab mono" data-id=s1><i></i><span>01</span> J1 + tube 1</div><div class="lab mono" data-id=s2><i></i><span>02</span> J2 + port tube</div><div class="lab mono" data-id=stub><i></i><span>03</span> Stub + pen cup</div><div class="lab mono" data-id=s3><i></i><span>04</span> J2 + shoulder tube</div><div class="lab mono" data-id=tent><i></i><span>05</span> Ball-chain tentacle</div><div class="lab mono" data-id=arm><i></i><span>06</span> Rigid arm, 2 joints</div><div class="lab mono" data-id=neck><i></i><span>07</span> Neck: tilt + swivel</div><div class="lab mono" data-id=head><i></i><span>08</span> Head: round lens + hex eye</div>
+<div class=tblock aria-hidden=true>
+ <div><span class=mono>Project</span><b>POGO</b></div><div><span class=mono>Drawing</span><b>Exploded view</b></div>
+ <div><span class=mono>Mass</span><b>5.08 kg <em>simulated</em></b></div><div><span class=mono>Sheet</span><b>02 / 06</b></div>
+</div>
+</div></div>
+<ol class=s2list aria-label="Exploded view, eight modules from base to head"><li>J1 + tube 1</li><li>J2 + port tube</li><li>Stub + pen cup</li><li>J2 + shoulder tube</li><li>Ball-chain tentacle</li><li>Rigid arm, 2 joints</li><li>Neck: tilt + swivel</li><li>Head: round lens + hex eye</li></ol>
+</section>
+
+<section id=poses class=s3 aria-labelledby=s3h>
+<div class=s3pin><div class=stage3 id=stage3>
+<div class=frame></div>
+<div class=hl style="top:780px;background:var(--bl-line)"></div>
+<span class="mono eyebrow">// 03 &middot; Poses &middot; tipping check</span>
+<h2 id=s3h>Stands up<br>for itself.</h2>
+<p class="s3sub mono">Legs folded: the worst case.<br>Dot: centre of mass. Band: base footprint.</p>
+<div class=prow><figure class=pcard data-id=L06 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L06.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=485.3 y1=2008.1 x2=1021.3 y2=2008.1 /><line class=drop x1=947.0 y1=1784.6 x2=947.0 y2=2068.1 /><path class=dim d="M947.0 2044.1V2092.1M947.0 2068.1H1021.3M1021.3 2044.1V2092.1" /><line class=edge x1=1021.3 y1=2008.1 x2=1021.3 y2=2044.1 /><circle class=com cx=947.0 cy=1784.6 r=22 /></svg></figure><figure class=pcard data-id=L01 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L01.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=491.1 y1=1998.1 x2=1020.2 y2=1998.1 /><line class=drop x1=759.5 y1=1620.3 x2=759.8 y2=2058.1 /><path class=dim d="M759.8 2034.1V2082.1M759.8 2058.1H1020.2M1020.2 2034.1V2082.1" /><line class=edge x1=1020.2 y1=1998.1 x2=1020.2 y2=2034.1 /><circle class=com cx=759.5 cy=1620.3 r=22 /></svg></figure><figure class=pcard data-id=L03 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L03.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=487.9 y1=2003.7 x2=1020.8 y2=2003.7 /><line class=drop x1=898.4 y1=1700.0 x2=898.5 y2=2063.7 /><path class=dim d="M898.5 2039.7V2087.7M898.5 2063.7H1020.8M1020.8 2039.7V2087.7" /><line class=edge x1=1020.8 y1=2003.7 x2=1020.8 y2=2039.7 /><circle class=com cx=898.4 cy=1700.0 r=22 /></svg></figure><figure class=pcard data-id=L22 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L22.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=486.2 y1=2006.6 x2=1021.1 y2=2006.6 /><line class=drop x1=922.5 y1=1727.3 x2=922.6 y2=2066.6 /><path class=dim d="M922.6 2042.6V2090.6M922.6 2066.6H1021.1M1021.1 2042.6V2090.6" /><line class=edge x1=1021.1 y1=2006.6 x2=1021.1 y2=2042.6 /><circle class=com cx=922.5 cy=1727.3 r=22 /></svg></figure></div>
+<p class="callout mono" id=callout><b>25 mm</b> to spare, simulated.</p>
+<p class="pcap mono" data-id=L06><b>Lean</b> 25 mm margin</p><p class="pcap mono" data-id=L01><b>Upright</b> 82 mm margin</p><p class="pcap mono" data-id=L03><b>Reach</b> 40 mm margin</p><p class="pcap mono" data-id=L22><b>Task light</b> 33 mm margin</p>
+<div class="tblock t3" aria-hidden=true>
+ <div><span class=mono>Project</span><b>POGO</b></div><div><span class=mono>Drawing</span><b>Tipping check</b></div>
+ <div><span class=mono>Poses</span><b>4 of 22</b></div><div><span class=mono>Sheet</span><b>03 / 06</b></div>
+</div>
+</div></div>
+<ul class=s3list aria-label="Tipping check, four poses, legs folded, simulated"><li>Lean: centre of mass 64 mm off centre, 25 mm inside the base edge</li><li>Upright: centre of mass 4 mm off centre, 82 mm inside the base edge</li><li>Reach: centre of mass 48 mm off centre, 40 mm inside the base edge</li><li>Task light: centre of mass 56 mm off centre, 33 mm inside the base edge</li></ul>
+</section>
+</main>
+
+<script src="assets/img/pogo/slice/vendor/gsap.min.js"></script><script src="assets/img/pogo/slice/vendor/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+var D={"layers": [{"id": "tent", "dx": -189.73586555657675, "dy": -456.9456287272578, "anchor": [192.13564032184786, 893.7848804521232], "x": 15.150000000000091, "y": 561.95, "w": 539, "h": 773}, {"id": "arm", "dx": 192.4597317372536, "dy": -466.3649855480071, "anchor": [1111.6816626526306, 819.0826986555794], "x": 598.7800000000002, "y": 581.09, "w": 803, "h": 775}, {"id": "stub", "dx": -169.72930726984487, "dy": -233.09908542616313, "anchor": [306.05601661352057, 1092.8495978464857], "x": 90.2199999999998, "y": 940.6600000000001, "w": 462, "h": 294}, {"id": "s1", "dx": 0.0, "dy": -0.0, "anchor": [572.1955238841242, 1767.3539905937305], "x": 481.1100000000001, "y": 1489.31, "w": 198, "h": 496}, {"id": "s2", "dx": 0.589647490810421, "dy": -234.48479984772803, "anchor": [569.9704531853927, 1371.506712787229], "x": 461.8000000000002, "y": 997.9000000000001, "w": 211, "h": 576}, {"id": "s3", "dx": 1.1926354251318116, "dy": -471.4227492050213, "anchor": [574.2057396426549, 871.4432937888857], "x": 462.77, "y": 546.73, "w": 226, "h": 529}, {"id": "neck", "dx": 1.9215922197940927, "dy": -727.442997413761, "anchor": [597.1280064250868, 471.56330988012314], "x": 505.2399999999998, "y": 324.75, "w": 173, "h": 306}, {"id": "head", "dx": 2.363219187654977, "dy": -990.0171272361081, "anchor": [547.8605129737657, 196.97484178243167], "x": 293.03999999999996, "y": 14.939999999999998, "w": 563, "h": 365}], "W": 1416, "H": 2267, "K0": 0.3043670048522276, "K1": 0.21591096464653034, "GROUND": 820, "CX": 1070, "spineX": 572.1955238841242, "order": ["s2", "stub", "s3", "tent", "arm", "neck", "head"]};
+var s1=document.getElementById('stage'),w1=document.getElementById('s1wrap'),s2=document.getElementById('stage2'),rig=document.getElementById('rig');
+var parts={};rig.querySelectorAll('.part').forEach(function(p){parts[p.dataset.id]=p});
+var labs={};document.querySelectorAll('.lab').forEach(function(l){labs[l.dataset.id]=l});
+var RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var st=null,tl=null,xf=null;
+function rigPos(k){ // place rig so the spine sits on CX and the base bottom on GROUND
+  return {x:D.CX-D.spineX*k,y:D.GROUND-D.H*k};
+}
+function placeLabels(k){
+  var r=rigPos(k);
+  D.layers.forEach(function(l){
+    var lab=labs[l.id];if(!lab)return;
+    var ax=r.x+(l.anchor[0]+l.dx)*k, ay=r.y+(l.anchor[1]+l.dy)*k;
+    var left=(l.id==='tent'||l.id==='stub');
+    var edge=left? r.x+(l.x+l.dx)*k-24 : r.x+(l.x+l.w+l.dx)*k+24;
+    var A=D.layers.find(function(q){return q.id==='arm'}),COL=Math.max(D.CX+150,r.x+(A.x+A.w+A.dx)*k+24);
+    if(!left) edge=COL; // one right-hand column for every right label
+    if(l.id==='s3'){ay=r.y+(l.y+l.dy)*k-6;}
+    if(l.id==='arm'){ay=r.y+(l.y+l.h+l.dy)*k-40;ax=r.x+(l.x+l.w+l.dx)*k-30;}
+    lab.style.top=(ay-9)+'px';
+    var i=lab.querySelector('i');
+    if(left){lab.style.left='auto';lab.style.right=(1600-edge)+'px';i.style.left='100%';i.style.marginLeft='10px';i.dataset.w=Math.max(0,ax-edge-10);}
+    else{lab.style.left=edge+'px';lab.style.right='auto';i.style.right='100%';i.style.marginRight='10px';i.dataset.w=Math.max(0,edge-ax-10);}
+  });
+}
+function layout(){
+  var mob=innerWidth<=800;
+  if(mob){
+    var cw=Math.min(innerWidth-40,420),k=cw/D.W*0.62;
+    rig.style.transform='scale('+k+')';
+    var ex=D.layers.reduce(function(m,l){return Math.min(m,l.y+l.dy)},0);
+    rig.style.top='';rig.style.left='';
+    rig.style.width=D.W+'px';rig.style.height=D.H+'px';
+    rig.style.marginTop=(-ex*k+28)+'px';rig.style.marginBottom=(-(D.H*(1-k)))+'px';rig.style.marginLeft=((innerWidth-40-D.W*k)/2)+'px';
+    D.layers.forEach(function(l){parts[l.id].style.transform='translate('+l.dx+'px,'+l.dy+'px)'});
+    w1.style.height='';return;
+  }
+  rig.style.margin='';
+  var k=innerWidth/1600,h=900*k,y=Math.max(0,(innerHeight-h)/2);
+  s1.style.transform='translateY('+y+'px) scale('+k+')';w1.style.height=Math.max(h,innerHeight)+'px';
+  var k2=Math.min(innerWidth/1600,innerHeight/900);
+  s2.style.transform='translate('+((innerWidth-1600*k2)/2)+'px,'+((innerHeight-900*k2)/2)+'px) scale('+k2+')';
+}
+function build(){
+  if(tl){tl.scrollTrigger&&tl.scrollTrigger.kill();tl.kill();tl=null}
+  gsap.set(Object.values(parts),{clearProps:'transform'});
+  layout();
+  if(innerWidth<=800)return;
+  var r0=rigPos(D.K0),r1=rigPos(D.K1);
+  placeLabels(D.K1);
+  if(RM){ // static exploded end state
+    gsap.set(rig,{x:r1.x,y:r1.y,scale:D.K1});
+    D.layers.forEach(function(l){gsap.set(parts[l.id],{x:l.dx,y:l.dy})});
+    gsap.set('.lab',{opacity:1});document.querySelectorAll('.lab i').forEach(function(i){i.style.width=i.dataset.w+'px'});gsap.set('.s2 .tblock',{opacity:1});
+    return;
+  }
+  gsap.set(rig,{x:r0.x,y:r0.y,scale:D.K0,transformOrigin:'0 0'});
+  // one lamp at a time: the hero drawing hands over to the Sheet 02 rig as 02 rises
+  if(xf){xf.scrollTrigger&&xf.scrollTrigger.kill();xf.kill()}
+  xf=gsap.timeline({scrollTrigger:{trigger:'#blueprint',start:'top 95%',end:'top 30%',scrub:true}});
+  xf.fromTo('#stage .lamp, #stage .call, #stage .ln',{opacity:1},{opacity:0,ease:'none'},0).fromTo(rig,{opacity:0},{opacity:1,ease:'power1.in'},0);
+  tl=gsap.timeline({defaults:{ease:'none'},scrollTrigger:{trigger:'.s2pin',start:'top top',end:'+=260%',scrub:0.6,pin:true,anticipatePin:1}});
+  tl.to(rig,{x:r1.x,y:r1.y,scale:D.K1,duration:1.6,ease:'power1.inOut'},0);
+  D.order.forEach(function(id,i){
+    var l=D.layers.find(function(q){return q.id===id});if(!l)return;
+    var t0=0.15+i*0.17;
+    tl.to(parts[id],{x:l.dx,y:l.dy,duration:0.75,ease:'power2.inOut'},t0);
+    var lab=labs[id];var tl0=(id==='s3')?1.55:t0+0.6;
+    tl.to(lab,{opacity:1,duration:0.2},tl0).to(lab.querySelector('i'),{width:function(){return lab.querySelector('i').dataset.w+'px'},duration:0.25,ease:'power1.out'},tl0);
+  });
+  if(labs.s1){tl.to(labs.s1,{opacity:1,duration:0.2},0.2).to(labs.s1.querySelector('i'),{width:labs.s1.querySelector('i').dataset.w+'px',duration:.25},0.2)}
+  tl.to('.s2 .tblock',{opacity:1,duration:0.3},'-=0.1').to({},{duration:0.4});
+}
+gsap.registerPlugin(ScrollTrigger);
+build();
+var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){build();ScrollTrigger.refresh()},150)});
+})();
+</script>
+<script>
+(function(){
+var M={"scale": 2.0, "W": 2325, "H": 2078, "poses": [{"id": "L06", "com": [947.0403013671985, 1784.6310305493616], "com_ground": [947.0298888318298, 1966.7439076186424], "foot_l": [485.2652651565477, 1968.1441350776122], "foot_r": [1021.2741390244369, 1968.1441350776122], "com_r": 63.7, "margin": 24.5, "tip_deg": 22.0, "dir_x": 0.9988499923084192}, {"id": "L01", "com": [759.539636532254, 1620.3186790051964], "com_ground": [759.8424878788419, 1956.3889889465986], "foot_l": [491.09019574589615, 1958.1256225782072], "foot_r": [1020.1721251291547, 1958.1256225782072], "com_r": 4.1, "margin": 81.5, "tip_deg": 36.8, "dir_x": 0.31663457912106385}, {"id": "L03", "com": [898.40829299691, 1699.969136219364], "com_ground": [898.459017590234, 1962.1629304785752], "foot_l": [487.863409255232, 1963.6755490597943], "foot_r": [1020.7825982490103, 1963.6755490597943], "com_r": 47.7, "margin": 40.2, "tip_deg": 24.9, "dir_x": 0.9975484841492016}, {"id": "L22", "com": [922.5491278505456, 1727.3258676898718], "com_ground": [922.5657051493681, 1965.854036338128], "foot_l": [486.16924619958104, 1966.5893754362232], "foot_r": [1021.1031155838632, 1966.5893754362232], "com_r": 55.6, "margin": 32.6, "tip_deg": 22.4, "dir_x": 0.999581048968531}]},G=780,RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var st=document.getElementById('stage3'),cards={},caps={},co=document.getElementById('callout'),tl=null;
+document.querySelectorAll('.pcard').forEach(function(c){cards[c.dataset.id]=c});
+document.querySelectorAll('.pcap').forEach(function(c){caps[c.dataset.id]=c});
+var S=1/M.scale,BIG={k:.74*S,x:830},SL=[{k:.33*S,x:250},{k:.33*S,x:600},{k:.33*S,x:910},{k:.33*S,x:1200}];
+function P(p,s){var bx=(p.foot_l[0]+p.foot_r[0])/2,gy=p.foot_l[1];return {x:s.x-bx*s.k,y:G-gy*s.k,scale:s.k}}
+function marks(c){return c.querySelectorAll('line,circle,path')}
+function build(){
+ if(tl){tl.scrollTrigger&&tl.scrollTrigger.kill();tl.kill();tl=null}
+ var all=Object.values(cards),cp=Object.values(caps);
+ gsap.set(all,{clearProps:'transform,opacity'});gsap.set(cp.concat([co,'.t3']),{clearProps:'opacity'});
+ all.forEach(function(c){gsap.set(marks(c),{clearProps:'opacity'})});
+ if(innerWidth<=800){
+  st.style.transform='';var cw=(Math.min(innerWidth,520)-52)/2,k=cw/M.W;
+  all.forEach(function(c){c.style.transform='scale('+k+')';c.style.marginBottom=(-(M.H*(1-k)))+'px';c.style.marginRight=(-(M.W*(1-k)))+'px'});return}
+ var k=Math.min(innerWidth/1600,innerHeight/900);
+ st.style.transform='translate('+((innerWidth-1600*k)/2)+'px,'+((innerHeight-900*k)/2)+'px) scale('+k+')';
+ M.poses.forEach(function(p,i){caps[p.id].style.left=SL[i].x+'px';caps[p.id].style.top=(G+56)+'px'});
+ if(RM){M.poses.forEach(function(p,i){gsap.set(cards[p.id],P(p,SL[i]))});gsap.set(cp.concat(['.t3']),{opacity:1});return}
+ var lean=M.poses[0],L=cards[lean.id],b=P(lean,BIG);gsap.set(L,b);
+ co.style.left=(b.x+lean.foot_r[0]*BIG.k+18)+'px';co.style.top=(b.y+(lean.foot_l[1]+100)*BIG.k-10)+'px';
+ M.poses.slice(1).forEach(function(p,i){var q=P(p,SL[i+1]);gsap.set(cards[p.id],{x:q.x,y:q.y+30,scale:q.scale,opacity:0})});
+ all.forEach(function(c){gsap.set(marks(c),{opacity:0})});
+ tl=gsap.timeline({defaults:{ease:'none'},scrollTrigger:{trigger:'.s3pin',start:'top top',end:'+=220%',scrub:.6,pin:true,anticipatePin:1}});
+ tl.to(L.querySelector('.fp'),{opacity:.35,duration:.25},.1)
+   .to([L.querySelector('.drop'),L.querySelector('.com')],{opacity:1,duration:.2},.3)
+   .to(L.querySelectorAll('.dim,.edge'),{opacity:1,duration:.2},.5).to(co,{opacity:1,duration:.2},.55)
+   .to(co,{opacity:0,duration:.15},1.15).to(L,Object.assign(P(lean,SL[0]),{duration:.6,ease:'power2.inOut'}),1.2);
+ M.poses.slice(1).forEach(function(p,i){var c=cards[p.id],t=1.4+i*.15;
+   tl.to(c,{opacity:1,y:P(p,SL[i+1]).y,duration:.4,ease:'power2.out'},t)
+     .to(c.querySelector('.fp'),{opacity:.35,duration:.2},t+.3).to(c.querySelectorAll('.drop,.com,.dim,.edge'),{opacity:1,duration:.2},t+.3)});
+ M.poses.forEach(function(p,i){tl.to(caps[p.id],{opacity:1,duration:.2},1.8+i*.12)});
+ tl.to('.t3',{opacity:1,duration:.3},2.3).to({},{duration:.4});
+}
+build();var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){build();ScrollTrigger.refresh()},150)});
+})();
+</script>
+
+<div class="cs">
+<section id="stills"><div class="wide"><p class="eyebrow">Renders</p><h2>One lamp, a lot of parts.</h2>
+  <div class="stills">
+    <figure class="a"><img src="assets/img/pogo/still-hero.webp" width="800" height="1000" loading="lazy" decoding="async" alt="The lamp in black metal and brass on a table: head lit by its own eye, a spoof book cover, a row of spoof book spines and a film poster behind"></figure>
+    <figure class="b"><img src="assets/img/pogo/still-back.webp" width="800" height="1000" loading="lazy" decoding="async" alt="The same lamp in white and teal in a day-lit office: a glossy monitor, a vase and a tall window at dawn"></figure>
+    <figure class="c"><img src="assets/img/pogo/still-front.webp" width="700" height="1000" loading="lazy" decoding="async" alt="Close-up of the first joint: ring-lock collar, hinge cheeks and the socket bolt, in brass on black"></figure>
+    <figure class="d"><img src="assets/img/pogo/still-clay.webp" width="800" height="1000" loading="lazy" decoding="async" alt="Close-up of the second joint: the swivel collar, hinge and tube end, in brass on black"></figure>
+    <figure class="e"><img src="assets/img/pogo/still-j1.webp" width="700" height="700" loading="lazy" decoding="async" alt="The base from above and to the side: the glowing ring light, a brass knob and the first joint collar"></figure>
+  </div>
+  <div class="details" aria-label="Details"><figure><img src="assets/img/pogo/detail-chain.webp" width="800" height="600" loading="lazy" decoding="async" alt="Close-up of the ball-chain arm: black hex links on brass balls"><figcaption>Ball chain</figcaption></figure><figure><img src="assets/img/pogo/detail-tentacle.webp" width="800" height="600" loading="lazy" decoding="async" alt="The bendy tentacle curling over the desk"><figcaption>Tentacle</figcaption></figure><figure><img src="assets/img/pogo/detail-cup.webp" width="800" height="600" loading="lazy" decoding="async" alt="The pen cup on its side tube with a brass collar"><figcaption>Pen cup</figcaption></figure><figure><img src="assets/img/pogo/detail-gripper.webp" width="800" height="600" loading="lazy" decoding="async" alt="The arm gripper in brass: a sliding jaw and a fixed finger"><figcaption>Gripper</figcaption></figure><figure><img src="assets/img/pogo/detail-base.webp" width="800" height="600" loading="lazy" decoding="async" alt="The base seen from above: ring light, first joint and a brass knob"><figcaption>Base</figcaption></figure></div></div></section>
+<section id="builder" class="builder"><div class="wide"><p class="eyebrow">Live &middot; runs in your browser</p><h2>Build one.</h2>
+  <p class="lead">Pick a start, add parts, drag the lamp into a pose. Balance, joint load and clashes are checked as you move.</p>
+  <div class="bframe" id="bframe"><img src="assets/img/pogo/builder-card.webp" width="1280" height="800" loading="lazy" decoding="async" alt="The builder: a lamp in the viewport and the part panel below"><button class="btn primary go" id="go" type="button">Load the builder</button></div>
+  <p class="bnote"><span>About 3 MB of models, loaded only when you press the button.</span><a href="sites/pogo/">Open full screen &rarr;</a></p></div></section>
+<section id="case-study"><div class="wrap prose"><p class="eyebrow">Case study</p><h2>What I designed, and what the checks found.</h2>
+  <p class="lead">POGO is a modular desk lamp. A base with fold-out legs, joints that lock with a twist of an orange ring, tubes in three lengths, and a head with two different eyes. You can hang a pen cup, a jointed arm or a bendy tentacle off the side tubes.</p>
+  <p>I designed every part in CAD, then wrote the maths that checks it: weight, balance, how much each joint has to hold, and whether parts hit each other. The builder above runs that same maths in your browser. I have not built a lamp. Every number on this page comes from CAD and calculation, not from a test.</p>
+  <h3>Why it will not tip over</h3>
+  <p>Legs folded is the worst case, because the base is smallest. In the worst of the five poses I checked, the weight still lands <span class="num">25 mm</span> inside the base edge. With the legs open the margin is much bigger. The tightest pose is the reach with the arm loaded, so that is the one I watch when I change anything.</p>
+  <h3>The tubes that failed</h3>
+  <p>The tubes with a side port, where the cup and arm attach, <b>failed my frame simulation</b>. The wall around the port was too thin for the load. I rebuilt that zone: the bore narrows to the wire channel there, and a saddle spreads the load. The redone tubes pass at safety factors of <span class="num">1.14</span> and <span class="num">1.30</span>. Those stack cautious assumptions and I have never printed one, so before trusting them I would print a test piece first.</p>
+  <h3>The joint that had no margin</h3>
+  <p>The first joint above the base carries the whole lamp. With the arm stretched out, it has to hold about <span class="num">3.7 N&middot;m</span>. The clutch I had designed holds <span class="num">3.3 N&middot;m</span>. It would have slipped. Joint v2 stacks eight disc springs in a larger housing and holds <span class="num">4.6 N&middot;m</span>, which is <span class="num">1.23&times;</span> the load. At 150 g on the arm it still fails, so I set the arm rating to <span class="num">100 g</span>. That is a design limit, chosen from the maths.</p>
+  <figure class="tear"><img src="assets/img/pogo/teardown.webp" width="2000" height="1500" loading="lazy" decoding="async" alt="Joint v2 pulled apart along its hinge axis: bolt, washer, eight disc springs, cheek housing, collar, sleeve and nut"></figure>
+  <ul class="parts" aria-label="Parts in the teardown"><li>M6 bolt</li><li>washer</li><li>8 disc springs</li><li>cheek housing</li><li>yoke</li><li>sleeve</li><li>collar</li><li>nut</li></ul>
+  <p>Fixing that joint moved the problem. The second joint is now the weakest, and in the builder it blocks 9 of the 63 pose and length combinations. I left it that way. Strengthening it too would add weight in the middle of the lamp.</p>
+  <h3>How it was made</h3>
+  <p>I build with AI. I set the design, made the decisions and judged every render. Claude, Anthropic's model, wrote most of the code: the CAD scripts, the simulation and the builder. The renders are Blender Cycles.</p>
+  <div class="honest"><h3>What this is, and is not</h3><p>A design study. Designed and simulated. <b>Not built, not physically tested.</b> There is no price and nothing to buy.</p></div>
+</div></section>
+<footer><div class="wide"><span>&copy; 2026 Radwan Jameel</span><span><a href="./">Portfolio</a> &middot; <a href="work/herrand/">Herrand</a> &middot; <a href="sites/pogo/">Builder, full screen</a></span></div></footer>
+<script>
+(function () {
+  var v = document.getElementById('film'), rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (v && !rm) { var play = function () { var p = v.play(); if (p && p.catch) p.catch(function () {}); }; new IntersectionObserver(function (e) { e[0].isIntersecting ? play() : v.pause(); }, { threshold: .25 }).observe(v); }
+  var go = document.getElementById('go'), f = document.getElementById('bframe');
+  if (go) go.addEventListener('click', function () { var i = document.createElement('iframe'); i.src = 'sites/pogo/'; i.title = 'POGO builder'; i.allow = 'fullscreen'; i.loading = 'eager'; f.replaceChildren(i); });
+})();
+</script>
+
+</div>
+</body>
+</html>

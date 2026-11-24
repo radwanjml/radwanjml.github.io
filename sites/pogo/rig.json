@@ -1,0 +1,886 @@
+{
+ "version": "1.0",
+ "units": "mm in rig/FK (desk z=0, x forward, y left); GLB files are in metres, local frame of the body type",
+ "fk": "lamp_fk.py / lamp_fk.js",
+ "types": {
+  "joint_low": {
+   "glb": "glb/joint_low.glb"
+  },
+  "joint_sw": {
+   "glb": "glb/joint_sw.glb"
+  },
+  "joint_hi": {
+   "glb": "glb/joint_hi.glb"
+  },
+  "joint1_sw": {
+   "glb": "glb/joint1_sw.glb"
+  },
+  "joint1_hi": {
+   "glb": "glb/joint1_hi.glb"
+  },
+  "m3screw": {
+   "glb": "glb/m3screw.glb"
+  },
+  "ring": {
+   "glb": "glb/ring.glb"
+  },
+  "neck_low": {
+   "glb": "glb/neck_low.glb"
+  },
+  "neck_pan": {
+   "glb": "glb/neck_pan.glb"
+  },
+  "head": {
+   "glb": "glb/head.glb"
+  },
+  "stub_root": {
+   "glb": "glb/stub_root.glb"
+  },
+  "tent_root": {
+   "glb": "glb/tent_root.glb"
+  },
+  "tent_link": {
+   "glb": "glb/tent_link.glb"
+  },
+  "tent_tip": {
+   "glb": "glb/tent_tip.glb"
+  },
+  "gripper": {
+   "glb": "glb/gripper.glb"
+  },
+  "base": {
+   "glb": "glb/base.glb"
+  },
+  "tube_B60": {
+   "glb": "glb/tube_B60.glb"
+  },
+  "tube_B90": {
+   "glb": "glb/tube_B90.glb"
+  },
+  "tube_B90pR": {
+   "glb": "glb/tube_B90pR.glb"
+  },
+  "tube_B75pLR": {
+   "glb": "glb/tube_B75pLR.glb"
+  },
+  "tube_D60": {
+   "glb": "glb/tube_D60.glb"
+  },
+  "tube_D90": {
+   "glb": "glb/tube_D90.glb"
+  },
+  "tube_T90": {
+   "glb": "glb/tube_T90.glb"
+  }
+ },
+ "tubes": {
+  "B60": {
+   "L": 60,
+   "ports": [],
+   "capacity_Nm": 8.77,
+   "kind": "solid",
+   "type": "tube_B60",
+   "ends": {
+    "bottom": "ringlock_female at z 0 (opens -z)",
+    "top": "spigot_female at z L (opens +z), M3 x 8 at z L-8"
+   }
+  },
+  "B90": {
+   "L": 90,
+   "ports": [],
+   "capacity_Nm": 8.77,
+   "kind": "solid",
+   "type": "tube_B90",
+   "ends": {
+    "bottom": "ringlock_female at z 0 (opens -z)",
+    "top": "spigot_female at z L (opens +z), M3 x 8 at z L-8"
+   }
+  },
+  "B90pR": {
+   "L": 90,
+   "ports": [
+    {
+     "side": -1,
+     "z": 45.0
+    }
+   ],
+   "capacity_Nm": 4.49,
+   "kind": "port",
+   "type": "tube_B90pR",
+   "ends": {
+    "bottom": "ringlock_female at z 0 (opens -z)",
+    "top": "spigot_female at z L (opens +z), M3 x 8 at z L-8"
+   }
+  },
+  "B75pLR": {
+   "L": 75,
+   "ports": [
+    {
+     "side": 1,
+     "z": 40.0
+    },
+    {
+     "side": -1,
+     "z": 40.0
+    }
+   ],
+   "capacity_Nm": 3.04,
+   "kind": "port",
+   "type": "tube_B75pLR",
+   "ends": {
+    "bottom": "ringlock_female at z 0 (opens -z)",
+    "top": "spigot_female at z L (opens +z), M3 x 8 at z L-8"
+   }
+  },
+  "D60": {
+   "L": 60,
+   "ports": [],
+   "capacity_Nm": 3.5,
+   "kind": "cage",
+   "type": "tube_D60",
+   "ends": {
+    "bottom": "ringlock_female at z 0 (opens -z)",
+    "top": "spigot_female at z L (opens +z), M3 x 8 at z L-8"
+   }
+  },
+  "D90": {
+   "L": 90,
+   "ports": [],
+   "capacity_Nm": 3.6,
+   "kind": "cage",
+   "type": "tube_D90",
+   "ends": {
+    "bottom": "ringlock_female at z 0 (opens -z)",
+    "top": "spigot_female at z L (opens +z), M3 x 8 at z L-8"
+   }
+  },
+  "T90": {
+   "L": 90,
+   "ports": [],
+   "capacity_Nm": 1.6,
+   "kind": "transition",
+   "type": "tube_T90",
+   "ends": {
+    "bottom": "ringlock_female at z 0 (opens -z)",
+    "top": "spigot_female at z L (opens +z), M3 x 8 at z L-8"
+   }
+  }
+ },
+ "frames": {
+  "Z_M": 30.2,
+  "Z_T": 27.5,
+  "J1_Z": 91.7,
+  "J1_hinge_lift": 5.0,
+  "port_frame": "T(side*28, 0, z_port) @ Ry(90*side): z out of the tube, key +y, mouth 28 mm from the axis",
+  "head_to_neck": "T(0, 11, 79)",
+  "tilt_pivot_z": 16.0
+ },
+ "joint": {
+  "types": [
+   "joint_low",
+   "joint_sw",
+   "joint_hi"
+  ],
+  "j1_types": [
+   "joint_low",
+   "joint1_sw",
+   "joint1_hi"
+  ],
+  "j1_clutch": "J1 v2 (sheet 38): 8 x DIN 2093 C 22.5x11.2x0.6, hold 4.60 N*m at mu 0.10, rated 3.83 (hold factor 1.2), peak 9.07 at mu 0.20",
+  "swivel": "about z of the base frame, 15-deg steps",
+  "hinge": "about x of the swivel frame, range +-75 deg",
+  "clutch_slip_Nm": [
+   3.3,
+   4.8
+  ],
+  "rated_static_Nm": 2.75,
+  "flipped_on_arms": "on an arm the joint is mounted tongue-first: hinge on the body side, swivel outboard (see lamp_fk.py)"
+ },
+ "head": {
+  "pan": [
+   -165,
+   165
+  ],
+  "tilt": [
+   -30,
+   60
+  ],
+  "tilt_step": 10
+ },
+ "attachments": {
+  "stub": {
+   "type": "stub_root",
+   "tubes_ok": [
+    "B90pR",
+    "B75pLR"
+   ],
+   "note": "pen cup, upright"
+  },
+  "tentacle": {
+   "balls": 6,
+   "ball_deg_max": 40,
+   "ball_rot": "Rz(phi) Rx(theta) Rz(-phi)",
+   "ball0": 64.94179141636691,
+   "pitch": 36.0,
+   "tubes_ok": [
+    "B90pR",
+    "B75pLR"
+   ]
+  },
+  "arm": {
+   "hinges": 3,
+   "lengths": [
+    90,
+    60
+   ],
+   "hinge_range": 75,
+   "payload_rated_g": 100,
+   "gripper": "gripper",
+   "tubes_ok": [
+    "B90pR",
+    "B75pLR"
+   ],
+   "note": "flipped joints; tubes B90 then B60"
+  },
+  "none": {
+   "note": "open port: a plug/cap module is NOT designed yet"
+  }
+ },
+ "rules": [
+  "max 2 port tubes in a build; a port tube adds its arm's moment",
+  "design demand by slot (P6, N*m): slot 1 bottom 5.4, slot 2 3.7, slot 3 1.9; tube capacity_Nm must be >= demand",
+  "static load: joint 1 <= 3.83 N*m (J1 v2 clutch, hold factor 1.2 at mu 0.10), joints 2 and 3 <= 2.75 N*m (standard clutch); the arm is rated 100 g at full forward reach (150 g only when the arm is not forward: J1 would carry 3.98 N*m, hold factor 1.16)",
+  "nothing below the desk; support radius 123.6 mm legs open; legs folded = transport only",
+  "every attachment fits every port (same ring lock)"
+ ],
+ "default_config": "presets.json:P1",
+ "glb_bytes": {},
+ "mass": {
+  "joint_low": {
+   "m_spine": 11.48,
+   "m_arm": 7.54,
+   "com_spine": [
+    0.0,
+    -0.04,
+    -29.42
+   ],
+   "com_arm": [
+    0.0,
+    -0.04,
+    -28.42
+   ],
+   "bbox": [
+    [
+     -17.6,
+     -17.6,
+     -43.5
+    ],
+    [
+     17.6,
+     17.6,
+     -17.0
+    ]
+   ]
+  },
+  "joint_sw": {
+   "m_spine": 39.71,
+   "m_arm": 37.21,
+   "com_spine": [
+    2.99,
+    -0.0,
+    -1.96
+   ],
+   "com_arm": [
+    3.25,
+    -0.0,
+    -1.8
+   ],
+   "bbox": [
+    [
+     -24.8,
+     -15.7,
+     -23.9
+    ],
+    [
+     24.5,
+     15.7,
+     13.2
+    ]
+   ]
+  },
+  "joint_hi": {
+   "m_spine": 28.0,
+   "m_arm": 18.53,
+   "com_spine": [
+    -0.0,
+    -0.02,
+    22.1
+   ],
+   "com_arm": [
+    -0.0,
+    -0.01,
+    21.59
+   ],
+   "bbox": [
+    [
+     -18.3,
+     -18.3,
+     -13.2
+    ],
+    [
+     18.3,
+     18.3,
+     46.2
+    ]
+   ]
+  },
+  "joint1_sw": {
+   "m_spine": 53.01,
+   "m_arm": 42.29,
+   "com_spine": [
+    4.41,
+    -0.0,
+    2.97
+   ],
+   "com_arm": [
+    4.09,
+    -0.0,
+    3.11
+   ],
+   "bbox": [
+    [
+     -23.8,
+     -20.0,
+     -23.9
+    ],
+    [
+     25.5,
+     20.0,
+     25.0
+    ]
+   ]
+  },
+  "joint1_hi": {
+   "m_spine": 30.79,
+   "m_arm": 20.12,
+   "com_spine": [
+    -0.0,
+    -0.01,
+    19.64
+   ],
+   "com_arm": [
+    -0.0,
+    -0.01,
+    19.51
+   ],
+   "bbox": [
+    [
+     -18.3,
+     -18.3,
+     -17.5
+    ],
+    [
+     18.3,
+     18.3,
+     46.2
+    ]
+   ]
+  },
+  "m3screw": {
+   "m_spine": 0.77,
+   "m_arm": 0.77,
+   "com_spine": [
+    13.91,
+    0.0,
+    0.0
+   ],
+   "com_arm": [
+    13.91,
+    0.0,
+    0.0
+   ],
+   "bbox": [
+    [
+     7.8,
+     -2.8,
+     -2.8
+    ],
+    [
+     17.5,
+     2.8,
+     2.8
+    ]
+   ]
+  },
+  "ring": {
+   "m_spine": 6.59,
+   "m_arm": 5.37,
+   "com_spine": [
+    -0.0,
+    -0.0,
+    30.61
+   ],
+   "com_arm": [
+    -0.0,
+    -0.0,
+    30.61
+   ],
+   "bbox": [
+    [
+     -18.3,
+     -18.3,
+     22.7
+    ],
+    [
+     18.3,
+     18.3,
+     40.2
+    ]
+   ]
+  },
+  "neck_low": {
+   "m_spine": 11.48,
+   "m_arm": 7.54,
+   "com_spine": [
+    0.0,
+    -0.04,
+    -29.42
+   ],
+   "com_arm": [
+    0.0,
+    -0.04,
+    -28.42
+   ],
+   "bbox": [
+    [
+     -17.6,
+     -17.6,
+     -43.5
+    ],
+    [
+     17.6,
+     17.6,
+     -17.0
+    ]
+   ]
+  },
+  "neck_pan": {
+   "m_spine": 27.26,
+   "m_arm": 18.95,
+   "com_spine": [
+    3.5,
+    -0.0,
+    2.79
+   ],
+   "com_arm": [
+    3.81,
+    -0.0,
+    4.33
+   ],
+   "bbox": [
+    [
+     -16.7,
+     -16.0,
+     -23.9
+    ],
+    [
+     25.4,
+     16.0,
+     27.2
+    ]
+   ]
+  },
+  "head": {
+   "m_spine": 342.6,
+   "m_arm": 342.6,
+   "com": [
+    -0.5,
+    -14.6,
+    -4.6
+   ],
+   "bbox": [
+    [
+     -78.0,
+     -53.0,
+     -73.0
+    ],
+    [
+     78.0,
+     41.0,
+     47.0
+    ]
+   ]
+  },
+  "stub_root": {
+   "m_spine": 63.07,
+   "m_arm": 63.07,
+   "com_spine": [
+    8.01,
+    0.0,
+    62.46
+   ],
+   "com_arm": [
+    8.01,
+    0.0,
+    62.46
+   ],
+   "bbox": [
+    [
+     -18.0,
+     -33.4,
+     -16.0
+    ],
+    [
+     62.0,
+     33.4,
+     115.4
+    ]
+   ]
+  },
+  "tent_root": {
+   "m_spine": 30.32,
+   "m_arm": 30.32,
+   "com_spine": [
+    7.16,
+    -0.0,
+    32.44
+   ],
+   "com_arm": [
+    7.16,
+    -0.0,
+    32.44
+   ],
+   "bbox": [
+    [
+     -15.4,
+     -17.0,
+     -16.0
+    ],
+    [
+     32.5,
+     17.0,
+     75.8
+    ]
+   ]
+  },
+  "tent_link": {
+   "m_spine": 8.89,
+   "m_arm": 8.89,
+   "com_spine": [
+    0.0,
+    -0.0,
+    19.73
+   ],
+   "com_arm": [
+    0.0,
+    -0.0,
+    19.73
+   ],
+   "bbox": [
+    [
+     -15.0,
+     -15.0,
+     0.0
+    ],
+    [
+     15.0,
+     15.0,
+     46.9
+    ]
+   ]
+  },
+  "tent_tip": {
+   "m_spine": 15.51,
+   "m_arm": 15.51,
+   "com_spine": [
+    0.0,
+    -1.77,
+    33.56
+   ],
+   "com_arm": [
+    0.0,
+    -1.77,
+    33.56
+   ],
+   "bbox": [
+    [
+     -15.0,
+     -15.0,
+     0.0
+    ],
+    [
+     15.0,
+     15.0,
+     82.1
+    ]
+   ]
+  },
+  "gripper": {
+   "m_spine": 23.61,
+   "m_arm": 13.94,
+   "com_spine": [
+    -0.0,
+    -2.24,
+    32.11
+   ],
+   "com_arm": [
+    -0.0,
+    -2.37,
+    33.13
+   ],
+   "bbox": [
+    [
+     -16.0,
+     -16.0,
+     0.0
+    ],
+    [
+     16.0,
+     16.0,
+     74.1
+    ]
+   ]
+  },
+  "tube_B60": {
+   "m_spine": 27.91,
+   "m_arm": 15.9,
+   "com_spine": [
+    -0.0,
+    0.06,
+    32.23
+   ],
+   "com_arm": [
+    -0.0,
+    0.06,
+    32.23
+   ],
+   "bbox": [
+    [
+     -17.5,
+     -17.5,
+     -0.3
+    ],
+    [
+     17.5,
+     17.5,
+     60.0
+    ]
+   ]
+  },
+  "tube_B90": {
+   "m_spine": 40.21,
+   "m_arm": 22.91,
+   "com_spine": [
+    -0.0,
+    0.07,
+    47.5
+   ],
+   "com_arm": [
+    -0.0,
+    0.07,
+    47.5
+   ],
+   "bbox": [
+    [
+     -17.5,
+     -17.5,
+     -0.3
+    ],
+    [
+     17.5,
+     17.5,
+     90.0
+    ]
+   ]
+  },
+  "tube_B90pR": {
+   "m_spine": 52.82,
+   "m_arm": 29.6,
+   "com_spine": [
+    -0.83,
+    0.03,
+    46.53
+   ],
+   "com_arm": [
+    -0.83,
+    0.03,
+    46.53
+   ],
+   "bbox": [
+    [
+     -28.3,
+     -17.5,
+     -0.3
+    ],
+    [
+     17.5,
+     17.5,
+     90.0
+    ]
+   ]
+  },
+  "tube_B75pLR": {
+   "m_spine": 50.1,
+   "m_arm": 28.23,
+   "com_spine": [
+    -0.0,
+    0.03,
+    39.62
+   ],
+   "com_arm": [
+    -0.0,
+    0.03,
+    39.62
+   ],
+   "bbox": [
+    [
+     -28.3,
+     -17.5,
+     -0.3
+    ],
+    [
+     28.3,
+     17.5,
+     75.0
+    ]
+   ]
+  },
+  "tube_D60": {
+   "m_spine": 33.79,
+   "m_arm": 19.54,
+   "com_spine": [
+    0.0,
+    0.03,
+    32.14
+   ],
+   "com_arm": [
+    0.0,
+    0.03,
+    32.14
+   ],
+   "bbox": [
+    [
+     -17.5,
+     -17.5,
+     -0.3
+    ],
+    [
+     17.5,
+     17.5,
+     60.0
+    ]
+   ]
+  },
+  "tube_D90": {
+   "m_spine": 48.49,
+   "m_arm": 29.19,
+   "com_spine": [
+    0.01,
+    0.05,
+    47.4
+   ],
+   "com_arm": [
+    0.01,
+    0.05,
+    47.4
+   ],
+   "bbox": [
+    [
+     -17.5,
+     -17.5,
+     -0.3
+    ],
+    [
+     17.5,
+     17.5,
+     90.0
+    ]
+   ]
+  },
+  "tube_T90": {
+   "m_spine": 36.56,
+   "m_arm": 20.97,
+   "com_spine": [
+    0.0,
+    0.05,
+    46.83
+   ],
+   "com_arm": [
+    0.0,
+    0.05,
+    46.83
+   ],
+   "bbox": [
+    [
+     -17.5,
+     -17.5,
+     -0.3
+    ],
+    [
+     17.5,
+     17.5,
+     90.0
+    ]
+   ]
+  }
+ },
+ "physics": {
+  "base": {
+   "m": 3961.0,
+   "com": [
+    0,
+    0,
+    19.1
+   ]
+  },
+  "stub_pens": {
+   "m": 70.0,
+   "p": [
+    22.0,
+    0,
+    82.0
+   ]
+  },
+  "grip_tip": [
+   0,
+   -6,
+   62
+  ],
+  "tent_tip": [
+   0,
+   0,
+   60
+  ],
+  "support_radius": {
+   "open": 123.6,
+   "folded": 88.0,
+   "margin": 2.4
+  },
+  "head": {
+   "look_local": [
+    0,
+    -1,
+    0
+   ],
+   "center_local": [
+    0,
+    -6,
+    0
+   ],
+   "dot_look_local": [
+    0,
+    -150,
+    0
+   ],
+   "dot_top_up_mm": 85
+  },
+  "j1_rated_Nm": 3.83,
+  "j23_rated_Nm": 2.75,
+  "design_factor": 1.5,
+  "payload_options_g": [
+   0,
+   100,
+   150
+  ]
+ }
+}
