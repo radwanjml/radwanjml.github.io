@@ -80,7 +80,7 @@ html,body{background:var(--bg)}body{overflow-x:hidden;min-height:100vh;font-fami
 #main .stage2 .eyebrow{top:140px}
 #main h2{position:absolute;left:var(--m);top:200px;font-weight:800;font-size:76px;line-height:.98;letter-spacing:-.035em}
 #main .s2sub{position:absolute;left:var(--m);top:400px;color:var(--ink);opacity:.62;line-height:1.7}
-#main .rig{position:absolute;transform-origin:0 0}
+#main .rigbox{position:absolute;inset:0;pointer-events:none}#main .rig{position:absolute;transform-origin:0 0}
 #main .part{position:absolute;max-width:none}
 #main .lab{position:absolute;white-space:nowrap;opacity:0}
 #main .lab span{color:var(--ink);opacity:.5;margin-right:6px}
@@ -97,7 +97,8 @@ html,body{background:var(--bg)}body{overflow-x:hidden;min-height:100vh;font-fami
  #main .stage2 .frame,#main .stage2 .vl,#main .stage2 .hl,#main .lab,#main .tblock{display:none!important}
  #main h2{font-size:clamp(40px,12vw,72px);margin-top:14px}
  #main .s2sub{margin-top:16px}
- #main .rig{position:relative!important;margin:28px auto 0}
+ #main .rigbox{position:relative!important;width:100%;overflow:hidden;margin-top:28px}
+ #main .rig{position:absolute!important;left:0;top:0}
  #main .s2list{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;display:block;padding:8px 20px 0 44px;font:500 13px/1.9 Consolas,monospace;color:var(--bl);text-transform:uppercase;letter-spacing:.06em}
 }
 
@@ -124,8 +125,9 @@ html,body{background:var(--bg)}body{overflow-x:hidden;min-height:100vh;font-fami
  #main .stage3 .frame,#main .stage3 .hl,#main .pcap,#main .callout,#main .t3{display:none!important}
  #main .s3sub{margin-top:16px}
  #main .stage2 .eyebrow,#main .stage3 .eyebrow{order:0}  #main /* hero's mobile order:1 must not leak into sheets 02/03 */
- .prow{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:24px}
- #main .pcard{position:relative!important}
+ .prow{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:24px;width:100%}
+ #main .pbox{position:relative;overflow:hidden}
+ #main .pcard{position:absolute!important}
  #main .s3list{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;display:block;padding:8px 0 0 22px;font:500 13px/1.9 Consolas,monospace;color:var(--ink);opacity:.75}
 }
 </style>
@@ -221,7 +223,7 @@ html,body{background:var(--bg)}body{overflow-x:hidden;min-height:100vh;font-fami
 <span class="mono eyebrow">// 02 &middot; Blueprint &middot; exploded view</span>
 <h2 id=s2h>Over-engineered.<br>Under-existing.</h2>
 <p class="s2sub mono">185 parts in the CAD build. 8 modules.<br>Every joint simulated. None of it built.</p>
-<div class=rig id=rig style="width:1416px;height:2267px"><img class=part data-id=tent src="assets/img/pogo/slice/L_tent.webp" alt="" width=539 height=773 style="left:15.2px;top:562.0px"><img class=part data-id=arm src="assets/img/pogo/slice/L_arm.webp" alt="" width=803 height=775 style="left:598.8px;top:581.1px"><img class=part data-id=stub src="assets/img/pogo/slice/L_stub.webp" alt="" width=462 height=294 style="left:90.2px;top:940.7px"><img class=part data-id=s1 src="assets/img/pogo/slice/L_s1.webp" alt="" width=198 height=496 style="left:481.1px;top:1489.3px"><img class=part data-id=s2 src="assets/img/pogo/slice/L_s2.webp" alt="" width=211 height=576 style="left:461.8px;top:997.9px"><img class=part data-id=s3 src="assets/img/pogo/slice/L_s3.webp" alt="" width=226 height=529 style="left:462.8px;top:546.7px"><img class=part data-id=neck src="assets/img/pogo/slice/L_neck.webp" alt="" width=173 height=306 style="left:505.2px;top:324.8px"><img class=part data-id=head src="assets/img/pogo/slice/L_head.webp" alt="" width=563 height=365 style="left:293.0px;top:14.9px"><img class=part data-id=base src="assets/img/pogo/slice/L_base.webp" alt="" width=933 height=368 style="left:108px;top:1889px"></div>
+<div class=rigbox id=rigbox><div class=rig id=rig style="width:1416px;height:2267px"><img class=part data-id=tent src="assets/img/pogo/slice/L_tent.webp" alt="" width=539 height=773 style="left:15.2px;top:562.0px"><img class=part data-id=arm src="assets/img/pogo/slice/L_arm.webp" alt="" width=803 height=775 style="left:598.8px;top:581.1px"><img class=part data-id=stub src="assets/img/pogo/slice/L_stub.webp" alt="" width=462 height=294 style="left:90.2px;top:940.7px"><img class=part data-id=s1 src="assets/img/pogo/slice/L_s1.webp" alt="" width=198 height=496 style="left:481.1px;top:1489.3px"><img class=part data-id=s2 src="assets/img/pogo/slice/L_s2.webp" alt="" width=211 height=576 style="left:461.8px;top:997.9px"><img class=part data-id=s3 src="assets/img/pogo/slice/L_s3.webp" alt="" width=226 height=529 style="left:462.8px;top:546.7px"><img class=part data-id=neck src="assets/img/pogo/slice/L_neck.webp" alt="" width=173 height=306 style="left:505.2px;top:324.8px"><img class=part data-id=head src="assets/img/pogo/slice/L_head.webp" alt="" width=563 height=365 style="left:293.0px;top:14.9px"><img class=part data-id=base src="assets/img/pogo/slice/L_base.webp" alt="" width=933 height=368 style="left:108px;top:1889px"></div></div>
 <div class="lab mono" data-id=s1><i></i><span>01</span> J1 + tube 1</div><div class="lab mono" data-id=s2><i></i><span>02</span> J2 + port tube</div><div class="lab mono" data-id=stub><i></i><span>03</span> Stub + pen cup</div><div class="lab mono" data-id=s3><i></i><span>04</span> J2 + shoulder tube</div><div class="lab mono" data-id=tent><i></i><span>05</span> Ball-chain tentacle</div><div class="lab mono" data-id=arm><i></i><span>06</span> Rigid arm, 2 joints</div><div class="lab mono" data-id=neck><i></i><span>07</span> Neck: tilt + swivel</div><div class="lab mono" data-id=head><i></i><span>08</span> Head: round lens + hex eye</div>
 <div class=tblock aria-hidden=true>
  <div><span class=mono>Project</span><b>POGO</b></div><div><span class=mono>Drawing</span><b>Exploded view</b></div>
@@ -238,7 +240,7 @@ html,body{background:var(--bg)}body{overflow-x:hidden;min-height:100vh;font-fami
 <span class="mono eyebrow">// 03 &middot; Poses &middot; tipping check</span>
 <h2 id=s3h>Stands up<br>for itself.</h2>
 <p class="s3sub mono">Legs folded: the worst case.<br>Dot: centre of mass. Band: base footprint.</p>
-<div class=prow><figure class=pcard data-id=L06 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L06.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=485.3 y1=2008.1 x2=1021.3 y2=2008.1 /><line class=drop x1=947.0 y1=1784.6 x2=947.0 y2=2068.1 /><path class=dim d="M947.0 2044.1V2092.1M947.0 2068.1H1021.3M1021.3 2044.1V2092.1" /><line class=edge x1=1021.3 y1=2008.1 x2=1021.3 y2=2044.1 /><circle class=com cx=947.0 cy=1784.6 r=22 /></svg></figure><figure class=pcard data-id=L01 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L01.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=491.1 y1=1998.1 x2=1020.2 y2=1998.1 /><line class=drop x1=759.5 y1=1620.3 x2=759.8 y2=2058.1 /><path class=dim d="M759.8 2034.1V2082.1M759.8 2058.1H1020.2M1020.2 2034.1V2082.1" /><line class=edge x1=1020.2 y1=1998.1 x2=1020.2 y2=2034.1 /><circle class=com cx=759.5 cy=1620.3 r=22 /></svg></figure><figure class=pcard data-id=L03 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L03.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=487.9 y1=2003.7 x2=1020.8 y2=2003.7 /><line class=drop x1=898.4 y1=1700.0 x2=898.5 y2=2063.7 /><path class=dim d="M898.5 2039.7V2087.7M898.5 2063.7H1020.8M1020.8 2039.7V2087.7" /><line class=edge x1=1020.8 y1=2003.7 x2=1020.8 y2=2039.7 /><circle class=com cx=898.4 cy=1700.0 r=22 /></svg></figure><figure class=pcard data-id=L22 style="width:2325px;height:2078px"><img src="assets/img/pogo/slice/S3_L22.webp" alt="" width=2325 height=2078><svg viewBox="0 0 2325 2078" width=2325 height=2078 aria-hidden=true><line class=fp x1=486.2 y1=2006.6 x2=1021.1 y2=2006.6 /><line class=drop x1=922.5 y1=1727.3 x2=922.6 y2=2066.6 /><path class=dim d="M922.6 2042.6V2090.6M922.6 2066.6H1021.1M1021.1 2042.6V2090.6" /><line class=edge x1=1021.1 y1=2006.6 x2=1021.1 y2=2042.6 /><circle class=com cx=922.5 cy=1727.3 r=22 /></svg></figure></div>
+<div class=prow><div class=pbox><figure class=pcard data-id=L06 style="width:1162px;height:1039px"><img src="assets/img/pogo/slice/S3_L06.webp" alt="" width=1162 height=1039><svg viewBox="0 0 1162 1039" width=1162 height=1039 aria-hidden=true><line class=fp x1=242.6 y1=1024.1 x2=510.6 y2=1024.1 /><line class=drop x1=473.5 y1=892.3 x2=473.5 y2=1084.1 /><path class=dim d="M473.5 1060.1V1108.1M473.5 1084.1H510.6M510.6 1060.1V1108.1" /><line class=edge x1=510.6 y1=1024.1 x2=510.6 y2=1060.1 /><circle class=com cx=473.5 cy=892.3 r=22 /></svg></figure></div><div class=pbox><figure class=pcard data-id=L01 style="width:1162px;height:1039px"><img src="assets/img/pogo/slice/S3_L01.webp" alt="" width=1162 height=1039><svg viewBox="0 0 1162 1039" width=1162 height=1039 aria-hidden=true><line class=fp x1=245.5 y1=1019.1 x2=510.1 y2=1019.1 /><line class=drop x1=379.8 y1=810.2 x2=379.9 y2=1079.1 /><path class=dim d="M379.9 1055.1V1103.1M379.9 1079.1H510.1M510.1 1055.1V1103.1" /><line class=edge x1=510.1 y1=1019.1 x2=510.1 y2=1055.1 /><circle class=com cx=379.8 cy=810.2 r=22 /></svg></figure></div><div class=pbox><figure class=pcard data-id=L03 style="width:1162px;height:1039px"><img src="assets/img/pogo/slice/S3_L03.webp" alt="" width=1162 height=1039><svg viewBox="0 0 1162 1039" width=1162 height=1039 aria-hidden=true><line class=fp x1=243.9 y1=1021.8 x2=510.4 y2=1021.8 /><line class=drop x1=449.2 y1=850.0 x2=449.2 y2=1081.8 /><path class=dim d="M449.2 1057.8V1105.8M449.2 1081.8H510.4M510.4 1057.8V1105.8" /><line class=edge x1=510.4 y1=1021.8 x2=510.4 y2=1057.8 /><circle class=com cx=449.2 cy=850.0 r=22 /></svg></figure></div><div class=pbox><figure class=pcard data-id=L22 style="width:1162px;height:1039px"><img src="assets/img/pogo/slice/S3_L22.webp" alt="" width=1162 height=1039><svg viewBox="0 0 1162 1039" width=1162 height=1039 aria-hidden=true><line class=fp x1=243.1 y1=1023.3 x2=510.6 y2=1023.3 /><line class=drop x1=461.3 y1=863.7 x2=461.3 y2=1083.3 /><path class=dim d="M461.3 1059.3V1107.3M461.3 1083.3H510.6M510.6 1059.3V1107.3" /><line class=edge x1=510.6 y1=1023.3 x2=510.6 y2=1059.3 /><circle class=com cx=461.3 cy=863.7 r=22 /></svg></figure></div></div>
 <p class="callout mono" id=callout><b>25 mm</b> to spare, simulated.</p>
 <p class="pcap mono" data-id=L06><b>Lean</b> 25 mm margin</p><p class="pcap mono" data-id=L01><b>Upright</b> 82 mm margin</p><p class="pcap mono" data-id=L03><b>Reach</b> 40 mm margin</p><p class="pcap mono" data-id=L22><b>Task light</b> 33 mm margin</p>
 <div class="tblock t3" aria-hidden=true>
@@ -258,7 +260,7 @@ var s1=document.getElementById('stage'),w1=document.getElementById('s1wrap'),s2=
 var parts={};rig.querySelectorAll('.part').forEach(function(p){parts[p.dataset.id]=p});
 var labs={};document.querySelectorAll('.lab').forEach(function(l){labs[l.dataset.id]=l});
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-var st=null,tl=null,xf=null;
+var st=null,tl=null,xf=null,MQ=matchMedia('(max-width:800px)');
 function rigPos(k){ // place rig so the spine sits on CX and the base bottom on GROUND
   return {x:D.CX-D.spineX*k,y:D.GROUND-D.H*k};
 }
@@ -280,17 +282,17 @@ function placeLabels(k){
   });
 }
 function layout(){
-  var mob=innerWidth<=800;
-  if(mob){
-    var cw=Math.min(innerWidth-40,420),k=cw/D.W*0.62;
-    rig.style.transform='scale('+k+')';
-    var ex=D.layers.reduce(function(m,l){return Math.min(m,l.y+l.dy)},0);
-    rig.style.top='';rig.style.left='';
-    rig.style.width=D.W+'px';rig.style.height=D.H+'px';
-    rig.style.marginTop=(-ex*k+28)+'px';rig.style.marginBottom=(-(D.H*(1-k)))+'px';rig.style.marginLeft=((innerWidth-40-D.W*k)/2)+'px';
+  var mob=MQ.matches;
+  if(mob){ // exploded rig, clipped to a box exactly as wide as the column (no layout overflow on real phones)
+    var box=document.getElementById('rigbox'),cw=box.clientWidth;
+    var lf=D.layers.reduce(function(m,l){return Math.min(m,l.x+l.dx)},0),rt=D.layers.reduce(function(m,l){return Math.max(m,l.x+l.w+l.dx)},D.W);
+    var ex=D.layers.reduce(function(m,l){return Math.min(m,l.y+l.dy)},0),k=Math.min(cw/(rt-lf),1);
+    box.style.height=Math.ceil((D.H-ex)*k)+'px';
+    rig.style.transform='translate('+((cw-(rt-lf)*k)/2-lf*k)+'px,'+(-ex*k)+'px) scale('+k+')';
     D.layers.forEach(function(l){parts[l.id].style.transform='translate('+l.dx+'px,'+l.dy+'px)'});
     w1.style.height='';return;
   }
+  document.getElementById('rigbox').style.height='';
   rig.style.margin='';
   var k=innerWidth/1600,h=900*k,y=Math.max(0,(innerHeight-h)/2);
   s1.style.transform='translateY('+y+'px) scale('+k+')';w1.style.height=Math.max(h,innerHeight)+'px';
@@ -301,7 +303,7 @@ function build(){
   if(tl){tl.scrollTrigger&&tl.scrollTrigger.kill();tl.kill();tl=null}
   gsap.set(Object.values(parts),{clearProps:'transform'});
   layout();
-  if(innerWidth<=800)return;
+  if(MQ.matches)return;
   var r0=rigPos(D.K0),r1=rigPos(D.K1);
   placeLabels(D.K1);
   if(RM){ // static exploded end state
@@ -329,12 +331,12 @@ function build(){
 }
 gsap.registerPlugin(ScrollTrigger);
 build();
-var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){build();ScrollTrigger.refresh()},150)});
+var rt,lw=innerWidth;addEventListener('resize',function(){if(innerWidth===lw)return;lw=innerWidth;clearTimeout(rt);rt=setTimeout(function(){build();ScrollTrigger.refresh()},150)});  // ignore height-only resizes (mobile URL bar)
 })();
 </script>
 <script>
 (function(){
-var M={"scale": 2.0, "W": 2325, "H": 2078, "poses": [{"id": "L06", "com": [947.0403013671985, 1784.6310305493616], "com_ground": [947.0298888318298, 1966.7439076186424], "foot_l": [485.2652651565477, 1968.1441350776122], "foot_r": [1021.2741390244369, 1968.1441350776122], "com_r": 63.7, "margin": 24.5, "tip_deg": 22.0, "dir_x": 0.9988499923084192}, {"id": "L01", "com": [759.539636532254, 1620.3186790051964], "com_ground": [759.8424878788419, 1956.3889889465986], "foot_l": [491.09019574589615, 1958.1256225782072], "foot_r": [1020.1721251291547, 1958.1256225782072], "com_r": 4.1, "margin": 81.5, "tip_deg": 36.8, "dir_x": 0.31663457912106385}, {"id": "L03", "com": [898.40829299691, 1699.969136219364], "com_ground": [898.459017590234, 1962.1629304785752], "foot_l": [487.863409255232, 1963.6755490597943], "foot_r": [1020.7825982490103, 1963.6755490597943], "com_r": 47.7, "margin": 40.2, "tip_deg": 24.9, "dir_x": 0.9975484841492016}, {"id": "L22", "com": [922.5491278505456, 1727.3258676898718], "com_ground": [922.5657051493681, 1965.854036338128], "foot_l": [486.16924619958104, 1966.5893754362232], "foot_r": [1021.1031155838632, 1966.5893754362232], "com_r": 55.6, "margin": 32.6, "tip_deg": 22.4, "dir_x": 0.999581048968531}]},G=780,RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var MQ=matchMedia('(max-width:800px)'),M={"scale": 1.0, "W": 1162, "H": 1039, "poses": [{"id": "L06", "com": [473.52015068359924, 892.3155152746808], "com_ground": [473.5149444159149, 983.3719538093212], "foot_l": [242.63263257827384, 984.0720675388061], "foot_r": [510.63706951221843, 984.0720675388061], "com_r": 63.7, "margin": 24.5, "tip_deg": 22.0, "dir_x": 0.9988499923084192}, {"id": "L01", "com": [379.769818266127, 810.1593395025982], "com_ground": [379.92124393942095, 978.1944944732993], "foot_l": [245.54509787294808, 979.0628112891036], "foot_r": [510.08606256457733, 979.0628112891036], "com_r": 4.1, "margin": 81.5, "tip_deg": 36.8, "dir_x": 0.31663457912106385}, {"id": "L03", "com": [449.204146498455, 849.984568109682], "com_ground": [449.229508795117, 981.0814652392876], "foot_l": [243.931704627616, 981.8377745298972], "foot_r": [510.39129912450517, 981.8377745298972], "com_r": 47.7, "margin": 40.2, "tip_deg": 24.9, "dir_x": 0.9975484841492016}, {"id": "L22", "com": [461.2745639252728, 863.6629338449359], "com_ground": [461.28285257468406, 982.927018169064], "foot_l": [243.08462309979052, 983.2946877181116], "foot_r": [510.5515577919316, 983.2946877181116], "com_r": 55.6, "margin": 32.6, "tip_deg": 22.4, "dir_x": 0.999581048968531}]},G=780,RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 var st=document.getElementById('stage3'),cards={},caps={},co=document.getElementById('callout'),tl=null;
 document.querySelectorAll('.pcard').forEach(function(c){cards[c.dataset.id]=c});
 document.querySelectorAll('.pcap').forEach(function(c){caps[c.dataset.id]=c});
@@ -346,9 +348,10 @@ function build(){
  var all=Object.values(cards),cp=Object.values(caps);
  gsap.set(all,{clearProps:'transform,opacity'});gsap.set(cp.concat([co,'.t3']),{clearProps:'opacity'});
  all.forEach(function(c){gsap.set(marks(c),{clearProps:'opacity'})});
- if(innerWidth<=800){
-  st.style.transform='';var cw=(Math.min(innerWidth,520)-52)/2,k=cw/M.W;
-  all.forEach(function(c){c.style.transform='scale('+k+')';c.style.marginBottom=(-(M.H*(1-k)))+'px';c.style.marginRight=(-(M.W*(1-k)))+'px'});return}
+ if(MQ.matches){
+  st.style.transform='';
+  all.forEach(function(c){var b=c.parentNode,k=b.clientWidth/M.W;b.style.height=Math.ceil(M.H*k)+'px';c.style.transform='scale('+k+')'});return}
+ document.querySelectorAll('.pbox').forEach(function(b){b.style.height=''});
  var k=Math.min(innerWidth/1600,innerHeight/900);
  st.style.transform='translate('+((innerWidth-1600*k)/2)+'px,'+((innerHeight-900*k)/2)+'px) scale('+k+')';
  M.poses.forEach(function(p,i){caps[p.id].style.left=SL[i].x+'px';caps[p.id].style.top=(G+56)+'px'});
@@ -368,7 +371,7 @@ function build(){
  M.poses.forEach(function(p,i){tl.to(caps[p.id],{opacity:1,duration:.2},1.8+i*.12)});
  tl.to('.t3',{opacity:1,duration:.3},2.3).to({},{duration:.4});
 }
-build();var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){build();ScrollTrigger.refresh()},150)});
+build();var rt,lw=innerWidth;addEventListener('resize',function(){if(innerWidth===lw)return;lw=innerWidth;clearTimeout(rt);rt=setTimeout(function(){build();ScrollTrigger.refresh()},150)});  // ignore height-only resizes (mobile URL bar)
 })();
 </script>
 
