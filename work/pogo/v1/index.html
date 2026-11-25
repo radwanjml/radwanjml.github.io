@@ -116,6 +116,8 @@ body.dark .snd{color:#fafafa;background:rgba(21,15,13,.8);border-color:#fafafa}
 .rgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(12px,1.6vw,24px);margin-top:48px;align-items:start}
 .rgrid figure{margin:0}.rgrid img,.rdet img,.td img,.bdi img{display:block;width:100%;height:auto;background:#1a1411}
 .r1{grid-column:1/span 5}.r2{grid-column:6/span 3;margin-top:84px}.r3{grid-column:9/span 4}.r4{grid-column:3/span 4;margin-top:-24px}
+.mg{margin-top:clamp(64px,8vw,120px)}.mh{font-size:clamp(24px,3vw,40px);margin:8px 0 12px;line-height:1.1}.mgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(12px,1.6vw,24px);margin-top:32px}.mgrid figure{margin:0}.mgrid img{width:100%;height:auto;display:block;border-radius:4px;background:#1a1a1a}.m1,.m2{grid-column:span 3}.m3,.m4,.m5{grid-column:span 2}
+@media (max-width:767px){.mgrid{grid-template-columns:1fr}.mgrid figure{grid-column:auto}}
 .rdet{list-style:none;padding:0;margin:clamp(24px,3vw,48px) 0 0;display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.2vw,16px)}
 .rdet li{display:flex;flex-direction:column;gap:8px}.rdet .mono{font-size:11px;color:#b8b0aa}
 .bd{display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,4vw,72px);align-items:center}
@@ -259,7 +261,7 @@ body.dark .nav .home{color:#fafafa}body.dark .nav .sheet{color:#fafafa}
  <div class="rest">
  <section class="rn" id="renders" aria-labelledby="rnh">
   <p class="mono rk">// 05 · Renders · Blender Cycles</p>
-  <h2 id="rnh" class="rh">Same lamp. Different rooms.</h2>
+  <h2 id="rnh" class="rh">Same lamp, up close.</h2>
   <div class="rgrid">
    <figure class="r1"><img src="../../../assets/img/pogo/still-hero.webp" width="800" height="1000" loading="lazy" decoding="async" alt="The lamp in brass and black on a desk at night: a row of books, fairy lights in the window and a film poster on the wall"></figure>
    <figure class="r2"><img src="../../../assets/img/pogo/still-front.webp" width="700" height="1000" loading="lazy" decoding="async" alt="Close-up of the first joint: ring-lock collar, hinge cheeks and the socket bolt, in brass on black"></figure>
@@ -273,6 +275,18 @@ body.dark .nav .home{color:#fafafa}body.dark .nav .sheet{color:#fafafa}
    <li><img src="../../../assets/img/pogo/detail-gripper.webp" width="800" height="600" loading="lazy" decoding="async" alt="The arm gripper in brass: a sliding jaw and a fixed finger"><span class="mono">Gripper</span></li>
    <li><img src="../../../assets/img/pogo/detail-base.webp" width="800" height="600" loading="lazy" decoding="async" alt="The base seen from above: ring light, first joint and a brass knob"><span class="mono">Base</span></li>
   </ul>
+  <div class="mg">
+   <p class="mono rk">// Brand · merch and packaging mock-ups</p>
+   <h3 class="mh">The marks, off the lamp.</h3>
+   <p class="rp">The round lens and the hex eye became the logo, a pattern and a wordmark. These mock-ups show them on the things a lamp like this would ship with. Made with AI image tools from the POGO marks, not photos of real products.</p>
+   <div class="mgrid">
+    <figure class="m1"><img src="../../../assets/img/pogo/merch/desk-640.webp" srcset="../../../assets/img/pogo/merch/desk-640.webp 640w, ../../../assets/img/pogo/merch/desk-1200.webp 1200w" sizes="(max-width:767px) 100vw, 50vw" width="1536" height="1024" loading="lazy" decoding="async" alt="POGO desk set: a cream mug and a black notebook with the eye mark, enamel pins, a hex keyring, a patterned phone case and desk mat"></figure>
+    <figure class="m2"><img src="../../../assets/img/pogo/merch/wear-640.webp" srcset="../../../assets/img/pogo/merch/wear-640.webp 640w, ../../../assets/img/pogo/merch/wear-1200.webp 1200w" sizes="(max-width:767px) 100vw, 50vw" width="1536" height="1024" loading="lazy" decoding="async" alt="POGO wear: black T-shirt with the gold wordmark, patterned socks, a tote bag printed with the eye mark, a cap and a lanyard"></figure>
+    <figure class="m3"><img src="../../../assets/img/pogo/merch/box-640.webp" srcset="../../../assets/img/pogo/merch/box-640.webp 640w, ../../../assets/img/pogo/merch/box-1024.webp 1024w" sizes="(max-width:767px) 100vw, 50vw" width="1024" height="687" loading="lazy" decoding="async" alt="POGO packaging: a black box with a gold wordmark and foam insert, a teal hex-pattern mailer, branded tape and tissue paper"></figure>
+    <figure class="m4"><img src="../../../assets/img/pogo/merch/stickers-640.webp" srcset="../../../assets/img/pogo/merch/stickers-640.webp 640w, ../../../assets/img/pogo/merch/stickers-1024.webp 1024w" sizes="(max-width:767px) 100vw, 50vw" width="1024" height="765" loading="lazy" decoding="async" alt="POGO sticker sheet on a desk, with the eye-mark sticker on a laptop lid"></figure>
+    <figure class="m5"><img src="../../../assets/img/pogo/merch/set-640.webp" srcset="../../../assets/img/pogo/merch/set-640.webp 640w, ../../../assets/img/pogo/merch/set-1024.webp 1024w" sizes="(max-width:767px) 100vw, 50vw" width="1024" height="1024" loading="lazy" decoding="async" alt="A grid of nine POGO mock-ups: boxes, tissue, parts bags, a sticker sheet, a tote and tee, pins, a mug, a notebook and a mouse mat"></figure>
+   </div>
+  </div>
  </section>
  <section class="bd" id="build" aria-labelledby="bdh">
   <div class="bdt"><p class="mono rk">// 06 · Live · runs in your browser</p><h2 id="bdh" class="rh">Build one.</h2>
