@@ -4,13 +4,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <script>try{if(sessionStorage.getItem("pogoSeen"))document.documentElement.classList.add("quick")}catch(e){}</script>
-<title>POGO v1 (test build)</title>
-<meta name="description" content="POGO, a modular desk lamp that exists as CAD and simulation. Test build.">
+<title>POGO, technically a lamp (v1 test build)</title>
+<meta name="description" content="POGO is a modular desk lamp that exists only as CAD and simulation. Over-engineered, under-existing. Designed and simulated, not built. Test build.">
+<link rel="canonical" href="https://radwanjml.github.io/work/pogo/">
+<meta property="og:type" content="website"><meta property="og:title" content="POGO, technically a lamp"><meta property="og:description" content="A modular desk lamp that exists only as CAD and simulation. Designed and simulated, not built.">
+<meta property="og:image" content="https://radwanjml.github.io/assets/img/pogo/og-v1.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg">
 <link rel="preload" href="../../../assets/fonts/pogo/RedHatDisplay.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:RH;src:url("../../../assets/fonts/pogo/RedHatDisplay.woff2") format("woff2");font-weight:300 900;font-display:swap}
-:root{--paper:#fafafa;--ink:#0b0b0d;--blue:#1f3bd1;--grid:rgba(31,59,209,.07);--grid2:rgba(31,59,209,.13);--m:84px;--mono:Consolas,"SF Mono",Menlo,monospace}
+:root{--stage:1760px;--mm:max(var(--m),calc((100vw - var(--stage)) / 2));--paper:#fafafa;--ink:#0b0b0d;--blue:#1f3bd1;--grid:rgba(31,59,209,.07);--grid2:rgba(31,59,209,.13);--m:84px;--mono:Consolas,"SF Mono",Menlo,monospace}
 *{box-sizing:border-box;margin:0}
 html{background:var(--paper);color:var(--ink);-webkit-text-size-adjust:100%}
 body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
@@ -22,36 +25,137 @@ body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
  linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
  background-size:96px 96px,96px 96px,16px 16px,16px 16px;background-position:-1px -1px}
 /* nav */
-.nav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:16px;height:72px;padding:0 var(--m)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:16px;height:72px;padding:0 var(--mm)}
 .nav .home{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none;min-height:44px}
 .nav .icon{width:32px;height:32px;display:block;visibility:hidden}
 .nav .wm{height:20px;width:auto;display:block}
 .nav .sheet{margin-left:auto}
+.snd{display:flex;align-items:center;gap:8px;font:inherit;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--paper);border:1px solid var(--ink);padding:0 12px;min-height:36px;cursor:pointer}
+.snd:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.sndi{display:flex;align-items:flex-end;gap:2px;height:12px}.sndi i{display:block;width:2px;background:currentColor;height:4px}
+.snd-on .sndi i{animation:eq .8333s ease-in-out infinite}.snd-on .sndi i:nth-child(2){animation-delay:.12s}.snd-on .sndi i:nth-child(3){animation-delay:.24s}
+@keyframes eq{0%,100%{height:3px}30%{height:12px}}
+.snd-on .nav .icon{animation:nb .8333s ease-out infinite;transform-origin:center}
+@keyframes nb{0%{transform:scale(1.14)}40%,100%{transform:scale(1)}}
+body.dark .snd{color:#fafafa;background:rgba(21,15,13,.8);border-color:#fafafa}
+@media (prefers-reduced-motion:reduce){.snd-on .sndi i,.snd-on .nav .icon{animation:none}}
+@media (max-width:520px){.nav .sheet{display:none}.nav .snd{margin-left:auto}}
 /* hero */
 .hero{position:relative;z-index:1;height:100vh;height:100svh;min-height:560px;overflow:hidden}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none}
 /* the CAD drawing: placeholder from first paint, the whole lamp on T3. Framed like the 3D lamp (same fill/centre; spine at 40.8% of the image) */
 .hero{--fill:76%;--cy:53.5%}
-.ph{position:absolute;left:50%;top:var(--cy);height:var(--fill);width:auto;transform:translate(-40.8%,-50%);pointer-events:none}
+.ph{position:absolute;left:calc(50% + var(--cx,0%));top:var(--cy);height:var(--fill);width:auto;transform:translate(-40.8%,-50%);pointer-events:none}
 .tier3 #gl{display:none}
+/* step 2: interaction overlays */
+#gl{touch-action:pan-y;cursor:grab}#gl.grabbing{cursor:grabbing}
+#gl:focus-visible{outline:1px dashed var(--blue);outline-offset:-14px}
+.ov{position:absolute;inset:0;pointer-events:none;z-index:2}
+.tier3 .ov{display:none}
+.lead-l{position:absolute;inset:0;width:100%;height:100%;overflow:visible;opacity:0}
+.lead-l line{stroke:var(--blue);stroke-width:1.25}
+.lead-l circle{fill:var(--blue)}
+.plabel{position:absolute;left:0;top:0;opacity:0;display:flex;flex-direction:column;gap:6px;padding:12px 16px 14px;background:rgba(250,250,250,.92);border:1px solid var(--blue);max-width:260px}
+.plabel .num{color:var(--blue)}
+.plabel .nm{font-size:20px;font-weight:600;line-height:1.15;letter-spacing:-.01em}
+.pback{align-self:flex-start;margin-top:6px;font:inherit;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:none;border:1px solid var(--ink);padding:0 10px;min-height:28px;cursor:pointer}
+.parts{position:absolute;inset:0}
+.pbtn{position:absolute;left:0;top:0;width:44px;height:44px;border-radius:50%;border:0;background:transparent;padding:0;opacity:0;pointer-events:none}
+.pbtn:focus-visible{opacity:1;outline:2px solid var(--blue);outline-offset:2px;background:rgba(31,59,209,.08)}
+.hint{position:absolute;left:50%;top:0;margin:0;opacity:0;transform:translateX(-50%);color:var(--blue);white-space:nowrap;background:rgba(250,250,250,.85);padding:4px 10px}
+@media (max-width:767px){.plabel{max-width:min(320px,calc(100vw - 40px))}.plabel .nm{font-size:18px}}
 /* drawing -> live lamp: a plotter scan wipes down; --w = 0..100 (%) */
 .hero{--w:0}
 .wiping #gl{clip-path:inset(0 0 calc(100% - var(--w) * 1%) 0)}
 .wiping .ph{clip-path:inset(calc(var(--w) * 1%) 0 0 0)}
-.scan{position:absolute;left:0;right:0;top:calc(var(--w) * 1%);height:1px;background:var(--blue);opacity:0;pointer-events:none;box-shadow:0 0 12px 1px rgba(31,59,209,.35)}
+.scan{position:absolute;left:0;right:0;top:0;transform:translate3d(0,calc(var(--w) * max(1svh,5.6px)),0);will-change:transform;height:1px;background:var(--blue);opacity:0;pointer-events:none;box-shadow:0 0 12px 1px rgba(31,59,209,.35)}
 .wiping .scan{opacity:.7}
 @media (min-width:768px) and (max-width:1099px){.hero{--fill:60%;--cy:62.5%}}
-.hero h1{position:absolute;left:var(--m);top:22%;font-weight:700;font-size:clamp(48px,6.5vw,104px);line-height:.94;letter-spacing:-.035em;max-width:7ch;
+.hero h1{position:absolute;left:var(--mm);text-wrap:balance;top:22%;font-weight:700;font-size:clamp(48px,6.5vw,104px);line-height:.94;letter-spacing:-.035em;max-width:7ch;
  text-shadow:0 0 18px var(--paper),0 0 6px var(--paper)}
-.hero .lead{position:absolute;right:var(--m);bottom:18%;font-size:clamp(19px,1.75vw,28px);line-height:1.2;font-weight:500;max-width:16ch;text-align:right;
+.hero .lead{position:absolute;right:var(--mm);bottom:18%;font-size:clamp(19px,1.75vw,28px);line-height:1.2;font-weight:500;max-width:16ch;text-align:right;
  text-shadow:0 0 14px var(--paper),0 0 5px var(--paper)}
 .hud{position:absolute;z-index:3;display:flex;gap:10px;align-items:center}
-.hud.bl{left:var(--m);bottom:28px}.hud.br{right:var(--m);bottom:28px;color:#4a4d57}
-.tierbtn{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--ink);padding:0 12px;min-height:32px;cursor:pointer}
+.hud.bl{left:var(--mm);bottom:28px}.hud.br{right:var(--mm);bottom:28px;color:#4a4d57}
+.tierbtn{white-space:nowrap;font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--ink);padding:0 12px;min-height:32px;cursor:pointer}
 .tierbtn:focus-visible,.home:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .next{position:relative;z-index:1;min-height:60vh;padding:120px var(--m);background:var(--paper);border-top:1px solid var(--grid2)}
 .next p{max-width:62ch;font-size:17px;line-height:1.5;color:#3b3e47}
+/* step 3: explode + module tour. Canvas is fixed; the chapter headline sits UNDER it (parts cover the words), the tag above */
+#gl{position:fixed;inset:0;width:100%;height:100vh;height:100svh}
+.xp{position:relative;z-index:0;height:700vh;height:700svh}
+.xst{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;pointer-events:none}
+.xfront{z-index:2;margin-top:-100vh;margin-top:-100svh}
+.xhw{position:absolute;left:var(--mm);top:50%;transform-origin:0 0;will-change:transform,opacity}
+.xkick{color:var(--blue);margin-bottom:18px}
+.xh{font-weight:700;font-size:clamp(46px,8.4vw,168px);line-height:.9;letter-spacing:-.045em;white-space:nowrap}
+.xsub{position:absolute;left:var(--mm);bottom:72px;font-size:17px;line-height:1.45;color:#3b3e47;max-width:40ch}
+.xtag{position:absolute;left:0;top:0;opacity:0;display:flex;flex-direction:column;gap:8px;max-width:30ch;will-change:transform,opacity}
+.xtag .num{color:var(--blue)}
+.xtag .nt{font-size:15px;line-height:1.35;color:#3b3e47;max-width:30ch;text-shadow:0 0 12px var(--paper),0 0 4px var(--paper)}
+.xtag .nt:empty{display:none}
+.xtag .nm{font-size:clamp(22px,1.9vw,30px);font-weight:600;line-height:1.12;letter-spacing:-.015em;text-shadow:0 0 14px var(--paper),0 0 5px var(--paper)}
+.xprog{position:absolute;right:var(--mm);bottom:28px;color:#4a4d57;opacity:0}
+.xslice{position:absolute;left:50%;top:56%;max-height:44%;max-width:min(44vw,560px);width:auto;height:auto;object-fit:contain;transform:translate(-50%,-50%)}
+@media (max-width:767px){.xslice{max-width:78vw;max-height:40%;top:48%}}
+@media (max-width:767px){.xtag{background:rgba(250,250,250,.9);padding:10px 12px;margin:0 0 0 -12px}}
+.xslice.pz{left:64%;top:54%;max-width:min(54vw,720px);max-height:62%}
+@media (max-width:767px){.xslice.pz{left:50%;top:48%;max-width:94vw;max-height:36%}}
+@media (min-width:768px) and (max-width:1099px){.xh{font-size:6.6vw}}
+@media (orientation:landscape) and (max-height:520px){.xh{font-size:clamp(30px,5.4vw,56px)}.xsub{bottom:24px;font-size:13px}}
+@media (max-width:767px){.xsub{bottom:88px;font-size:15px}.xprog{bottom:40px}.xhw{top:63%}.xh{font-size:clamp(40px,11.6vw,64px)}}
+/* rest of the page: dark room continues */
+.rest{position:relative;z-index:1;background:#0b0807;color:#fafafa}
+.rest a{color:#fafafa}
+.rest .rk{color:#ff8a3d;margin-bottom:16px}
+.rh{font-weight:700;font-size:clamp(34px,4.6vw,76px);line-height:.96;letter-spacing:-.035em}
+.rp{font-size:clamp(17px,1.25vw,20px);line-height:1.55;color:#d8d1cb;max-width:64ch}
+.rp.strong{color:#fafafa;font-weight:600}
+.rn,.bd,.cs,.cr{padding:clamp(72px,10vw,150px) var(--mm) 0}
+.rgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(12px,1.6vw,24px);margin-top:48px;align-items:start}
+.rgrid figure{margin:0}.rgrid img,.rdet img,.td img,.bdi img{display:block;width:100%;height:auto;background:#1a1411}
+.r1{grid-column:1/span 5}.r2{grid-column:6/span 3;margin-top:84px}.r3{grid-column:9/span 4}.r4{grid-column:3/span 4;margin-top:-24px}
+.rdet{list-style:none;padding:0;margin:clamp(24px,3vw,48px) 0 0;display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.2vw,16px)}
+.rdet li{display:flex;flex-direction:column;gap:8px}.rdet .mono{font-size:11px;color:#b8b0aa}
+.bd{display:grid;grid-template-columns:5fr 7fr;gap:clamp(24px,4vw,72px);align-items:center}
+.bdt .rp{margin-top:20px}.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 24px;margin-top:28px;background:#ff8a3d;color:#0b0807!important;font-weight:700;text-decoration:none;border:0}
+.btn:focus-visible,.rest a:focus-visible{outline:2px solid #ff8a3d;outline-offset:3px}
+.rn2{margin-top:14px;color:#b8b0aa;font-size:11px}
+.cs-h{max-width:18ch}.csc{max-width:70ch;margin-top:40px}.csc .rp{margin-top:18px}.csh{margin-top:44px;font-size:clamp(20px,1.6vw,26px);font-weight:700;letter-spacing:-.01em}
+.lead2{font-size:clamp(19px,1.5vw,24px);color:#fafafa}
+.td{margin:36px 0 12px;max-width:min(100%,900px)}.td figcaption{margin-top:10px;color:#b8b0aa;font-size:11px}
+.cr{padding-bottom:64px}.ft{margin-top:0}.ft2{margin-top:10px}
+.crl{list-style:none;padding:0;margin:56px 0 0;display:flex;flex-direction:column;gap:8px;color:#b8b0aa;font-size:11px;max-width:90ch;text-transform:none;letter-spacing:.04em}
+.crn{margin-top:32px;font-size:11px;color:#b8b0aa}.crn a{text-decoration:underline;text-underline-offset:3px}
+@media (max-width:767px){.rgrid{grid-template-columns:1fr 1fr}.r1{grid-column:1/span 2}.r2{grid-column:1;margin-top:0}.r3{grid-column:2;margin-top:0}.r4{grid-column:1/span 2;margin-top:0}.rdet{grid-template-columns:1fr 1fr}.bd{grid-template-columns:1fr}.rn,.bd,.cs,.cr{padding-top:72px}}
+/* step 5: develop. The room is a fixed dark layer under the page; everything light-on-dark switches with body.dark */
+.room{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(120% 90% at 78% 40%,#2a1d17 0%,#150f0d 55%,#0b0807 100%)}
+.band{position:absolute;left:0;right:0;top:0;height:64px;margin-top:-32px;opacity:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,138,61,0) 0%,rgba(255,138,61,.28) 46%,rgba(255,236,200,.95) 50%,rgba(255,138,61,.28) 54%,rgba(255,138,61,0) 100%);will-change:transform,opacity}
+.dh{position:absolute;left:var(--mm);top:50%;transform:translateY(-50%);opacity:0;visibility:hidden;color:#fafafa}
+.dk{color:#ff8a3d;margin-bottom:18px}
+.dhd{font-weight:700;font-size:clamp(44px,6.6vw,116px);line-height:.92;letter-spacing:-.04em}
+.stillh{position:absolute;opacity:0;object-fit:cover;-webkit-mask-image:radial-gradient(ellipse 72% 68% at 50% 50%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 72% 68% at 50% 50%,#000 58%,transparent 100%)}
+body.onrest .nav{background:rgba(11,8,7,.97)}
+body.dark .nav .home{color:#fafafa}body.dark .nav .sheet{color:#fafafa}
+@media (max-width:767px){.dh{top:auto;bottom:34px;transform:none}.dhd{font-size:clamp(36px,10.4vw,56px)}.dk{margin-bottom:10px}}
+/* step 4: poses */
+.zh{position:absolute;left:var(--mm);top:15%;opacity:0;visibility:hidden}
+.zkick{color:var(--blue);margin-bottom:16px;max-width:calc(100vw - 2 * var(--mm))}
+.zhd{font-weight:700;font-size:clamp(40px,6.4vw,112px);line-height:.92;letter-spacing:-.04em}
+.zhud{position:absolute;left:var(--mm);bottom:40px;display:flex;align-items:center;gap:22px;opacity:0;visibility:hidden}
+.zplan{width:clamp(110px,11vw,170px);height:auto;flex:none}
+.zfoot{fill:rgba(31,59,209,.06);stroke:var(--blue);stroke-width:1.2}
+.zcirc{fill:none;stroke:var(--blue);stroke-width:1;stroke-dasharray:3 3}
+.zax{stroke:var(--blue);stroke-width:.6;opacity:.35}
+.zdot{fill:var(--blue)}
+.zread{display:flex;flex-direction:column;gap:6px;text-shadow:0 0 14px var(--paper),0 0 5px var(--paper)}
+.zpose{color:var(--blue)}
+.zmargin{font-size:clamp(20px,1.9vw,30px);font-weight:600;line-height:1.1;letter-spacing:-.015em}
+.znote{color:#4a4d57;font-size:11px}
+@media (min-width:768px) and (max-width:1099px){.zhd{font-size:6.2vw}}
+@media (max-width:767px){.zh{top:84px}.zhd{font-size:clamp(36px,10.6vw,60px)}.zkick{margin-bottom:10px}.zhud{bottom:28px;gap:14px}.zplan{width:96px}.znote{display:none}}
+@media (orientation:landscape) and (max-height:520px){.zh{top:64px}.zhd{font-size:clamp(28px,5.2vw,52px)}.zhud{bottom:20px}.zplan{width:84px}.znote{display:none}}
 /* loader */
 #loader{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--paper);animation:ldrOut .45s 4s forwards}
 .quick #loader{display:none}.quick .nav .icon{visibility:visible}
@@ -69,6 +173,16 @@ body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
  .hero .lead{bottom:76px;right:var(--m);font-size:18px;max-width:22ch}
  .hero{--fill:50%;--cy:50%}
  .hud.bl{bottom:20px}.hud.br{display:none}.pending .hud.br{display:flex;bottom:64px}
+}
+@media (max-width:360px){.hero h1{font-size:38px}.hud.bl #tierlab{display:none}.hud.bl{gap:8px}}
+/* short landscape phones: text left, lamp right, full height */
+@media (orientation:landscape) and (max-height:520px){
+ :root{--m:24px}
+ .nav{height:52px}
+ .hero{min-height:0;--fill:80%;--cy:55%;--cx:21%}
+ .hero h1{top:64px;font-size:clamp(30px,8.5vh,44px);max-width:9ch}
+ .hero .lead{left:var(--mm);right:auto;bottom:64px;text-align:left;font-size:16px;max-width:none}
+ .hud.bl{bottom:14px}.hud.br{display:none}
 }
 /* loader: pure CSS from first paint. Blue construction, then ink. --lift = hex drafted height in viewBox units */
 #ldr .c{stroke:#1f3bd1;fill:none}
@@ -108,16 +222,18 @@ body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
 </head>
 <body>
 <div class="paper" aria-hidden="true"></div>
+<div class="room" aria-hidden="true"></div>
 <header class="nav">
  <a class="home" href="#top" aria-label="POGO, home">
   <svg class="icon" id="navicon" viewBox="-76.8 -111.8 1433.6 1433.6" aria-hidden="true"><rect x="50" y="50" width="1180" height="1110.0" rx="240" fill="none" stroke="currentColor" stroke-width="100"/><circle cx="426.67" cy="693.80" r="176" fill="currentColor"/><polygon points="729.09,693.80 791.21,586.21 915.45,586.21 977.57,693.80 915.45,801.39 791.21,801.39" fill="none" stroke="currentColor" stroke-width="100" stroke-linejoin="round"/></svg>
   <svg class="wm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="-20 -1110 4602 1170" fill="currentColor"><path d="M96.69 0.00V-1000.00H576.52Q675.09 -1000.00 749.34 -961.13Q823.58 -922.26 865.69 -853.41Q907.79 -784.56 907.79 -693.91Q907.79 -605.36 865.69 -536.86Q823.58 -468.36 748.62 -429.48Q673.66 -390.59 576.52 -390.59H273.26V0.00ZM273.26 -538.87H558.14Q636.44 -538.87 683.13 -580.85Q729.81 -622.83 729.81 -692.48Q729.81 -762.83 683.13 -804.80Q636.44 -846.77 558.14 -846.77H273.26Z"/><circle cx="1558.01" cy="-500.00" r="432.02" fill="none" stroke="currentColor" stroke-width="167.38"/><circle cx="1558.01" cy="-500.00" r="273.01"/><path d="M2738.20 15.71Q2627.52 15.71 2532.20 -23.94Q2436.87 -63.58 2364.76 -134.30Q2292.64 -205.01 2252.29 -298.58Q2211.94 -392.16 2211.94 -500.00Q2211.94 -607.84 2251.93 -701.42Q2291.92 -794.99 2363.33 -865.70Q2434.75 -936.42 2530.07 -976.06Q2625.39 -1015.71 2735.36 -1015.71Q2856.69 -1015.71 2964.45 -968.30Q3072.21 -920.89 3144.37 -836.01L3021.73 -721.05Q2968.79 -785.37 2894.30 -819.34Q2819.81 -853.32 2735.36 -853.32Q2662.26 -853.32 2599.91 -826.45Q2537.55 -799.57 2490.96 -751.90Q2444.36 -704.23 2418.56 -640.10Q2392.75 -575.96 2392.75 -500.00Q2392.75 -424.77 2418.91 -359.92Q2445.07 -295.07 2492.36 -247.05Q2539.65 -199.03 2602.71 -172.15Q2665.77 -145.28 2739.57 -145.28Q2819.97 -145.28 2885.30 -177.65Q2950.62 -210.03 2993.28 -266.85Q3035.93 -323.67 3047.31 -395.58H2732.19V-549.49H3234.42V-491.89Q3234.42 -383.40 3196.93 -290.94Q3159.43 -198.49 3092.67 -129.60Q3025.90 -60.70 2935.23 -22.49Q2844.56 15.71 2738.20 15.71Z"/><polygon points="3497.48,-500.00 3766.33,-932.02 4154.56,-932.02 4423.41,-500.00 4154.56,-67.98 3766.33,-67.98" fill="none" stroke="currentColor" stroke-width="167.38" stroke-linejoin="round"/></svg>
  </a>
- <span class="mono sheet">Sheet 01 / 06</span>
+ <span class="mono sheet">Sheet 01 / 07</span>
+ <button class="snd mono" id="sndbtn" type="button" aria-pressed="false" aria-label="Sound: off. Turn on"><span class="sndi" aria-hidden="true"><i></i><i></i><i></i></span><span class="sndl">Sound off</span></button>
 </header>
 <main id="main" aria-busy="true">
  <section class="hero" id="top" aria-label="POGO">
-  <canvas id="gl" role="img" aria-label="POGO, a modular desk lamp, drawn in blue CAD lines and turning slowly: an octagonal base, a jointed spine of three tubes, a head with one round eye and one hexagon eye, a two-joint arm with a gripper on the right and a flexible tentacle holding a cup on the left."></canvas>
+  <canvas id="gl" role="img" aria-label="POGO, a modular desk lamp, drawn in blue CAD lines, swaying gently: an octagonal base, a jointed spine of three tubes, a head with one round eye and one hexagon eye, a two-joint arm with a gripper on the right and a flexible tentacle holding a cup on the left. Drag or use the arrow keys to turn it; Tab to its parts and press Enter to look closer, Escape to return."></canvas>
   <img class="ph" id="ph" src="../../../assets/img/pogo/slice/lamp-lines-upG-360.webp" width="360" height="576" alt="" fetchpriority="high">
   <div class="scan" aria-hidden="true"></div>
   <h1>Technically, a lamp.</h1>
@@ -126,10 +242,76 @@ body{font-family:RH,system-ui,sans-serif;overflow-x:clip}
   <div class="hud br mono" aria-hidden="true">Lens 50 mm</div>
   <p class="sr" id="live" aria-live="polite"></p>
  </section>
- <section class="next" aria-label="Test build note">
-  <p class="mono">Test build · step 1 of 7</p>
-  <p style="margin-top:16px">Loader, quality tiers and the lamp drawn in CAD lines, live in the browser. The rest of the page comes in the next steps. POGO exists only as CAD and simulation; nothing here was built or tested on a bench. Made with AI assistance.</p>
+ <section class="xp" id="explode" aria-labelledby="xph">
+  <div class="xst xback"><div class="xhw"><p class="mono xkick">// 02 · Blueprint · exploded view</p><h2 id="xph" class="xh">Over-engineered.<br>Under-existing.</h2></div>
+   <p class="xsub">185 parts in the CAD build. 8 modules.<br>Every joint simulated. None of it built.</p>
+   <div class="zh"><p class="mono zkick">// 03 · Poses · simulated, legs folded under</p><h2 class="zhd">Stands up<br>for itself.</h2></div></div>
+  <div class="xst xfront" aria-hidden="true"><div class="xtag"><span class="mono num"></span><span class="nm"></span><span class="nt"></span></div><div class="xprog mono"></div>
+   <div class="band" aria-hidden="true"></div>
+   <div class="dh"><p class="mono dk">// 04 · Develop</p><h2 class="dhd">One lamp,<br>a lot of parts.</h2></div>
+   <img class="stillh" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="The lamp in its room at night: black metal, brass joints, orange locking rings, a round lens glowing warm. A render." width="800" height="1000" decoding="async" hidden>
+   <div class="zhud"><svg class="zplan" viewBox="-100 -100 200 200" aria-hidden="true"><circle class="zfoot" r="88"/><circle class="zcirc" r="4"/><line x1="-100" y1="0" x2="100" y2="0" class="zax"/><line x1="0" y1="-100" x2="0" y2="100" class="zax"/><circle class="zdot" r="6" cx="0" cy="0"/></svg>
+    <div class="zread"><span class="mono zpose"></span><span class="zmargin"></span><span class="mono znote">Top view: support circle, centre of mass.</span></div></div></div>
+  <p class="sr">Then the lamp stands back up and is developed: lines become black metal, brass and orange rings, and the first render of the lamp in its room takes over. One lamp, a lot of parts.</p>
+  <p class="sr">Then the parts fly home and seat with a quarter turn. The lamp is posed four ways in a simulation: upright, reach, task light, lean. In the reach pose the tipping margin is 25 millimetres, simulated, legs folded under. Nothing was built or tested.</p>
+  <ol class="sr"><li>Base</li><li>01, J1 + tube 1</li><li>02, J2 + port tube</li><li>03, Stub + pen cup</li><li>04, J2 + shoulder tube</li><li>05, Ball-chain tentacle</li><li>06, Rigid arm, 2 joints</li><li>07, Neck: tilt + swivel</li><li>08, Head: round lens + hex eye</li></ol>
  </section>
+
+ <div class="rest">
+ <section class="rn" id="renders" aria-labelledby="rnh">
+  <p class="mono rk">// 05 · Renders · Blender Cycles</p>
+  <h2 id="rnh" class="rh">Same lamp. Different rooms.</h2>
+  <div class="rgrid">
+   <figure class="r1"><img src="../../../assets/img/pogo/still-back.webp" width="800" height="1000" loading="lazy" decoding="async" alt="The same lamp in white and teal in a day-lit office: a glossy monitor, a vase and a tall window at dawn"></figure>
+   <figure class="r2"><img src="../../../assets/img/pogo/still-front.webp" width="700" height="1000" loading="lazy" decoding="async" alt="Close-up of the first joint: ring-lock collar, hinge cheeks and the socket bolt, in brass on black"></figure>
+   <figure class="r3"><img src="../../../assets/img/pogo/still-clay.webp" width="800" height="1000" loading="lazy" decoding="async" alt="Close-up of the second joint: the swivel collar, hinge and tube end, in brass on black"></figure>
+   <figure class="r4"><img src="../../../assets/img/pogo/still-j1.webp" width="700" height="700" loading="lazy" decoding="async" alt="The base from above and to the side: the glowing ring light, a brass knob and the first joint collar"></figure>
+  </div>
+  <ul class="rdet">
+   <li><img src="../../../assets/img/pogo/detail-chain.webp" width="800" height="600" loading="lazy" decoding="async" alt="Close-up of the ball-chain arm: black hex links on brass balls"><span class="mono">Ball chain</span></li>
+   <li><img src="../../../assets/img/pogo/detail-tentacle.webp" width="800" height="600" loading="lazy" decoding="async" alt="The bendy tentacle curling over the desk"><span class="mono">Tentacle</span></li>
+   <li><img src="../../../assets/img/pogo/detail-cup.webp" width="800" height="600" loading="lazy" decoding="async" alt="The pen cup on its side tube with a brass collar"><span class="mono">Pen cup</span></li>
+   <li><img src="../../../assets/img/pogo/detail-gripper.webp" width="800" height="600" loading="lazy" decoding="async" alt="The arm gripper in brass: a sliding jaw and a fixed finger"><span class="mono">Gripper</span></li>
+   <li><img src="../../../assets/img/pogo/detail-base.webp" width="800" height="600" loading="lazy" decoding="async" alt="The base seen from above: ring light, first joint and a brass knob"><span class="mono">Base</span></li>
+  </ul>
+ </section>
+ <section class="bd" id="build" aria-labelledby="bdh">
+  <div class="bdt"><p class="mono rk">// 06 · Live · runs in your browser</p><h2 id="bdh" class="rh">Build one.</h2>
+   <p class="rp">Pick a start, add parts, drag the lamp into a pose. Balance, joint load and clashes are checked as you move.</p>
+   <p><a class="btn" href="../../../sites/pogo/">Open the builder</a></p><p class="rn2 mono">About 3 MB of models, loaded only on its own page.</p></div>
+  <div class="bdi" aria-hidden="true"><img src="../../../assets/img/pogo/builder-card.webp" width="1280" height="800" loading="lazy" decoding="async" alt=""></div>
+ </section>
+ <section class="cs" id="case" aria-labelledby="csh">
+  <p class="mono rk">// 07 · Case study</p><h2 id="csh" class="rh cs-h">What I designed, and what the checks found.</h2>
+  <div class="csc">
+   <p class="rp lead2">POGO is a modular desk lamp. A base with fold-out legs, joints that lock with a twist of an orange ring, tubes in three lengths, and a head with two different eyes. You can hang a pen cup, a jointed arm or a bendy tentacle off the side tubes.</p>
+   <p class="rp">I designed every part in CAD, then wrote the maths that checks it: weight, balance, how much each joint has to hold, and whether parts hit each other. The builder runs that same maths in your browser. I have not built a lamp. Every number on this page comes from CAD and calculation, not from a test.</p>
+   <h3 class="csh">Why it will not tip over</h3>
+   <p class="rp">Legs folded is the worst case, because the base is smallest. In the worst of the five poses I checked, the weight still lands 25 mm inside the base edge. With the legs open the margin is much bigger. The tightest pose is the reach with the arm loaded, so that is the one I watch when I change anything.</p>
+   <h3 class="csh">The tubes that failed</h3>
+   <p class="rp">The tubes with a side port, where the cup and arm attach, failed my frame simulation. The wall around the port was too thin for the load. I rebuilt that zone: the bore narrows to the wire channel there, and a saddle spreads the load. The redone tubes pass at safety factors of 1.14 and 1.30. Those stack cautious assumptions and I have never printed one, so before trusting them I would print a test piece first.</p>
+   <h3 class="csh">The joint that had no margin</h3>
+   <p class="rp">The first joint above the base carries the whole lamp. With the arm stretched out, it has to hold about 3.7 N·m. The clutch I had designed holds 3.3 N·m. It would have slipped. Joint v2 stacks eight disc springs in a larger housing and holds 4.6 N·m, which is 1.23× the load. At 150 g on the arm it still fails, so I set the arm rating to 100 g. That is a design limit, chosen from the maths.</p>
+   <figure class="td"><img src="../../../assets/img/pogo/teardown.webp" width="2000" height="1500" loading="lazy" decoding="async" alt="Joint v2 pulled apart along its hinge axis: bolt, washer, eight disc springs, cheek housing, collar, sleeve and nut"><figcaption class="mono">M6 bolt · washer · 8 disc springs · cheek housing · yoke · sleeve · collar · nut</figcaption></figure>
+   <p class="rp">Fixing that joint moved the problem. The second joint is now the weakest, and in the builder it blocks 9 of the 63 pose and length combinations. I left it that way. Strengthening it too would add weight in the middle of the lamp.</p>
+   <h3 class="csh">How it was made</h3>
+   <p class="rp">I build with AI. I set the design, made the decisions and judged every render. Claude, Anthropic's model, wrote most of the code: the CAD scripts, the simulation and the builder. The renders are Blender Cycles.</p>
+   <h3 class="csh">What this is, and is not</h3>
+   <p class="rp strong">A design study. Designed and simulated. Not built, not physically tested. There is no price and nothing to buy.</p>
+  </div>
+ </section>
+ <footer class="cr" id="credits">
+  <p class="rh ft">Light work. 5.21 kg of it.</p><p class="rp ft2">Overthinks everything. Like its designer.</p>
+  <ul class="crl mono">
+   <li>Type: Red Hat Display, SIL Open Font License 1.1, self-hosted.</li>
+   <li>3D: three.js, MIT. Animation: GSAP, GreenSock standard no-charge licence.</li>
+   <li>Sound: synthesized in your browser on tap. No audio file, no licence needed. Off by default.</li>
+   <li>Renders: Blender Cycles. Design, simulation and this page: made with AI assistance (Claude).</li>
+   <li>Test build of v1. Nothing here was built or tested on a bench.</li>
+  </ul>
+  <p class="mono crn">© 2026 Radwan Jameel · <a href="../../../">Portfolio</a> · <a href="../../herrand/">Herrand</a> · <a href="../../../sites/pogo/">Builder, full screen</a> · <a href="../">POGO, the original sheets</a></p>
+ </footer>
+ </div>
 </main>
 <div id="loader" aria-hidden="true">
  <div class="paper"></div>
